@@ -23,6 +23,16 @@ compose() {
   (cd "$PROJ" && podman-compose -f "$COMPOSE_FILE" "$@")
 }
 
+stop_dev_db_if_running() {
+  local running
+  running="$(podman inspect --format '{{.State.Running}}' kids-games-postgres 2>/dev/null || true)"
+  if [[ "$running" == "true" ]]; then
+    info "Stopping local dev DB container to free port 5432 for stack DB..."
+    podman stop kids-games-postgres >/dev/null
+    ok "Stopped kids-games-postgres"
+  fi
+}
+
 # ── targets ──────────────────────────────────────────────────────────────────
 
 cmd_init() {
@@ -88,12 +98,12 @@ cmd_test_integration() {
 
 cmd_test_e2e() {
   require_env
-  info "Running Playwright e2e tests against dev server..."
+  info "Running Playwright e2e tests (web dev server auto-starts; API must already be running)..."
   (cd "$PROJ" && pnpm test:e2e)
 }
 
 cmd_test_e2e_stack() {
-  info "Running Playwright e2e tests against container stack (http://localhost)..."
+  info "Running Playwright e2e tests against container stack (http://localhost:8080)..."
   (cd "$PROJ" && pnpm test:e2e:stack)
 }
 
@@ -179,15 +189,16 @@ cmd_stack_init() {
   (cd "$PROJ" && podman build -f infra/podman/Dockerfile.web -t kids-games-web .)
 
   info "Starting stack..."
+  stop_dev_db_if_running
   compose up -d
 
   info "Waiting for stack to become healthy..."
   (cd "$PROJ" && ./infra/podman/smoke-test.sh)
 
   info "Seeding database inside API container..."
-  podman exec kids-games-api node --env-file=/dev/null -r tsx/esm src/db/seed.ts
+  podman exec kids-games-api node dist/db/seed.js
 
-  ok "Stack init complete. Open http://localhost"
+  ok "Stack init complete. Open http://localhost:8080"
 }
 
 cmd_stack_build() {
@@ -200,23 +211,26 @@ cmd_stack_build() {
 cmd_stack_up() {
   require_env
   info "Starting full Podman stack..."
+  stop_dev_db_if_running
   compose up -d
-  ok "Stack up. Open http://localhost"
+  ok "Stack up. Open http://localhost:8080"
 }
 
 cmd_stack_rebuild() {
   require_env
   info "Rebuilding images and restarting stack..."
+  stop_dev_db_if_running
   compose up -d --build
-  ok "Stack rebuilt and running. Open http://localhost"
+  ok "Stack rebuilt and running. Open http://localhost:8080"
 }
 
 cmd_stack_restart() {
   require_env
   info "Restarting stack (down + up, no rebuild)..."
+  stop_dev_db_if_running
   compose down
   compose up -d
-  ok "Stack restarted. Open http://localhost"
+  ok "Stack restarted. Open http://localhost:8080"
 }
 
 cmd_stack_down() {
@@ -236,12 +250,12 @@ cmd_stack_logs() {
 
 cmd_stack_seed() {
   info "Seeding database inside running API container..."
-  podman exec kids-games-api node --env-file=/dev/null -r tsx/esm src/db/seed.ts
+  podman exec kids-games-api node dist/db/seed.js
   ok "Seed complete."
 }
 
 cmd_stack_smoke() {
-  info "Running smoke test against stack (http://localhost)..."
+  info "Running smoke test against stack (http://localhost:8080)..."
   (cd "$PROJ" && ./infra/podman/smoke-test.sh)
 }
 
@@ -305,8 +319,8 @@ Tests
   test:unit           Unit tests (no DB required)
   test:web            Web component tests — vitest + jsdom (no DB required)
   test:int            API integration tests (requires DB)
-  test:e2e            Playwright e2e tests against dev server (requires full stack running)
-  test:e2e:stack      Playwright e2e tests against container stack (http://localhost)
+  test:e2e            Playwright e2e tests (web dev server auto-starts; API must be running)
+  test:e2e:stack      Playwright e2e tests against container stack (http://localhost:8080)
   test:full           All tests in sequence
 
 Database (local dev container)
@@ -318,7 +332,7 @@ Database (local dev container)
   db:seed             Insert seed data (idempotent)
   db:wipe             Drop all tables, re-migrate, re-seed (destructive)
 
-Container stack (Podman full stack — http://localhost)
+Container stack (Podman full stack — http://localhost:8080)
   stack:init          First-time: build images + up + wait + seed
   stack:build         Build container images only (api + web)
   stack:up            Start stack (uses existing images)

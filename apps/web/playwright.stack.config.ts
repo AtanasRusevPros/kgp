@@ -11,7 +11,7 @@ import { defineConfig, devices } from '@playwright/test';
  *   pnpm test:e2e:stack            (from platform root)
  *   pnpm --filter @kids-games/web test:e2e:stack
  *
- * The stack base URL defaults to http://localhost:80 (Caddy HTTP).
+ * The stack base URL defaults to http://localhost:8080 (Caddy HTTP).
  * Override with BASE_URL_STACK env var for HTTPS or a custom port:
  *   BASE_URL_STACK=https://localhost pnpm test:e2e:stack
  */
@@ -23,7 +23,7 @@ export default defineConfig({
   retries: 1,
   reporter: 'list',
   use: {
-    baseURL: process.env['BASE_URL_STACK'] ?? 'http://localhost',
+    baseURL: process.env['BASE_URL_STACK'] ?? 'http://localhost:8080',
     trace: 'on-first-retry',
     ignoreHTTPSErrors: true,
   },

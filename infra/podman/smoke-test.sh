@@ -31,8 +31,8 @@ done
 # Verify health response body
 echo "--> Checking API health response..."
 HEALTH_BODY=$(curl -s "${API_HEALTH}")
-if echo "${HEALTH_BODY}" | grep -q '"ok":true'; then
-  echo "    OK: health body contains ok:true"
+if echo "${HEALTH_BODY}" | grep -Eq '"status"[[:space:]]*:[[:space:]]*"ok"'; then
+  echo "    OK: health body contains status:ok"
 else
   echo "    FAIL: unexpected health response: ${HEALTH_BODY}"
   exit 1

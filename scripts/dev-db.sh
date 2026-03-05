@@ -8,16 +8,69 @@ POSTGRES_PASSWORD="postgres"
 POSTGRES_USER="postgres"
 HOST_PORT="5432"
 
+is_project_managed_conflict() {
+  local name="$1"
+  case "$name" in
+    kids-games-db|podman_postgres_1)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+resolve_port_conflicts() {
+  local owners owner names
+
+  owners=""
+  names="$(podman ps --format '{{.Names}}' 2>/dev/null || true)"
+  while IFS= read -r owner; do
+    [[ -z "$owner" ]] && continue
+    if podman port "$owner" 2>/dev/null | grep -Eq ":[[:space:]]*${HOST_PORT}$|:${HOST_PORT}$"; then
+      owners+="${owner}"$'\n'
+    fi
+  done <<< "$names"
+
+  [[ -z "$owners" ]] && return 0
+
+  while IFS= read -r owner; do
+    [[ -z "$owner" ]] && continue
+    [[ "$owner" == "$CONTAINER_NAME" ]] && continue
+
+    if is_project_managed_conflict "$owner"; then
+      echo "→ Port ${HOST_PORT} is held by project container '${owner}', stopping it..."
+      podman stop "$owner" >/dev/null
+      echo "✓ Stopped '${owner}'"
+    else
+      echo "✗ Port ${HOST_PORT} is already in use by container '${owner}'."
+      echo "  Refusing to stop non-project container automatically."
+      echo "  Stop it manually, then retry."
+      exit 1
+    fi
+  done <<< "$owners"
+
+  if ss -tlnp 2>/dev/null | grep -q ":${HOST_PORT} "; then
+    echo "✗ Port ${HOST_PORT} is still in use by a non-container process."
+    echo "  Stop that process and retry."
+    exit 1
+  fi
+}
+
 cmd="${1:-start}"
 
 case "$cmd" in
   start)
-    if podman ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+    _running=$(podman inspect --format '{{.State.Running}}' "$CONTAINER_NAME" 2>/dev/null || true)
+    if [[ "$_running" == "true" ]]; then
       echo "✓ Postgres container already running."
       exit 0
     fi
 
-    if podman ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+    _exists=$(podman inspect --format '{{.Id}}' "$CONTAINER_NAME" 2>/dev/null || true)
+    resolve_port_conflicts
+
+    if [[ -n "$_exists" ]]; then
       echo "→ Starting existing container..."
       podman start "$CONTAINER_NAME"
     else

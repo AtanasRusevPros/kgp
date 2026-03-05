@@ -12,6 +12,7 @@
     "test:unit": "vitest run --config vitest.unit.config.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "db:migrate": "node --env-file=.env -r tsx/esm src/db/migrate.ts",
+    "db:migrate:down": "node --env-file=.env -r tsx/esm src/db/migrate-down.ts",
     "db:seed": "node --env-file=.env -r tsx/esm src/db/seed.ts",
     "db:reset": "node --env-file=.env -r tsx/esm src/db/reset.ts"
   },
