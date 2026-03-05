@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # Root-level developer convenience script for Kids Games Platform.
 # Run from the repo root: ./dev.sh <target>
-#
-# Run from the repo root.
 
 set -euo pipefail
 
