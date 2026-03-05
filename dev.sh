@@ -1,0 +1,386 @@
+#!/usr/bin/env bash
+# Root-level developer convenience script for Kids Games Platform.
+# Run from the repo root: ./dev.sh <target>
+#
+# Run from the repo root.
+
+set -euo pipefail
+
+PROJ="$(cd "$(dirname "$0")" && pwd)"
+COMPOSE_FILE="infra/podman/compose.yml"
+
+# ── helpers ──────────────────────────────────────────────────────────────────
+
+ok()   { echo "✓ $*"; }
+info() { echo "→ $*"; }
+die()  { echo "✗ $*" >&2; exit 1; }
+
+require_env() {
+  if [[ ! -f "$PROJ/apps/api/.env" ]]; then
+    die "apps/api/.env not found. Run:  ./dev.sh init"
+  fi
+}
+
+compose() {
+  (cd "$PROJ" && podman-compose -f "$COMPOSE_FILE" "$@")
+}
+
+# ── targets ──────────────────────────────────────────────────────────────────
+
+cmd_init() {
+  info "Installing dependencies..."
+  (cd "$PROJ" && pnpm install)
+
+  info "Copying .env.example → apps/api/.env (skipped if already exists)..."
+  if [[ ! -f "$PROJ/apps/api/.env" ]]; then
+    cp "$PROJ/apps/api/.env.example" "$PROJ/apps/api/.env"
+    ok ".env created — review apps/api/.env and adjust secrets if needed"
+  else
+    ok ".env already exists, skipping"
+  fi
+
+  info "Starting database container..."
+  (cd "$PROJ" && ./scripts/dev-db.sh start)
+
+  info "Running migrations..."
+  (cd "$PROJ" && pnpm db:migrate)
+
+  info "Seeding database..."
+  (cd "$PROJ" && pnpm db:seed)
+
+  ok "Init complete. Start developing:"
+  echo "  ./dev.sh server   — API on http://localhost:3000"
+  echo "  ./dev.sh web      — Web on http://localhost:5173"
+}
+
+cmd_build() {
+  info "Building all packages..."
+  (cd "$PROJ" && pnpm build)
+  ok "Build complete."
+}
+
+cmd_server() {
+  require_env
+  info "Starting API dev server (http://localhost:3000)..."
+  (cd "$PROJ" && pnpm dev:api)
+}
+
+cmd_web() {
+  info "Starting web dev client (http://localhost:5173)..."
+  (cd "$PROJ" && pnpm dev:web)
+}
+
+# ── tests ─────────────────────────────────────────────────────────────────────
+
+cmd_test_unit() {
+  info "Running unit tests..."
+  (cd "$PROJ" && pnpm test:unit)
+}
+
+cmd_test_web() {
+  info "Running web component tests..."
+  (cd "$PROJ" && pnpm test:web)
+}
+
+cmd_test_integration() {
+  require_env
+  info "Running integration tests (requires DB)..."
+  (cd "$PROJ" && pnpm test:integration)
+}
+
+cmd_test_e2e() {
+  require_env
+  info "Running Playwright e2e tests against dev server..."
+  (cd "$PROJ" && pnpm test:e2e)
+}
+
+cmd_test_e2e_stack() {
+  info "Running Playwright e2e tests against container stack (http://localhost)..."
+  (cd "$PROJ" && pnpm test:e2e:stack)
+}
+
+cmd_test_full() {
+  require_env
+  info "Running full test suite..."
+  (cd "$PROJ" && pnpm test:full)
+}
+
+# ── quality ───────────────────────────────────────────────────────────────────
+
+cmd_lint() {
+  info "Running ESLint..."
+  (cd "$PROJ" && pnpm lint)
+  ok "Lint passed."
+}
+
+cmd_typecheck() {
+  info "Running TypeScript type check..."
+  (cd "$PROJ" && pnpm typecheck)
+  ok "Typecheck passed."
+}
+
+cmd_check() {
+  info "Running lint + typecheck..."
+  (cd "$PROJ" && pnpm lint && pnpm typecheck)
+  ok "All checks passed."
+}
+
+# ── database (local dev container) ───────────────────────────────────────────
+
+cmd_db_start() {
+  info "Starting database container..."
+  (cd "$PROJ" && ./scripts/dev-db.sh start)
+}
+
+cmd_db_stop() {
+  info "Stopping database container..."
+  (cd "$PROJ" && ./scripts/dev-db.sh stop)
+}
+
+cmd_db_reset_container() {
+  info "Resetting database container (wipes volume)..."
+  (cd "$PROJ" && ./scripts/dev-db.sh reset)
+}
+
+cmd_db_migrate() {
+  require_env
+  info "Running migrations..."
+  (cd "$PROJ" && pnpm db:migrate)
+  ok "Migrations applied."
+}
+
+cmd_db_migrate_down() {
+  require_env
+  info "Rolling back last migration..."
+  (cd "$PROJ" && pnpm db:migrate:down)
+  ok "Last migration rolled back."
+}
+
+cmd_db_seed() {
+  require_env
+  info "Seeding database..."
+  (cd "$PROJ" && pnpm db:seed)
+  ok "Seed complete."
+}
+
+cmd_db_wipe() {
+  require_env
+  info "Wiping and rebuilding dev DB (drop + migrate + seed)..."
+  (cd "$PROJ" && pnpm db:reset)
+  ok "DB reset complete."
+}
+
+# ── container stack (Podman) ──────────────────────────────────────────────────
+
+cmd_stack_init() {
+  require_env
+  info "First-time container stack setup: build → up → wait → seed..."
+
+  info "Building container images..."
+  (cd "$PROJ" && podman build -f infra/podman/Dockerfile.api -t kids-games-api .)
+  (cd "$PROJ" && podman build -f infra/podman/Dockerfile.web -t kids-games-web .)
+
+  info "Starting stack..."
+  compose up -d
+
+  info "Waiting for stack to become healthy..."
+  (cd "$PROJ" && ./infra/podman/smoke-test.sh)
+
+  info "Seeding database inside API container..."
+  podman exec kids-games-api node --env-file=/dev/null -r tsx/esm src/db/seed.ts
+
+  ok "Stack init complete. Open http://localhost"
+}
+
+cmd_stack_build() {
+  info "Building container images (api + web)..."
+  (cd "$PROJ" && podman build -f infra/podman/Dockerfile.api -t kids-games-api .)
+  (cd "$PROJ" && podman build -f infra/podman/Dockerfile.web -t kids-games-web .)
+  ok "Images built: kids-games-api, kids-games-web"
+}
+
+cmd_stack_up() {
+  require_env
+  info "Starting full Podman stack..."
+  compose up -d
+  ok "Stack up. Open http://localhost"
+}
+
+cmd_stack_rebuild() {
+  require_env
+  info "Rebuilding images and restarting stack..."
+  compose up -d --build
+  ok "Stack rebuilt and running. Open http://localhost"
+}
+
+cmd_stack_restart() {
+  require_env
+  info "Restarting stack (down + up, no rebuild)..."
+  compose down
+  compose up -d
+  ok "Stack restarted. Open http://localhost"
+}
+
+cmd_stack_down() {
+  info "Stopping Podman stack..."
+  compose down
+  ok "Stack down."
+}
+
+cmd_stack_logs() {
+  local svc="${2:-}"
+  if [[ -n "$svc" ]]; then
+    compose logs -f "$svc"
+  else
+    compose logs -f
+  fi
+}
+
+cmd_stack_seed() {
+  info "Seeding database inside running API container..."
+  podman exec kids-games-api node --env-file=/dev/null -r tsx/esm src/db/seed.ts
+  ok "Seed complete."
+}
+
+cmd_stack_smoke() {
+  info "Running smoke test against stack (http://localhost)..."
+  (cd "$PROJ" && ./infra/podman/smoke-test.sh)
+}
+
+cmd_stack_ps() {
+  podman ps --filter "name=kids-games" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+}
+
+# ── backup / restore ──────────────────────────────────────────────────────────
+
+cmd_backup() {
+  require_env
+  info "Creating database backup..."
+  (cd "$PROJ" && pnpm stack:backup)
+}
+
+cmd_restore() {
+  local file="${2:-}"
+  [[ -z "$file" ]] && die "Usage: ./dev.sh restore <backup-file>"
+  require_env
+  info "Restoring from $file..."
+  (cd "$PROJ" && pnpm stack:restore "$file")
+}
+
+# ── misc ──────────────────────────────────────────────────────────────────────
+
+cmd_status() {
+  echo "=== Stack containers ==="
+  podman ps --filter "name=kids-games" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null \
+    || echo "(podman not available)"
+  echo
+  echo "=== Dev DB container ==="
+  podman ps --filter "name=kids-games-postgres" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null \
+    || true
+  echo
+  echo "=== .env file ==="
+  if [[ -f "$PROJ/apps/api/.env" ]]; then
+    ok "apps/api/.env exists"
+  else
+    echo "✗ apps/api/.env MISSING — run ./dev.sh init"
+  fi
+}
+
+cmd_help() {
+  cat <<'EOF'
+Usage: ./dev.sh <target>
+
+Setup
+  init                Full first-time setup: install + .env + db start + migrate + seed
+
+Development
+  server              Start API dev server  (http://localhost:3000)
+  web                 Start web dev client  (http://localhost:5173)
+  build               Build all TypeScript packages
+
+Quality
+  lint                Run ESLint
+  typecheck           Run TypeScript type check
+  check               Run lint + typecheck together
+
+Tests
+  test:unit           Unit tests (no DB required)
+  test:web            Web component tests — vitest + jsdom (no DB required)
+  test:int            API integration tests (requires DB)
+  test:e2e            Playwright e2e tests against dev server (requires full stack running)
+  test:e2e:stack      Playwright e2e tests against container stack (http://localhost)
+  test:full           All tests in sequence
+
+Database (local dev container)
+  db:start            Start Postgres container
+  db:stop             Stop Postgres container
+  db:container:reset  Stop + remove container (wipes volume)
+  db:migrate          Apply pending migrations
+  db:migrate:down     Roll back last migration
+  db:seed             Insert seed data (idempotent)
+  db:wipe             Drop all tables, re-migrate, re-seed (destructive)
+
+Container stack (Podman full stack — http://localhost)
+  stack:init          First-time: build images + up + wait + seed
+  stack:build         Build container images only (api + web)
+  stack:up            Start stack (uses existing images)
+  stack:rebuild       Rebuild images and restart stack  (after code changes)
+  stack:restart       Restart stack without rebuilding  (after config changes)
+  stack:down          Stop and remove stack containers
+  stack:seed          Seed DB inside the running API container (first run)
+  stack:logs [svc]    Follow logs — all services or one (e.g. api, web, db, caddy)
+  stack:smoke         Run smoke test (waits for health, checks web + API)
+  stack:ps            Show status of stack containers
+
+Backup / Restore
+  backup              Dump DB to infra/podman/backups/
+  restore <file>      Restore DB from a backup file
+
+Misc
+  status              Show all container status and .env presence
+  help                Show this help
+
+EOF
+}
+
+# ── dispatch ─────────────────────────────────────────────────────────────────
+
+target="${1:-help}"
+
+case "$target" in
+  init)                  cmd_init ;;
+  build)                 cmd_build ;;
+  server)                cmd_server ;;
+  web)                   cmd_web ;;
+  test:unit)             cmd_test_unit ;;
+  test:web)              cmd_test_web ;;
+  test:int|test:integration) cmd_test_integration ;;
+  test:e2e)              cmd_test_e2e ;;
+  test:e2e:stack)        cmd_test_e2e_stack ;;
+  test:full|test:all)    cmd_test_full ;;
+  lint)                  cmd_lint ;;
+  typecheck)             cmd_typecheck ;;
+  check)                 cmd_check ;;
+  db:start)              cmd_db_start ;;
+  db:stop)               cmd_db_stop ;;
+  db:container:reset)    cmd_db_reset_container ;;
+  db:migrate)            cmd_db_migrate ;;
+  db:migrate:down)       cmd_db_migrate_down ;;
+  db:seed)               cmd_db_seed ;;
+  db:wipe)               cmd_db_wipe ;;
+  stack:init)            cmd_stack_init ;;
+  stack:build)           cmd_stack_build ;;
+  stack:up)              cmd_stack_up ;;
+  stack:rebuild)         cmd_stack_rebuild ;;
+  stack:restart)         cmd_stack_restart ;;
+  stack:down)            cmd_stack_down ;;
+  stack:seed)            cmd_stack_seed ;;
+  stack:logs)            cmd_stack_logs "$@" ;;
+  stack:smoke)           cmd_stack_smoke ;;
+  stack:ps)              cmd_stack_ps ;;
+  backup)                cmd_backup ;;
+  restore)               cmd_restore "$@" ;;
+  status)                cmd_status ;;
+  help|--help|-h)        cmd_help ;;
+  *) die "Unknown target: '$target'. Run ./dev.sh help for usage." ;;
+esac

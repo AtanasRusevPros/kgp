@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+.env
+*.local
+coverage/
+.vitest-cache/
+playwright-report/
+test-results/
+*.tsbuildinfo
+infra/podman/backups/
+infra/podman/backups/
