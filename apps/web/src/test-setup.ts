@@ -18,3 +18,15 @@ Object.defineProperty(navigator, 'onLine', { value: true, writable: true, config
 
 // Silence React Router future flag warnings
 vi.stubGlobal('__reactRouterFutureFlags', {});
+
+const originalWarn = console.warn;
+vi.spyOn(console, 'warn').mockImplementation((...args: unknown[]) => {
+  const first = args[0];
+  if (
+    typeof first === 'string'
+    && first.includes('React Router Future Flag Warning')
+  ) {
+    return;
+  }
+  originalWarn(...(args as []));
+});

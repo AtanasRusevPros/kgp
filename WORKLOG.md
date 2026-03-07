@@ -344,11 +344,11 @@ include: ['src/**/*.{test,spec}.{ts,tsx}'],
 |-------|--------|-------|-------------|
 | Shared schemas | vitest | 6 | Zod validation correctness |
 | Game SDK | vitest | 1 | SDK type exports |
-| API unit | vitest | 10 | Auth service logic, health route |
-| Web components | vitest + jsdom | 47 | All pages, services, components |
-| API integration | vitest + PostgreSQL | 57 | All routes, repositories, DB schema, seed |
+| API unit | vitest | 17 | Auth service logic, health route, mappers |
+| Web components | vitest + jsdom | 69 | All pages, services, components |
+| API integration | vitest + PostgreSQL | 65 | All routes, repositories, DB schema, seed, points |
 | E2E | Playwright | 2 | Full register→login→flashcards flow |
-| **Total** | | **123** | |
+| **Total** | | **160** | |
 
 **Test philosophy:** Tests verify behavior, not implementation. Integration tests assert HTTP status codes and response shapes. Repository tests assert data consistency. Component tests assert what the user sees and what actions trigger, not internal state.
 
@@ -472,6 +472,29 @@ pnpm test:e2e:stack
 **Artifacts created:**
 - `IMPLEMENTATION_STATUS.md` — evidence-backed status matrix for all features, non-functionals, tests, gaps, and milestones. Single source of truth for project maturity.
 - `USAGE.md` extended with 6 scenario playbooks: dev loop, full stack run, stack validation, backup/restore drill, DB maintenance reference, and troubleshooting map.
+
+---
+
+### Improvement 4 — Deterministic Test Runner Flow (`dev.sh`)
+
+**Motivation:** Local and server test runs were brittle when implicit prerequisites were missing (test DB schema/seed, API process for e2e). Contributors had to remember setup steps that were easy to skip.
+
+**Artifacts updated:**
+- `dev.sh`
+  - `test:int` now resolves `TEST_DATABASE_URL` and runs migrate + seed before integration tests.
+  - `test:e2e` now runs test DB preflight, starts a temporary API process for Playwright, then tears it down.
+  - `test:full` now runs explicit sub-steps (`check` → `test:unit` → `test:int` → `test:web` → `test:e2e`) for clearer failure points.
+- `apps/api/package.json`
+  - DB scripts switched to `tsx --env-file=.env ...` for Node 20 compatibility (`node -r tsx/esm` caused `ERR_REQUIRE_ESM`).
+- `apps/web/vite.config.ts`
+  - API proxy target now supports `VITE_API_PROXY_TARGET` so e2e can run against an isolated API port.
+- `apps/web/e2e/flashcards.spec.ts`
+  - API setup URL now reads `E2E_API_URL`; selectors updated to match current UI and avoid strict-mode ambiguity.
+
+**Future reference:**
+- If integration preflight cannot reach Postgres, run `./dev.sh db:start` then retry `./dev.sh test:int`.
+- E2E API port is configurable: `E2E_API_PORT=3400 ./dev.sh test:e2e`.
+- For CI/server environments, prefer `./dev.sh test:full` over raw `pnpm test:full` to get preflight + actionable failures.
 
 ---
 

@@ -19,6 +19,101 @@ require_env() {
   fi
 }
 
+get_test_database_url() {
+  local test_db_url="${TEST_DATABASE_URL:-}"
+  if [[ -n "$test_db_url" ]]; then
+    echo "$test_db_url"
+    return 0
+  fi
+
+  local env_file="$PROJ/apps/api/.env"
+  if [[ -f "$env_file" ]]; then
+    test_db_url="$(grep -E '^TEST_DATABASE_URL=' "$env_file" | tail -n1 | cut -d '=' -f2- || true)"
+  fi
+
+  test_db_url="${test_db_url%\"}"
+  test_db_url="${test_db_url#\"}"
+  test_db_url="${test_db_url%\'}"
+  test_db_url="${test_db_url#\'}"
+
+  if [[ -z "$test_db_url" ]]; then
+    die "TEST_DATABASE_URL is missing. Add it to apps/api/.env"
+  fi
+
+  echo "$test_db_url"
+}
+
+prepare_test_db() {
+  local test_db_url
+  test_db_url="$(get_test_database_url)"
+
+  info "Applying migrations to test database..."
+  if ! (cd "$PROJ/apps/api" && DATABASE_URL="$test_db_url" pnpm db:migrate); then
+    die "Could not apply test DB migrations.
+Run: ./dev.sh db:start
+Then retry: ./dev.sh test:int"
+  fi
+
+  info "Seeding test database..."
+  if ! (cd "$PROJ/apps/api" && DATABASE_URL="$test_db_url" pnpm db:seed); then
+    die "Could not seed test DB.
+Run: ./dev.sh db:start
+Then retry: ./dev.sh test:int"
+  fi
+}
+
+wait_for_http_ok() {
+  local url="$1"
+  local seconds="${2:-30}"
+  local i
+  for i in $(seq 1 "$seconds"); do
+    if curl -fsS "$url" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
+
+start_local_api_for_e2e() {
+  local test_db_url="$1"
+  local api_log="$2"
+  local api_port="$3"
+  STARTED_API_PID=""
+
+  # Reuse an already running compatible API.
+  if curl -fsS "http://localhost:${api_port}/health" >/dev/null 2>&1; then
+    info "Detected API already running on http://localhost:${api_port} — reusing it."
+    return 0
+  fi
+
+  info "Starting API for e2e on http://localhost:${api_port}..."
+  (
+    cd "$PROJ/apps/api" && \
+    PORT="$api_port" NODE_ENV=test DATABASE_URL="$test_db_url" \
+      pnpm exec tsx --env-file=.env src/index.ts
+  ) >"$api_log" 2>&1 &
+  STARTED_API_PID="$!"
+
+  if wait_for_http_ok "http://localhost:${api_port}/health" 30; then
+    return 0
+  fi
+
+  # If process died or never became healthy, fail with actionable guidance.
+  if kill -0 "$STARTED_API_PID" 2>/dev/null; then
+    kill "$STARTED_API_PID" 2>/dev/null || true
+  fi
+
+  echo "----- API startup log (tail) -----" >&2
+  tail -n 40 "$api_log" >&2 || true
+  echo "----------------------------------" >&2
+  die "Could not start API for e2e on port ${api_port}.
+If another service is on that port, stop it first.
+Then run:
+  ./dev.sh db:start
+  ./dev.sh test:e2e"
+}
+
 compose() {
   (cd "$PROJ" && podman-compose -f "$COMPOSE_FILE" "$@")
 }
@@ -92,14 +187,39 @@ cmd_test_web() {
 
 cmd_test_integration() {
   require_env
+  prepare_test_db
   info "Running integration tests (requires DB)..."
   (cd "$PROJ" && pnpm test:integration)
 }
 
 cmd_test_e2e() {
   require_env
-  info "Running Playwright e2e tests (web dev server auto-starts; API must already be running)..."
-  (cd "$PROJ" && pnpm test:e2e)
+  local test_db_url api_pid api_log api_port api_url
+  test_db_url="$(get_test_database_url)"
+  api_log="$(mktemp /tmp/kg-api-e2e.XXXX.log)"
+  api_pid=""
+  api_port="${E2E_API_PORT:-3300}"
+  api_url="http://localhost:${api_port}"
+
+  prepare_test_db
+  start_local_api_for_e2e "$test_db_url" "$api_log" "$api_port"
+  api_pid="$STARTED_API_PID"
+
+  info "Running Playwright e2e tests (API: ${api_url}, web dev server auto-starts)..."
+  set +e
+  (cd "$PROJ" && E2E_API_URL="$api_url" VITE_API_PROXY_TARGET="$api_url" pnpm test:e2e)
+  local status=$?
+  set -e
+
+  if [[ -n "$api_pid" ]]; then
+    kill "$api_pid" 2>/dev/null || true
+    wait "$api_pid" 2>/dev/null || true
+  fi
+
+  rm -f "$api_log" 2>/dev/null || true
+  if [[ $status -ne 0 ]]; then
+    die "E2E tests failed. Re-run with: ./dev.sh test:e2e"
+  fi
 }
 
 cmd_test_e2e_stack() {
@@ -110,7 +230,12 @@ cmd_test_e2e_stack() {
 cmd_test_full() {
   require_env
   info "Running full test suite..."
-  (cd "$PROJ" && pnpm test:full)
+  cmd_check
+  cmd_test_unit
+  cmd_test_integration
+  cmd_test_web
+  cmd_test_e2e
+  ok "Full test suite passed."
 }
 
 # ── quality ───────────────────────────────────────────────────────────────────
@@ -319,9 +444,9 @@ Tests
   test:unit           Unit tests (no DB required)
   test:web            Web component tests — vitest + jsdom (no DB required)
   test:int            API integration tests (requires DB)
-  test:e2e            Playwright e2e tests (web dev server auto-starts; API must be running)
+  test:e2e            Playwright e2e tests (auto-prepares DB and API)
   test:e2e:stack      Playwright e2e tests against container stack (http://localhost:8080)
-  test:full           All tests in sequence
+  test:full           Full local suite (check + unit + integration + web + e2e)
 
 Database (local dev container)
   db:start            Start Postgres container

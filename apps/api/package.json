@@ -11,10 +11,10 @@
     "lint": "eslint src --ext .ts",
     "test:unit": "vitest run --config vitest.unit.config.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "db:migrate": "node --env-file=.env -r tsx/esm src/db/migrate.ts",
-    "db:migrate:down": "node --env-file=.env -r tsx/esm src/db/migrate-down.ts",
-    "db:seed": "node --env-file=.env -r tsx/esm src/db/seed.ts",
-    "db:reset": "node --env-file=.env -r tsx/esm src/db/reset.ts"
+    "db:migrate": "tsx --env-file=.env src/db/migrate.ts",
+    "db:migrate:down": "tsx --env-file=.env src/db/migrate-down.ts",
+    "db:seed": "tsx --env-file=.env src/db/seed.ts",
+    "db:reset": "tsx --env-file=.env src/db/reset.ts"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",

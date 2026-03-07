@@ -64,10 +64,10 @@ Quality
 Tests
   test:unit           Unit tests (no DB required)
   test:web            Web component tests — vitest + jsdom (no DB required)
-  test:int            API integration tests (requires DB)
-  test:e2e            Playwright e2e tests against dev server (requires full stack running)
+  test:int            API integration tests (auto-prepares test DB via migrate + seed)
+  test:e2e            Playwright e2e tests (auto-prepares test DB + starts API + web)
   test:e2e:stack      Playwright e2e tests against container stack (http://localhost)
-  test:full           All tests in sequence
+  test:full           Full local suite: check + unit + integration + web + e2e
 
 Database (local dev container)
   db:start            Start Postgres container
@@ -254,16 +254,24 @@ All commands run from the repo root.
 | `pnpm test:unit` | Shared schemas, SDK, API unit tests | No |
 | `pnpm test:web` | React component tests (vitest + jsdom) | No |
 | `pnpm test:integration` | API integration tests against test DB | Yes |
-| `pnpm test:e2e` | Playwright end-to-end browser tests | Yes (full stack) |
+| `pnpm test:e2e` | Playwright end-to-end browser tests | Yes (API + web runtime required) |
 | `pnpm test:full` | All of the above, in sequence | Yes |
 | `pnpm typecheck` | TypeScript type check (all packages) | No |
 | `pnpm lint` | ESLint (all packages) | No |
+
+Recommended wrapper commands:
+```bash
+./dev.sh test:int
+./dev.sh test:e2e
+./dev.sh test:full
+```
+These include preflight setup and clearer failure messages.
 
 ### Unit tests
 
 ```bash
 pnpm test:unit
-# 18 tests: schemas (6), game-sdk (1), auth service (9), health (1)
+# 24 tests total currently (shared + sdk + api-unit suites)
 # No DB required — pure logic only
 ```
 
@@ -271,7 +279,7 @@ pnpm test:unit
 
 ```bash
 pnpm test:web
-# 47 tests across 8 test files
+# 69 tests across 10 test files
 # Uses vitest + jsdom + @testing-library/react
 # No server required — all API calls are mocked
 ```
@@ -283,7 +291,12 @@ pnpm --filter @kids-games/web test:watch
 
 ### Integration tests
 
-Requires the **test database** to exist and be migrated/seeded:
+Preferred (self-preparing):
+```bash
+./dev.sh test:int
+```
+
+Raw command path (manual preflight):
 
 ```bash
 # One-time setup of test DB (if not already done)
@@ -301,17 +314,28 @@ NODE_ENV=test DATABASE_URL=postgresql://postgres:postgres@localhost:5432/kids_ga
 
 # Run integration tests
 pnpm test:integration
-# 57 tests: migration schema, seed data, auth endpoints, flashcard endpoints, repositories, games
+# 65 tests: migration schema, seed data, auth endpoints, flashcard endpoints, repositories, points, games
 ```
 
 The integration tests use `TEST_DATABASE_URL` from `apps/api/.env` automatically.
 
 ### End-to-end tests
 
-Requires the full stack running (API on `:3000`, web on `:5173`):
+Preferred (self-preparing):
+```bash
+./dev.sh test:e2e
+```
+
+What the wrapper does:
+- Migrates + seeds test DB using `TEST_DATABASE_URL`
+- Starts API on a dedicated e2e port (`E2E_API_PORT`, default `3300`)
+- Runs Playwright with `E2E_API_URL` and Vite proxy override
+- Stops the temporary API process on exit
+
+Raw command path (manual preflight):
 
 ```bash
-# Start API and web in background (two terminals, or use & )
+# Start API and web in background (two terminals, or use &)
 pnpm --filter @kids-games/api dev &
 pnpm --filter @kids-games/web dev &
 
@@ -320,6 +344,20 @@ pnpm test:e2e
 ```
 
 The Playwright config (`apps/web/playwright.config.ts`) auto-starts the Vite dev server if not already running.
+
+### Full suite
+
+Preferred:
+```bash
+./dev.sh test:full
+```
+
+Sequence:
+1. `./dev.sh check`
+2. `./dev.sh test:unit`
+3. `./dev.sh test:int`
+4. `./dev.sh test:web`
+5. `./dev.sh test:e2e`
 
 ---
 

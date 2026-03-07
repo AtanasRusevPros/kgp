@@ -29,7 +29,7 @@ The MVP is **fully implemented and passing all automated quality gates.**
 | Auth (register/login/refresh/logout) | Complete |
 | Podman container stack | Complete |
 | CI pipeline (GitHub Actions) | Complete |
-| Test suite | 123 tests passing (unit + integration + web + E2E) |
+| Test suite | 162 tests passing (unit + integration + web + E2E) |
 | Ops tooling (backup/restore, stack E2E) | Complete (added post-MVP) |
 | Documentation | Complete (USAGE, ARCHITECTURE, WORKLOG, this file) |
 
@@ -140,6 +140,7 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | TypeScript strict mode | Implemented | `strict: true`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` across all packages |
 | ESLint passing | Implemented | Enforced as phase gate; `pnpm lint` passes clean |
 | Type checking passing | Implemented | `pnpm typecheck` passes across all 4 packages |
+| Local test orchestration | Implemented | `./dev.sh test:int`, `test:e2e`, `test:full` run with setup preflight and explicit failure guidance |
 | HTTPS (production) | Ready | Caddy auto-provisions TLS when given a real domain in Caddyfile |
 | HTTPS (localhost) | Optional | `ignoreHTTPSErrors: true` in playwright stack config |
 | Rootless containers | Implemented | Podman rootless via `infra/podman/compose.yml` |
@@ -159,12 +160,12 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 |-------|--------|-----------|-------------|--------|-------|
 | Shared schemas | vitest | 6 | No | `unit-tests` | Zod schema validation |
 | Game SDK | vitest | 1 | No | `unit-tests` | Type export check |
-| API unit | vitest | 10 | No | `unit-tests` | Auth service logic, health route |
-| Web components | vitest + jsdom | 47 | No | `web-tests` | All pages, services, hooks |
-| API integration | vitest + pg | 57 | Yes (test DB) | `integration-tests` | All routes, repos, schema, seed |
-| E2E (dev mode) | Playwright | 2 | Yes (full stack) | `e2e` (manual) | Register → login → flashcards via Vite dev server |
+| API unit | vitest | 17 | No | `unit-tests` | Auth service logic, health route, mappers |
+| Web components | vitest + jsdom | 69 | No | `web-tests` | All pages, services, hooks |
+| API integration | vitest + pg | 65 | Yes (test DB) | `integration-tests` | All routes, repos, schema, seed, points |
+| E2E (dev mode) | Playwright | 2 | Yes (test DB + API runtime) | `e2e` (manual) | Use `./dev.sh test:e2e` to auto-prepare DB + start API + run via Vite dev server |
 | E2E (stack mode) | Playwright | 2 | Yes (full stack) | Manual (`pnpm test:e2e:stack`) | Same suite against Podman+Caddy stack |
-| **Total automated** | | **123** | | | |
+| **Total automated** | | **162** | | | |
 
 **Config files:**
 - Dev E2E: `apps/web/playwright.config.ts`

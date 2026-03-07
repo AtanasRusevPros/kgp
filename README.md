@@ -57,10 +57,10 @@ Quality
 Tests
   test:unit           Unit tests (no DB required)
   test:web            Web component tests — vitest + jsdom (no DB required)
-  test:int            API integration tests (requires DB)
-  test:e2e            Playwright e2e tests against dev server (requires full stack running)
+  test:int            API integration tests (auto-prepares test DB via migrate + seed)
+  test:e2e            Playwright e2e tests (auto-prepares test DB + starts API + web)
   test:e2e:stack      Playwright e2e tests against container stack (http://localhost)
-  test:full           All tests in sequence
+  test:full           Full local suite: check + unit + integration + web + e2e
 
 Database (local dev container)
   db:start            Start Postgres container
@@ -217,12 +217,14 @@ Open **http://localhost** (Caddy serves on port 80).
 | `pnpm test:unit` | Shared schemas, SDK, API unit tests | No |
 | `pnpm test:web` | React component tests (vitest + jsdom) | No |
 | `pnpm test:integration` | API integration tests against test DB | Yes |
-| `pnpm test:e2e` | Playwright end-to-end browser tests | Yes (full stack) |
+| `pnpm test:e2e` | Playwright end-to-end browser tests | Yes (API + web runtime required) |
 | `pnpm test:full` | All of the above, in sequence | Yes |
 | `pnpm typecheck` | TypeScript type check (all packages) | No |
 | `pnpm lint` | ESLint (all packages) | No |
 
-See [USAGE.md → Running Tests](USAGE.md#running-tests) for detailed setup of integration and E2E tests.
+Prefer `./dev.sh test:int`, `./dev.sh test:e2e`, and `./dev.sh test:full` for local/server runs because they include test preflight steps (DB migrate/seed and e2e API bootstrap).
+
+See [USAGE.md → Running Tests](USAGE.md#running-tests) for details.
 
 ---
 

@@ -662,8 +662,8 @@ flowchart TD
 
     subgraph Parallel["Jobs run in parallel"]
         Quality["quality<br/>pnpm typecheck<br/>pnpm lint"]
-        UnitTests["unit-tests<br/>pnpm test:unit<br/>(18 tests)"]
-        WebTests["web-tests<br/>pnpm test:web<br/>(47 tests)"]
+        UnitTests["unit-tests<br/>pnpm test:unit<br/>(24 tests)"]
+        WebTests["web-tests<br/>pnpm test:web<br/>(69 tests)"]
         Build["build<br/>pnpm build"]
     end
 
@@ -676,7 +676,7 @@ flowchart TD
     subgraph Integration["integration-tests<br/>(postgres:16 service)"]
         Migrate["Run migrations"]
         Seed["Run seed"]
-        IntTests["pnpm test:integration<br/>(57 tests)"]
+        IntTests["pnpm test:integration<br/>(65 tests)"]
         Migrate --> Seed --> IntTests
     end
 
@@ -699,15 +699,15 @@ All jobs use:
 ```
         ┌──────────┐
         │  E2E     │  Playwright — 2 tests (full browser flow)
-        │  (slow)  │  Requires full stack running
+        │  (slow)  │  Requires API + web runtime (or `./dev.sh test:e2e`)
         ├──────────┤
-        │  Web     │  vitest + jsdom + @testing-library — 47 tests
+        │  Web     │  vitest + jsdom + @testing-library — 69 tests
         │ Component│  All API calls mocked with vi.mock
         ├──────────┤
-        │Integration│ vitest + real PostgreSQL — 57 tests
+        │Integration│ vitest + real PostgreSQL — 65 tests
         │  (API)   │  Isolated test database (kids_games_test)
         ├──────────┤
-        │   Unit   │  vitest — 18 tests
+        │   Unit   │  vitest — 24 tests
         │  (fast)  │  No DB, no network, pure logic
         └──────────┘
 ```
