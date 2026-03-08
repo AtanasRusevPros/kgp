@@ -84,10 +84,12 @@ case "$cmd" in
     fi
 
     echo "→ Waiting for Postgres to be ready..."
-    for i in $(seq 1 30); do
+    tries=30
+    while (( tries > 0 )); do
       if podman exec "$CONTAINER_NAME" pg_isready -U "$POSTGRES_USER" &>/dev/null; then
         break
       fi
+      tries=$((tries - 1))
       sleep 1
     done
 

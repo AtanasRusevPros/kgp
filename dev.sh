@@ -65,11 +65,11 @@ Then retry: ./dev.sh test:int"
 wait_for_http_ok() {
   local url="$1"
   local seconds="${2:-30}"
-  local i
-  for i in $(seq 1 "$seconds"); do
+  while (( seconds > 0 )); do
     if curl -fsS "$url" >/dev/null 2>&1; then
       return 0
     fi
+    seconds=$((seconds - 1))
     sleep 1
   done
   return 1
