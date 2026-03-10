@@ -16,7 +16,7 @@ The platform is now on a phased modularity rework path:
 Execution tracking:
 - [`GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md`](GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md)
 - [`GAME_MODULARITY_ITERATION_PLAN_SHORT.md`](GAME_MODULARITY_ITERATION_PLAN_SHORT.md)
-- [`PHASE_EXECUTION_TRACKER.md`](PHASE_EXECUTION_TRACKER.md)
+- [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](PHASE_EXECUTION_TRACKER_2_PENDING.md)
 
 ---
 
@@ -72,7 +72,7 @@ Tests
   test:web            Web component tests — vitest + jsdom (no DB required)
   test:int            API integration tests (auto-prepares test DB via migrate + seed)
   test:e2e            Playwright e2e tests (auto-prepares test DB + starts API + web)
-  test:e2e:stack      Playwright e2e tests against container stack (http://localhost)
+  test:e2e:stack      Playwright e2e tests against container stack (http://localhost:8080)
   test:full           Full local suite: check + unit + integration + web + e2e
 
 Database (local dev container)
@@ -84,16 +84,18 @@ Database (local dev container)
   db:seed             Insert seed data (idempotent)
   db:wipe             Drop all tables, re-migrate, re-seed (destructive)
 
-Container stack (Podman full stack — http://localhost)
-  stack:init          First-time: build images + up + wait + seed
+Container stack (Podman full stack — http://localhost:8080)
+  stack:init          First-time: build images + up + wait + migrate + seed
   stack:build         Build container images only (api + web)
   stack:up            Start stack (uses existing images)
   stack:rebuild       Rebuild images and restart stack  (after code changes)
   stack:restart       Restart stack without rebuilding  (after config changes)
   stack:down          Stop and remove stack containers
-  stack:seed          Seed DB inside the running API container (first run)
+  stack:migrate       Apply DB migrations inside the running API container
+  stack:seed          Seed DB inside the running API container
   stack:logs [svc]    Follow logs — all services or one (e.g. api, web, db, caddy)
   stack:smoke         Run smoke test (waits for health, checks web + API)
+  stack:verify        Rebuild stack, smoke, migrate, seed, restart, smoke again, then tear down
   stack:ps            Show status of stack containers
 
 Backup / Restore
@@ -201,11 +203,16 @@ Runs the full stack (DB + API + Web + Caddy reverse proxy) as rootless container
 # Subsequent starts (images already built)
 ./dev.sh stack:up
 
+# Rebuild + verify the container basics end-to-end
+./dev.sh stack:verify
+
 # Stop
 ./dev.sh stack:down
 ```
 
-Open **http://localhost** (Caddy serves on port 80).
+Open **http://localhost:8080** (Caddy serves on port 8080).
+
+`stack:verify` is the recommended basic container validation path after container-related changes. It starts from a clean Podman volume state, rebuilds the stack, checks compose status, verifies HTTP reachability, runs the in-container migration and seed paths, restarts the stack without rebuilding, verifies HTTP reachability again, and tears the stack down when finished.
 
 ---
 
@@ -268,9 +275,18 @@ TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/kids_games_test
 JWT_SECRET=change-me-in-production-jwt-secret-min-32-chars
 REFRESH_SECRET=change-me-in-production-refresh-secret-min-32-chars
 
+# Closed-game allowlist / seeded integration client
+ALLOWED_GAME_IDS=flashcards
+FLASHCARDS_CLIENT_SECRET=flashcards-dev-secret
+
 # Valkey / Redis (optional — in-memory fallback used if absent)
 # VALKEY_URL=redis://localhost:6379
 ```
+
+Notes:
+- `ALLOWED_GAME_IDS` controls which enabled games can be returned by `/games` and used in protected game flows.
+- `FLASHCARDS_CLIENT_SECRET` sets the seeded secret for the default `flashcards-web-dev` integration client used by `POST /auth/game-session`.
+- Change the JWT secrets and integration client secret for anything beyond localhost.
 
 ---
 
@@ -282,7 +298,7 @@ REFRESH_SECRET=change-me-in-production-refresh-secret-min-32-chars
 | API (dev) | http://localhost:3000 | Fastify direct |
 | API health | http://localhost:3000/health | Returns `{ status: "ok", db: "ok" }` |
 | PostgreSQL | localhost:5432 | `kids_games_dev` database |
-| Caddy proxy (containers) | http://localhost | Routes `/api/*` to API, rest to web |
+| Caddy proxy (containers) | http://localhost:8080 | Routes `/api/*` to API, rest to web |
 
 **Quick curl tests:**
 ```bash

@@ -1,8 +1,20 @@
-# Phase Execution Tracker
+# Phase Execution Tracker 2 Pending
+
+Updated: 2026-03-11 00:16 EET
 
 Tracking source:
 - Master plan: `GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md`
 - Iteration runbook: `GAME_MODULARITY_ITERATION_PLAN_SHORT.md`
+
+## Current interpretation
+This tracker remains pending because the execution batch materially advanced the modularity plan, but the repository is still in compatibility mode for parts of the broader target architecture.
+
+## What remains
+1. Broader `server/` and `frontend/*` topology migration is still not the primary runtime shape.
+2. Adapter loading remains partially static rather than fully loader-driven.
+3. Mobile readiness is still scaffold-level.
+4. Full cold-start/self-owned test orchestration is still pending and is now tracked in `TESTS_IMPROVEMENTS_PENDING_4.md`.
+5. AI-optimized documentation/rules/check workflow is still pending and is also tracked in `TESTS_IMPROVEMENTS_PENDING_4.md`.
 
 ## Status legend
 - `todo`
@@ -14,16 +26,16 @@ Tracking source:
 | Phase | Status | Owner | Last update | Evidence |
 |---|---|---|---|---|
 | P0 Guard rails | done | Codex | 2026-03-09 | Boundary policy doc, boundary script, CI wiring, baseline commands executed |
-| P1 Topology migration | done | Codex | 2026-03-09 | Target root topology scaffold + compatibility aliases + phase gate pass |
+| P1 Topology migration | in_progress | Codex | 2026-03-10 | Target topology scaffolded, but runtime still primarily lives under `apps/*` compatibility paths |
 | P2 Contracts/metadata | done | Codex | 2026-03-09 | Game metadata model extended end-to-end (DB/shared/API/tests) |
-| P3 Allowlist/adapter loader | done | Codex | 2026-03-09 | Config allowlist + registry module + internal health route + enforcement in games/points |
+| P3 Allowlist/adapter loader | in_progress | Codex | 2026-03-10 | Allowlist registry and health route are live; adapter loading/validation is still static rather than a strict dynamic loader |
 | P4 Dual identity/BFF | done | Codex | 2026-03-09 | Delegated game session tokens + scoped enforcement for points flow |
 | P5 Web dynamic routing | done | Codex | 2026-03-09 | App routes now built from web game registry |
-| P6 Mobile readiness | done | Codex | 2026-03-09 | Game module structure conformance gate added to scripts and CI |
-| P7 Flashcards full migration | done | Codex | 2026-03-09 | Flashcards backend adapter and web manifest wiring migrated with compatibility bridge |
-| P8 Full test sweep | done | Codex | 2026-03-09 | Full suite green including managed e2e |
-| P9 Full docs sweep | done | Codex | 2026-03-09 | Core docs updated + new modularity/security/game onboarding docs added |
-| P10 Cleanup | done | Codex | 2026-03-10 | Temporary phase scripts removed, canonical dev commands normalized, full suite green |
+| P6 Mobile readiness | in_progress | Codex | 2026-03-10 | Directory conformance gate exists, but mobile shell/module contract work is still scaffold-level |
+| P7 Flashcards full migration | done | Codex | 2026-03-10 | Web manifest is live and flashcards backend adapter now loads through a dedicated workspace package rooted under `games/flashcards/backend-adapter` |
+| P8 Full test sweep | in_progress | Codex | 2026-03-10 | Expanded auth/points matrix added; broader adapter-loader and blocked-launch coverage still partial |
+| P9 Full docs sweep | in_progress | Codex | 2026-03-10 | Core docs updated, but repo state is still compatibility mode rather than fully-final architecture |
+| P10 Cleanup | in_progress | Codex | 2026-03-10 | Canonical dev commands normalized, but compatibility paths and broader topology cleanup remain |
 
 ## P0 checklist
 - [x] Create boundary policy document.
@@ -100,10 +112,8 @@ Tracking source:
    - `apps/api/src/modules/app-client-auth.ts`
 4. Seed updated with default app client for flashcards:
    - `apps/api/src/db/seed.ts`
-5. Privileged route hardening added:
-   - `apps/api/src/routes/points.ts` now requires valid `x-game-client-id` + `x-game-client-secret` for `POST /points/add` in addition to user auth.
-6. Tests updated:
-   - `apps/api/src/tests/points.integration.test.ts` now covers missing/invalid app client credentials.
+5. Initial privileged route hardening slice added direct app-client credential checks before the delegated game-session flow replaced that mechanism.
+6. Tests updated for the initial slice before the delegated-token cutover.
 7. Verification run:
    - `pnpm build && pnpm test:unit && pnpm test:integration && pnpm test:web` -> passed.
 
@@ -116,6 +126,7 @@ Tracking source:
    - `POST /auth/game-session` in `apps/api/src/routes/auth.ts` (requires user auth + app client identity).
 4. Privileged points flow updated:
    - `POST /points/add` now validates `x-game-session-token` claims (`typ`, `aud`, scope, user/game match).
+   - delegated scope issuance now rejects scopes outside the integration client's allowlist and defaults to the game's declared required scopes.
 5. JWT typing expanded:
    - `apps/api/src/types.ts`.
 6. Tests updated:
@@ -145,12 +156,13 @@ Tracking source:
    - `pnpm games:conformance` -> passed.
 
 ## P7 evidence (executed)
-1. Backend flashcards adapter runtime moved to game adapter layer:
-   - `apps/api/src/games/flashcards/backend-adapter.ts`.
-2. Flashcards backend route now delegates through adapter:
-   - `apps/api/src/routes/flashcards.ts`.
-3. Game-owned backend entrypoint added:
-   - `games/flashcards/backend-adapter/src/index.ts`.
+1. Canonical flashcards backend adapter package added:
+   - `games/flashcards/backend-adapter/package.json`
+   - `games/flashcards/backend-adapter/src/index.ts`
+2. Flashcards backend route now delegates through the workspace package:
+   - `apps/api/src/routes/flashcards.ts`
+3. Compatibility copy removed:
+   - deleted `apps/api/src/games/flashcards/backend-adapter.ts`
 4. Web game manifest added:
    - `games/flashcards/web/src/module.ts`.
 5. Web registry now consumes game manifest:
@@ -180,6 +192,9 @@ Tracking source:
    - `docs/backend-allowlist-security.md`
    - `docs/migration-guide.md`
    - `docs/add-game-checklist.md`
+3. Follow-up doc corrections applied after review:
+   - env template now documents `ALLOWED_GAME_IDS` and `FLASHCARDS_CLIENT_SECRET`
+   - status/tracker wording updated to reflect compatibility-mode reality instead of overstating full cleanup
 
 ## P10 evidence (executed)
 1. Removed temporary migration script:
@@ -188,5 +203,8 @@ Tracking source:
    - removed `dev:api` and `dev:web` aliases.
    - kept canonical `dev:server` and `dev:frontend:web`.
    - updated `dev.sh` to call canonical commands.
-3. Full final verification:
-   - `pnpm test:full` -> passed.
+3. Remaining cleanup still open:
+   - broader `server/` / `frontend/*` migration is not complete
+   - compatibility wrappers remain in place
+4. Verification:
+   - `pnpm test:full` -> passed after cleanup-adjacent changes, but final no-compatibility end-state is not yet reached.

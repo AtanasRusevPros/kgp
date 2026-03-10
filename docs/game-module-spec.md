@@ -9,6 +9,11 @@ Each game under `games/<gameId>/` must include:
 
 Enforced by: `pnpm games:conformance`.
 
+Current conformance checks require:
+1. `README.md`
+2. `web/src/module.ts`
+3. `backend-adapter/src/index.ts`
+
 ## Backend integration requirements
 1. Game must be allowlisted (`ALLOWED_GAME_IDS`).
 2. Game must exist and be enabled in `games` DB table.

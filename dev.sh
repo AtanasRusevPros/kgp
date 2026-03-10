@@ -307,7 +307,7 @@ cmd_db_wipe() {
 
 cmd_stack_init() {
   require_env
-  info "First-time container stack setup: build → up → wait → seed..."
+  info "First-time container stack setup: build -> up -> wait -> migrate -> seed..."
 
   info "Building container images..."
   (cd "$PROJ" && podman build -f infra/podman/Dockerfile.api -t kids-games-api .)
@@ -320,8 +320,11 @@ cmd_stack_init() {
   info "Waiting for stack to become healthy..."
   (cd "$PROJ" && ./infra/podman/smoke-test.sh)
 
+  info "Applying database migrations inside API container..."
+  podman exec kids-games-api node apps/api/dist/db/migrate.js
+
   info "Seeding database inside API container..."
-  podman exec kids-games-api node dist/db/seed.js
+  podman exec kids-games-api node apps/api/dist/db/seed.js
 
   ok "Stack init complete. Open http://localhost:8080"
 }
@@ -375,13 +378,26 @@ cmd_stack_logs() {
 
 cmd_stack_seed() {
   info "Seeding database inside running API container..."
-  podman exec kids-games-api node dist/db/seed.js
+  podman exec kids-games-api node apps/api/dist/db/seed.js
   ok "Seed complete."
+}
+
+cmd_stack_migrate() {
+  info "Applying database migrations inside running API container..."
+  podman exec kids-games-api node apps/api/dist/db/migrate.js
+  ok "Migrations complete."
 }
 
 cmd_stack_smoke() {
   info "Running smoke test against stack (http://localhost:8080)..."
   (cd "$PROJ" && ./infra/podman/smoke-test.sh)
+}
+
+cmd_stack_verify() {
+  require_env
+  info "Running container basic-actions verification (rebuild -> ps -> smoke -> migrate -> seed -> restart -> smoke -> teardown)..."
+  stop_dev_db_if_running
+  (cd "$PROJ" && ./infra/podman/basic-actions-test.sh)
 }
 
 cmd_stack_ps() {
@@ -458,15 +474,17 @@ Database (local dev container)
   db:wipe             Drop all tables, re-migrate, re-seed (destructive)
 
 Container stack (Podman full stack — http://localhost:8080)
-  stack:init          First-time: build images + up + wait + seed
+  stack:init          First-time: build images + up + wait + migrate + seed
   stack:build         Build container images only (api + web)
   stack:up            Start stack (uses existing images)
   stack:rebuild       Rebuild images and restart stack  (after code changes)
   stack:restart       Restart stack without rebuilding  (after config changes)
   stack:down          Stop and remove stack containers
-  stack:seed          Seed DB inside the running API container (first run)
+  stack:migrate       Apply DB migrations inside the running API container
+  stack:seed          Seed DB inside the running API container
   stack:logs [svc]    Follow logs — all services or one (e.g. api, web, db, caddy)
   stack:smoke         Run smoke test (waits for health, checks web + API)
+  stack:verify        Rebuild stack, smoke, migrate, seed, restart, smoke again, then tear down
   stack:ps            Show status of stack containers
 
 Backup / Restore
@@ -511,9 +529,11 @@ case "$target" in
   stack:rebuild)         cmd_stack_rebuild ;;
   stack:restart)         cmd_stack_restart ;;
   stack:down)            cmd_stack_down ;;
+  stack:migrate)         cmd_stack_migrate ;;
   stack:seed)            cmd_stack_seed ;;
   stack:logs)            cmd_stack_logs "$@" ;;
   stack:smoke)           cmd_stack_smoke ;;
+  stack:verify)          cmd_stack_verify ;;
   stack:ps)              cmd_stack_ps ;;
   backup)                cmd_backup ;;
   restore)               cmd_restore "$@" ;;

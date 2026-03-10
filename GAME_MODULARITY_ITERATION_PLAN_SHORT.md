@@ -14,7 +14,7 @@ Deliver closed, allowlisted modular architecture with backend independence, dual
 1. Execute strictly `P0 -> P10` (no phase skipping).
 2. Use one branch per phase (`phase/pN-*`).
 3. Use `GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md` as architecture truth.
-4. Use `PHASE_EXECUTION_TRACKER.md` for live status/evidence/blockers.
+4. Use `PHASE_EXECUTION_TRACKER_2_PENDING.md` for live status/evidence/blockers.
 5. Complete each phase with code + tests + docs for changed behavior.
 6. Enforce hard gates: no affected test/doc skipping.
 7. Delivery waves:

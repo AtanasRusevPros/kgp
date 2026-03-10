@@ -34,8 +34,7 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/kids_games_dev
       NODE_ENV: production
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
       interval: 10s

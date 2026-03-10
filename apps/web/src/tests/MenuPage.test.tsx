@@ -41,9 +41,9 @@ const MOCK_GAMES = [
     apiVersion: 'v1',
     authPolicy: {
       requiresUserAuth: true,
-      requiresAppIdentity: false,
-      requiredScopes: ['flashcards:play'],
-      tokenAudience: 'kids-games-api',
+      requiresAppIdentity: true,
+      requiredScopes: ['points:add'],
+      tokenAudience: 'game:flashcards',
     },
     entryWeb: '/flashcards',
     entryMobile: null,

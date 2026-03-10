@@ -38,7 +38,7 @@ What this is **not**:
 3. Control documents:
    - This file is the decision-complete architecture source of truth.
    - `GAME_MODULARITY_ITERATION_PLAN_SHORT.md` is the operational runbook for iterative implementation.
-   - `PHASE_EXECUTION_TRACKER.md` records live status, commands run, evidence, and blockers.
+   - `PHASE_EXECUTION_TRACKER_2_PENDING.md` records live status, commands run, evidence, and blockers.
 4. Quality gate policy:
    - Each phase must deliver code artifacts, test updates/new tests, and doc updates for any changed behavior.
    - No “temporary skip” of affected tests/docs is accepted for phase completion.

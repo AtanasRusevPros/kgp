@@ -5,10 +5,13 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createApp } from '../app.js';
 import { getPool } from '../db/client.js';
 import { testConfig } from '../config.js';
+import { signGameSessionToken } from '../modules/game-session.js';
 import type { FastifyInstance } from 'fastify';
 
 let app: FastifyInstance;
 let accessToken: string;
+let secondaryAccessToken: string;
+let primaryUser: { id: string; email: string };
 const GAME_CLIENT_HEADERS = {
   'x-game-client-id': 'flashcards-web-dev',
   'x-game-client-secret': 'flashcards-dev-secret',
@@ -35,7 +38,23 @@ beforeAll(async () => {
     url: '/auth/register',
     payload: { email, password: 'TestPass123!', displayName: 'Points Tester' },
   });
-  accessToken = regRes.json<{ accessToken: string }>().accessToken;
+  const regBody = regRes.json<{
+    accessToken: string;
+    user: { id: string; email: string };
+  }>();
+  accessToken = regBody.accessToken;
+  primaryUser = regBody.user;
+
+  const secondRegRes = await app.inject({
+    method: 'POST',
+    url: '/auth/register',
+    payload: {
+      email: `points-test-secondary-${Date.now()}@test-integration.com`,
+      password: 'TestPass123!',
+      displayName: 'Points Tester Two',
+    },
+  });
+  secondaryAccessToken = secondRegRes.json<{ accessToken: string }>().accessToken;
   gameSessionToken = await createGameSessionToken();
 });
 
@@ -173,6 +192,63 @@ describe('POST /points/add', () => {
       payload: { gameId: 'flashcards', points: 10 },
     });
     expect(res.statusCode).toBe(401);
+  });
+
+  it('returns 403 when game session token is missing the required scope', async () => {
+    const missingScopeTokenRes = await app.inject({
+      method: 'POST',
+      url: '/auth/game-session',
+      headers: { Authorization: `Bearer ${accessToken}`, ...GAME_CLIENT_HEADERS },
+      payload: { gameId: 'flashcards', scopes: ['flashcards:play'] },
+    });
+    expect(missingScopeTokenRes.statusCode).toBe(200);
+    const missingScopeToken =
+      missingScopeTokenRes.json<{ gameSessionToken: string }>().gameSessionToken;
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/points/add',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'x-game-session-token': missingScopeToken,
+      },
+      payload: { gameId: 'flashcards', points: 10 },
+    });
+    expect(res.statusCode).toBe(403);
+  });
+
+  it('returns 403 when game session token belongs to a different user', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/points/add',
+      headers: {
+        Authorization: `Bearer ${secondaryAccessToken}`,
+        'x-game-session-token': gameSessionToken,
+      },
+      payload: { gameId: 'flashcards', points: 10 },
+    });
+    expect(res.statusCode).toBe(403);
+  });
+
+  it('returns 403 when game session token game does not match payload gameId', async () => {
+    const correctedUserWrongGameToken = signGameSessionToken(app, {
+      userId: primaryUser.id,
+      email: primaryUser.email,
+      scope: ['points:add'],
+      gameId: 'spelling-bee',
+      clientId: 'flashcards-web-dev',
+    });
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/points/add',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'x-game-session-token': correctedUserWrongGameToken,
+      },
+      payload: { gameId: 'flashcards', points: 10 },
+    });
+    expect(res.statusCode).toBe(403);
   });
 
   it('requires authentication', async () => {

@@ -22,7 +22,7 @@ export async function verifyAppClientOrNull(
   request: FastifyRequest,
   gameId: string,
   requiredScope?: string,
-): Promise<{ clientId: string } | null> {
+): Promise<{ clientId: string; scopes: string[] } | null> {
   const clientId = (request.headers['x-game-client-id'] as string | undefined)?.trim();
   const clientSecret = (request.headers['x-game-client-secret'] as string | undefined)?.trim();
 
@@ -36,5 +36,5 @@ export async function verifyAppClientOrNull(
   const incomingHash = sha256Hex(clientSecret);
   if (!constantTimeEqualHex(incomingHash, client.secret_hash)) return null;
 
-  return { clientId: client.client_id };
+  return { clientId: client.client_id, scopes: client.scopes };
 }

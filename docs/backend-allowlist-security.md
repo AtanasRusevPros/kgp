@@ -9,6 +9,8 @@
 1. User identity: standard access token (`Authorization: Bearer ...`).
 2. App identity: validated during `POST /auth/game-session` via game client credentials.
 3. Delegated token: `gameSessionToken` issued by backend with game-bound audience and scopes.
+4. Issued scopes must be a subset of the integration client's stored scopes.
+5. If the caller omits scopes, backend defaults to the game's configured required scopes.
 
 ## Privileged route enforcement
 For `POST /points/add`:
@@ -16,4 +18,4 @@ For `POST /points/add`:
 2. `x-game-session-token` must be valid.
 3. Session token user must match authenticated user.
 4. Session token game must match payload `gameId`.
-5. Session token must include required scope (`points:add`).
+5. Session token must include every required scope declared by the game's auth policy.

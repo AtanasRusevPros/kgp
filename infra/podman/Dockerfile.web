@@ -12,6 +12,7 @@ RUN pnpm install --frozen-lockfile --filter @kids-games/web...
 # Build
 FROM deps AS build
 COPY packages/ ./packages/
+COPY games/ ./games/
 COPY apps/web/ ./apps/web/
 COPY tsconfig.base.json ./
 RUN pnpm --filter @kids-games/web build

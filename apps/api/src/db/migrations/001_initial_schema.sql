@@ -62,6 +62,9 @@ CREATE TABLE IF NOT EXISTS cards (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE cards
+  ADD COLUMN IF NOT EXISTS sort_order INT NOT NULL DEFAULT 0;
+
 CREATE INDEX IF NOT EXISTS cards_deck_id_idx ON cards(deck_id, sort_order);
 
 -- User deck progress (summary)

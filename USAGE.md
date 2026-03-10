@@ -6,7 +6,7 @@ Everything you need to run the full stack locally, from first clone to playing i
 1. Use `pnpm boundary:check` to enforce architecture boundaries.
 2. Use `pnpm games:conformance` to enforce required game module directory structure.
 3. Use `pnpm test:e2e` for managed end-to-end flow (`dev.sh` auto-prepares DB + API runtime).
-4. Track modularity phase progress in [`PHASE_EXECUTION_TRACKER.md`](PHASE_EXECUTION_TRACKER.md).
+4. Track modularity phase progress in [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](PHASE_EXECUTION_TRACKER_2_PENDING.md).
 
 ---
 
@@ -72,7 +72,7 @@ Tests
   test:web            Web component tests — vitest + jsdom (no DB required)
   test:int            API integration tests (auto-prepares test DB via migrate + seed)
   test:e2e            Playwright e2e tests (auto-prepares test DB + starts API + web)
-  test:e2e:stack      Playwright e2e tests against container stack (http://localhost)
+  test:e2e:stack      Playwright e2e tests against container stack (http://localhost:8080)
   test:full           Full local suite: check + unit + integration + web + e2e
 
 Database (local dev container)
@@ -84,16 +84,18 @@ Database (local dev container)
   db:seed             Insert seed data (idempotent)
   db:wipe             Drop all tables, re-migrate, re-seed (destructive)
 
-Container stack (Podman full stack — http://localhost)
-  stack:init          First-time: build images + up + wait + seed
+Container stack (Podman full stack — http://localhost:8080)
+  stack:init          First-time: build images + up + wait + migrate + seed
   stack:build         Build container images only (api + web)
   stack:up            Start stack (uses existing images)
   stack:rebuild       Rebuild images and restart stack  (after code changes)
   stack:restart       Restart stack without rebuilding  (after config changes)
   stack:down          Stop and remove stack containers
-  stack:seed          Seed DB inside the running API container (first run)
+  stack:migrate       Apply DB migrations inside the running API container
+  stack:seed          Seed DB inside the running API container
   stack:logs [svc]    Follow logs — all services or one (e.g. api, web, db, caddy)
   stack:smoke         Run smoke test (waits for health, checks web + API)
+  stack:verify        Rebuild stack, smoke, migrate, seed, restart, smoke again, then tear down
   stack:ps            Show status of stack containers
 
 Backup / Restore
@@ -200,16 +202,22 @@ podman-compose -f infra/podman/compose.yml logs -f api
 # Run smoke tests (waits for health, verifies web returns 200)
 ./infra/podman/smoke-test.sh
 
+# Full basic container verification
+./dev.sh stack:verify
+
 # Stop all containers
 podman-compose -f infra/podman/compose.yml down
 ```
 
 Open **http://localhost:8080** (Caddy proxies everything).
 
+Use `./dev.sh stack:verify` after changing container builds, workspace package wiring, reverse-proxy config, or stack startup behavior. It starts from a clean Podman volume state, rebuilds the stack, prints compose status, verifies HTTP reachability through Caddy, runs the in-container migration and seed paths, restarts the stack without rebuilding, verifies reachability again, and tears the stack down afterward.
+
 **First-time container run — seed the DB inside the container:**
 ```bash
 # After containers are up and healthy:
-podman exec kids-games-api node --env-file=/dev/null -r tsx/esm src/db/seed.ts
+podman exec kids-games-api node apps/api/dist/db/migrate.js
+podman exec kids-games-api node apps/api/dist/db/seed.js
 ```
 
 ---
@@ -404,9 +412,18 @@ TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/kids_games_test
 JWT_SECRET=change-me-in-production-jwt-secret-min-32-chars
 REFRESH_SECRET=change-me-in-production-refresh-secret-min-32-chars
 
+# Closed-game allowlist / seeded integration client
+ALLOWED_GAME_IDS=flashcards
+FLASHCARDS_CLIENT_SECRET=flashcards-dev-secret
+
 # Valkey / Redis (optional — in-memory fallback used if absent)
 # VALKEY_URL=redis://localhost:6379
 ```
+
+Notes:
+- `ALLOWED_GAME_IDS` controls which enabled games are exposed by `/games` and accepted by protected game endpoints.
+- `FLASHCARDS_CLIENT_SECRET` is used when seeding the default `flashcards-web-dev` integration client for delegated game-session issuance.
+- Rotate the JWT secrets and game-client secret for anything beyond localhost.
 
 **Web app — Vite environment:**
 The web app talks to the API via `/api` prefix (proxied by Vite in dev, by Caddy in prod).
@@ -654,20 +671,21 @@ podman-compose -f infra/podman/compose.yml up -d --build
 podman ps
 # Expected: kids-games-db, kids-games-api, kids-games-web, kids-games-caddy all shown
 
-# 3. Seed the database (first time only)
-podman exec kids-games-api node --env-file=/dev/null -r tsx/esm src/db/seed.ts
+# 3. Apply migrations and seed the database (first time only)
+podman exec kids-games-api node apps/api/dist/db/migrate.js
+podman exec kids-games-api node apps/api/dist/db/seed.js
 
 # 4. Verify the stack is up
 ./infra/podman/smoke-test.sh
 # Expected: "Smoke test passed"
 ```
 
-Open **http://localhost** in a browser (Caddy serves on port 80).
+Open **http://localhost:8080** in a browser (Caddy serves the stack on port 8080).
 
 **Expected success signals:**
 - `podman ps` shows all 4 containers in "healthy" or "Up" state
-- `curl http://localhost/api/health` returns `{"status":"ok","db":"ok"}`
-- Browser loads the login page at `http://localhost`
+- `curl http://localhost:8080/api/health` returns `{"status":"ok","db":"ok"}`
+- Browser loads the login page at `http://localhost:8080`
 
 **Stop the stack:**
 ```bash
@@ -696,7 +714,7 @@ podman-compose -f infra/podman/compose.yml down
 ./infra/podman/smoke-test.sh
 # Expected: "Smoke test passed"
 
-# 2. Stack E2E — runs Playwright tests against http://localhost (Caddy)
+# 2. Stack E2E — runs Playwright tests against http://localhost:8080 (Caddy)
 pnpm test:e2e:stack
 # Expected: 2 E2E tests pass (register → login → flashcards flow)
 ```
@@ -711,7 +729,7 @@ pnpm test:e2e:stack
 | Test times out waiting for element | App loaded but API returning errors | Check browser console in trace: `npx playwright show-trace` |
 
 **Note:** The stack E2E config lives at `apps/web/playwright.stack.config.ts`.
-The base URL defaults to `http://localhost`. Override with `BASE_URL_STACK=https://localhost pnpm test:e2e:stack`.
+The base URL defaults to `http://localhost:8080`. Override with `BASE_URL_STACK=https://localhost pnpm test:e2e:stack`.
 
 ---
 
@@ -752,7 +770,7 @@ podman exec kids-games-db psql -U postgres kids_games_dev \
 # Expected: same count as before step 2
 
 # 6. Confirm the API still works
-curl http://localhost/api/health
+curl http://localhost:8080/api/health
 # Expected: {"status":"ok","db":"ok"}
 ```
 

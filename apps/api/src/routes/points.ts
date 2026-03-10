@@ -73,7 +73,14 @@ export async function pointsRoutes(app: FastifyInstance): Promise<void> {
           message: 'Game session game mismatch',
         });
       }
-      if (!gameSession.hasRequiredScope(sessionClaims, 'points:add')) {
+      const requiredScopes =
+        allowedGame.required_scopes.length > 0
+          ? allowedGame.required_scopes
+          : ['points:add'];
+      const hasAllRequiredScopes = requiredScopes.every((scope) =>
+        gameSession.hasRequiredScope(sessionClaims, scope),
+      );
+      if (!hasAllRequiredScopes) {
         return reply.status(403).send({
           statusCode: 403,
           error: 'Forbidden',

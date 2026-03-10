@@ -21,9 +21,9 @@ const gameRow: GameRow = {
   capabilities: ['progress', 'points'],
   api_version: 'v1',
   requires_user_auth: true,
-  requires_app_identity: false,
-  required_scopes: ['flashcards:play'],
-  token_audience: 'kids-games-api',
+  requires_app_identity: true,
+  required_scopes: ['points:add'],
+  token_audience: 'game:flashcards',
   entry_web: '/flashcards',
   entry_mobile: null,
   created_at: now,
@@ -65,9 +65,9 @@ describe('mapGame', () => {
     expect(result.apiVersion).toBe('v1');
     expect(result.authPolicy).toEqual({
       requiresUserAuth: true,
-      requiresAppIdentity: false,
-      requiredScopes: ['flashcards:play'],
-      tokenAudience: 'kids-games-api',
+      requiresAppIdentity: true,
+      requiredScopes: ['points:add'],
+      tokenAudience: 'game:flashcards',
     });
     expect(result.entryWeb).toBe('/flashcards');
     expect(result.entryMobile).toBeNull();

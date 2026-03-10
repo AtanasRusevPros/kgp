@@ -3,7 +3,7 @@
 ## Current migration posture
 1. Compatibility mode is active for topology and flashcards wiring.
 2. Core architecture gates are enabled (boundary + conformance checks).
-3. Phases and completion status are tracked in `PHASE_EXECUTION_TRACKER.md`.
+3. Phases and completion status are tracked in `PHASE_EXECUTION_TRACKER_2_PENDING.md`.
 
 ## Safe migration loop
 1. Implement one phase slice.

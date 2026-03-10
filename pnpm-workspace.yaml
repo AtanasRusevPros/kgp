@@ -1,5 +1,6 @@
 packages:
   - apps/*
+  - games/*/backend-adapter
   - packages/*
 
 onlyBuiltDependencies:

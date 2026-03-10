@@ -73,6 +73,25 @@ describe('GET /games/:gameId', () => {
     expect(game.routeBase).toBe('/flashcards');
   });
 
+  it('returns flashcards auth policy aligned with delegated points flow', async () => {
+    const res = await app.inject({ method: 'GET', url: '/games/flashcards' });
+    expect(res.statusCode).toBe(200);
+    const game = res.json<{
+      authPolicy: {
+        requiresUserAuth: boolean;
+        requiresAppIdentity: boolean;
+        requiredScopes: string[];
+        tokenAudience: string;
+      };
+    }>();
+    expect(game.authPolicy).toEqual({
+      requiresUserAuth: true,
+      requiresAppIdentity: true,
+      requiredScopes: ['points:add'],
+      tokenAudience: 'game:flashcards',
+    });
+  });
+
   it('returns 404 for unknown game', async () => {
     const res = await app.inject({ method: 'GET', url: '/games/unknown-game' });
     expect(res.statusCode).toBe(404);

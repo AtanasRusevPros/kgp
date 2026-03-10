@@ -22,6 +22,21 @@ for game_dir in games/*; do
     fi
   done
 
+  if [[ ! -f "$game_dir/README.md" ]]; then
+    echo "Game module '$game_id' is missing README.md" >&2
+    FAIL=1
+  fi
+
+  if [[ ! -f "$game_dir/web/src/module.ts" ]]; then
+    echo "Game module '$game_id' is missing web entry: web/src/module.ts" >&2
+    FAIL=1
+  fi
+
+  if [[ ! -f "$game_dir/backend-adapter/src/index.ts" ]]; then
+    echo "Game module '$game_id' is missing backend adapter entry: backend-adapter/src/index.ts" >&2
+    FAIL=1
+  fi
+
 done
 
 if [[ "$FAIL" -ne 0 ]]; then

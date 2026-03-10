@@ -77,8 +77,8 @@ describe('GameSchema', () => {
       authPolicy: {
         requiresUserAuth: true,
         requiresAppIdentity: true,
-        requiredScopes: ['game.play'],
-        tokenAudience: 'kids-games-api',
+        requiredScopes: ['points:add'],
+        tokenAudience: 'game:flashcards',
       },
       entryWeb: '/games/flashcards',
       entryMobile: null,
@@ -101,8 +101,8 @@ describe('GameSchema', () => {
       authPolicy: {
         requiresUserAuth: true,
         requiresAppIdentity: true,
-        requiredScopes: ['game.play'],
-        tokenAudience: 'kids-games-api',
+        requiredScopes: ['points:add'],
+        tokenAudience: 'game:flashcards',
       },
       entryWeb: '/games/flashcards',
       entryMobile: null,

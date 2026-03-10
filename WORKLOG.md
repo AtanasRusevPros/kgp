@@ -6,7 +6,9 @@ A full narrative of what was built, why each decision was made, what was discove
 An active re-architecture sequence is now tracked in:
 1. `GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md`
 2. `GAME_MODULARITY_ITERATION_PLAN_SHORT.md`
-3. `PHASE_EXECUTION_TRACKER.md`
+3. `PHASE_EXECUTION_TRACKER_2_PENDING.md`
+
+Updated: 2026-03-11 00:09 EET
 
 This introduces a closed allowlist game model, delegated game-session auth for privileged writes, registry-driven web routing, and new CI conformance gates.
 
@@ -62,7 +64,7 @@ Before implementation began, a **gap analysis** was performed against the three 
 **Goal:** A working monorepo skeleton with no implementation logic.
 
 **Artifacts created:**
-- `pnpm-workspace.yaml` defining four packages
+- `pnpm-workspace.yaml` defining the initial workspace packages, now expanded to include the flashcards backend-adapter package
 - `tsconfig.base.json` with strict TypeScript settings (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`)
 - `packages/shared/` — Types and Zod schemas
 - `packages/game-sdk/` — `GameModule` / `GameContext` interface definitions
@@ -183,16 +185,17 @@ This separation was discovered as necessary after early integration tests interf
 - `infra/podman/nginx.conf` — SPA fallback configuration
 - `infra/podman/caddy/Caddyfile` — Routing rules
 - `infra/podman/smoke-test.sh` — Post-deploy verification script
+- `infra/podman/basic-actions-test.sh` — Clean-volume rebuild/status/smoke/migrate/seed/restart/smoke/teardown verification for the full stack
 
 **Key decisions:**
 
 **Podman rootless** — Running containers without root privileges is the right choice for a server that might be shared. Podman's rootless mode uses user namespaces to provide container isolation without requiring a root daemon.
 
-**Caddy over nginx as reverse proxy** — Caddy handles automatic HTTPS certificate management (via Let's Encrypt) when configured with a real domain. For localhost, it serves HTTP but is ready to switch to HTTPS by changing one line in the Caddyfile. This makes the path to a real domain trivially short.
+**Caddy over nginx as reverse proxy** — Caddy handles automatic HTTPS certificate management (via Let's Encrypt) when configured with a real domain. For localhost, `auto_https off` keeps the stack on plain HTTP so smoke checks and local browser access use `http://localhost:8080` deterministically. This keeps the path to a real domain short without breaking local verification.
 
 **Multi-stage Docker builds** — The `deps` stage installs all dependencies; the `build` stage compiles; the `runtime` stage copies only production artifacts. This keeps images small (no dev tools, no TypeScript compiler in production) and avoids layer cache busting on source changes.
 
-**API health check in compose** — The `api` service health check (`curl /health`) allows Caddy to start after the API is ready, preventing 502 errors during startup.
+**API health check in compose** — The `api` service health check still provides direct service visibility, but the stack no longer relies on `depends_on: service_healthy` because `podman-compose` left services stuck in `Created` state under that setup. Startup readiness is enforced by the smoke/verify flow instead.
 
 **Smoke test script** — `smoke-test.sh` polls the health endpoint with retries before making assertions. This makes it safe to run immediately after `podman-compose up -d` without manual waiting.
 
@@ -453,12 +456,29 @@ pnpm stack:restore infra/podman/backups/pg-YYYYMMDD-HHMMSS.sql
 **Motivation:** The existing Playwright E2E suite validates the dev-server flow (Vite on port 5173). It does not exercise Caddy's reverse proxy, container networking, or TLS routing. Regressions in the deployment topology would not be caught until manual testing.
 
 **Artifacts created:**
-- `apps/web/playwright.stack.config.ts` — separate Playwright configuration targeting `http://localhost` (Caddy HTTP). No `webServer` block (stack must already be running). `ignoreHTTPSErrors: true` for HTTPS testing. `BASE_URL_STACK` env var for override.
+- `apps/web/playwright.stack.config.ts` — separate Playwright configuration targeting `http://localhost:8080` (Caddy HTTP). No `webServer` block (stack must already be running). `ignoreHTTPSErrors: true` for HTTPS testing. `BASE_URL_STACK` env var for override.
 - `apps/web/package.json`: added `test:e2e:stack` script.
 - Root `package.json`: added `test:e2e:stack` proxy script.
 
 **Design decisions:**
 - Reuses the same E2E test suite (`apps/web/e2e/`) against both endpoints — no test duplication. The two configs differ only in `baseURL` and `webServer` presence.
+
+## 2026-03-11 Session Addendum
+
+This session closed the second review/fix pass for the modularity work and then hardened the container lifecycle/documentation path further.
+
+Completed:
+1. Security, metadata, docs, and boundary findings from the latest reviewed commit were fixed.
+2. The flashcards backend adapter became a dedicated workspace package.
+3. Podman container runtime/build logic was corrected for workspace-package execution.
+4. `stack:verify` was added and expanded into a real container lifecycle validation path.
+5. API graceful shutdown was fixed so the stack teardown no longer relies on Podman `SIGKILL` fallback in normal verification runs.
+6. The completed review artifact is now tracked in `COMMIT_CODE_REVIEW_2_DONE.md`.
+
+Still pending:
+1. The broader architecture cutover remains in compatibility mode; see `PHASE_EXECUTION_TRACKER_2_PENDING.md`.
+2. Boundary-policy completion remains pending final topology completion; see `docs/ARCHITECTURE_BOUNDARY_POLICY_PENDING.md`.
+3. Cold-start/self-owned test orchestration improvements remain pending; see `TESTS_IMPROVEMENTS_PENDING_4.md`.
 - Stack E2E is intentionally excluded from the default CI pipeline (`pnpm test:full`) because it requires a running container stack. It's a pre-release validation step, not a PR gate.
 - `retries: 1` added (vs. `retries: 0` in dev config) because container startup can add brief latency on first request.
 - Documented as Milestone 7 in `IMPLEMENTATION_STATUS.md` — adding a CI job for stack E2E on release branches is a recommended future step.

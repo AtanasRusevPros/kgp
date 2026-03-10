@@ -5,17 +5,22 @@ Every entry is evidence-backed with file paths, script names, or endpoint refere
 
 > **See also:** [`WORKLOG.md`](WORKLOG.md) for phase-by-phase narrative and rationale.
 > **Roadmap context:** [`USAGE.md`](USAGE.md) for executable workflows.
-> **Modularity execution tracker:** [`PHASE_EXECUTION_TRACKER.md`](PHASE_EXECUTION_TRACKER.md).
+> **Modularity execution tracker:** [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](PHASE_EXECUTION_TRACKER_2_PENDING.md).
+> **Pending test-orchestration follow-up:** [`TESTS_IMPROVEMENTS_PENDING_4.md`](TESTS_IMPROVEMENTS_PENDING_4.md).
+
+Updated: 2026-03-11 00:16 EET
 
 ## 2026 Modularity Rework Snapshot
-Current completed phases: `P0-P6` plus major `P8` quality gates.
+Current effective state:
+1. `P0`, `P2`, `P4`, `P5`, and the flashcards game-module slice of `P7` are implemented.
+2. `P1`, `P3`, `P6`, `P8`, `P9`, and `P10` remain partial because the repo still runs in compatibility mode for the broader `server/` / `frontend/*` cutover and not every planned gate is complete.
 
 Implemented highlights:
 1. Backend allowlist registry and health endpoint.
 2. Expanded game metadata contracts and schema migration.
-3. Delegated game-session token issuance and privileged scope checks for points writes.
+3. Delegated game-session token issuance now enforces scope subset checks against the integration client and the game's declared required scopes for points writes.
 4. Registry-driven game routing in web shell.
-5. Game module structure and architecture boundary checks wired into CI.
+5. Game module structure and architecture boundary checks wired into CI, including target topology roots.
 
 ---
 
@@ -32,7 +37,7 @@ Implemented highlights:
 
 ## Executive Summary
 
-The MVP is **fully implemented and passing all automated quality gates.**
+The MVP remains usable and the automated suite is green, but the modularity rework is still in compatibility mode rather than fully at the end-state described by the master plan.
 
 | Dimension | Status |
 |-----------|--------|
@@ -42,7 +47,7 @@ The MVP is **fully implemented and passing all automated quality gates.**
 | CI pipeline (GitHub Actions) | Complete |
 | Test suite | 162 tests passing (unit + integration + web + E2E) |
 | Ops tooling (backup/restore, stack E2E) | Complete (added post-MVP) |
-| Documentation | Complete (USAGE, ARCHITECTURE, WORKLOG, this file) |
+| Documentation | Implemented, with compatibility-mode caveats documented |
 
 Deferred items (audio, points server-authority, mobile app, observability) are explicitly documented below.
 
@@ -94,7 +99,7 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 |---------|--------|----------|
 | Points schema | Implemented | `user_points`, `user_game_points` tables in migration |
 | `GET /points` | Implemented | `apps/api/src/routes/points.ts` |
-| `POST /points/add` | Partial | Implemented but client-callable (security gap); `// TODO(v2): make server-authoritative` comment |
+| `POST /points/add` | Partial | Requires delegated game-session token with game/user/scope checks, but the endpoint is still client-callable rather than server-authoritative |
 | Points award on game completion | Deferred | No server-side game completion event triggers |
 | Achievements/badges | Deferred | Not in scope for MVP |
 | Leaderboard | Deferred | Not in scope for MVP |
@@ -106,7 +111,7 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | `GET /games` | Implemented | `apps/api/src/routes/games.ts` |
 | `GET /games/:gameId` | Implemented | Returns 404 for unknown ID |
 | Game menu UI | Implemented | `apps/web/src/pages/MenuPage.tsx` |
-| Game plugin registry | Deferred | `packages/game-sdk/` defines `GameModule` interface; dynamic registry not built |
+| Game plugin registry | Partial | Web shell uses a registry-driven route build, but backend adapter loading is still statically wired rather than fully loader-driven |
 | Second game (beyond flashcards) | Deferred | Placeholder in menu; implementation is future work |
 
 ### Rate Limiting
@@ -150,8 +155,8 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 |---------|--------|-------|
 | TypeScript strict mode | Implemented | `strict: true`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` across all packages |
 | ESLint passing | Implemented | Enforced as phase gate; `pnpm lint` passes clean |
-| Type checking passing | Implemented | `pnpm typecheck` passes across all 4 packages |
-| Local test orchestration | Implemented | `./dev.sh test:int`, `test:e2e`, `test:full` run with setup preflight and explicit failure guidance |
+| Type checking passing | Implemented | `pnpm typecheck` passes across all 5 workspace packages |
+| Local test orchestration | Partial | `./dev.sh test:int`, `test:e2e`, `test:full` automate substantial setup, but DB-backed suites still rely on the long-lived local DB container model; see `TESTS_IMPROVEMENTS_PENDING_4.md` |
 | HTTPS (production) | Ready | Caddy auto-provisions TLS when given a real domain in Caddyfile |
 | HTTPS (localhost) | Optional | `ignoreHTTPSErrors: true` in playwright stack config |
 | Rootless containers | Implemented | Podman rootless via `infra/podman/compose.yml` |
@@ -198,8 +203,9 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | 6 | No account deletion | Store compliance risk (Apple/Google) | Medium (if going to store) | Add `DELETE /auth/me` with CASCADE |
 | 7 | `sessions` table is unused | Dead schema weight | Very Low | Implement when multiplayer planned; table does no harm |
 | 8 | Mobile app is a stub | No mobile experience | N/A for localhost | Implement React Native / Expo app as separate effort |
-| 9 | No observability beyond health endpoint | Can't diagnose production issues | Medium (if going to production) | Add Pino log forwarding, prom-client metrics, Grafana |
-| 10 | Stack E2E not in CI | Deployment-only regressions not automatically caught | Low | Add optional CI job triggered on release branch |
+| 9 | Broader `server/` and `frontend/*` topology migration remains in compatibility mode | Root architecture docs can be overread as complete | Medium | Continue cutover or explicitly treat current state as long-lived compatibility mode |
+| 10 | No observability beyond health endpoint | Can't diagnose production issues | Medium (if going to production) | Add Pino log forwarding, prom-client metrics, Grafana |
+| 11 | Stack E2E not in CI | Deployment-only regressions not automatically caught | Low | Add optional CI job triggered on release branch |
 
 ---
 
@@ -254,3 +260,23 @@ Ordered by product value and risk reduction.
 - Add a `stack-e2e` CI job triggered manually or on `release/*` branches
 - Use `podman-compose up -d` + smoke test + `test:e2e:stack`
 - Fails the release gate if Caddy proxy routes or TLS are broken
+
+## 2026-03-11 Session Summary
+
+This session completed the second commit review/fix cycle and the follow-up container/documentation hardening.
+
+Completed in this session:
+1. Review findings were implemented and the closed review was preserved as [`COMMIT_CODE_REVIEW_2_DONE.md`](COMMIT_CODE_REVIEW_2_DONE.md).
+2. Delegated game-session scope issuance was hardened and aligned with game metadata enforcement.
+3. Flashcards metadata, tests, env docs, and guard-rail scripts were corrected to match the implemented security and modularity behavior.
+4. The flashcards backend adapter was extracted into a dedicated workspace package under `games/flashcards/backend-adapter`.
+5. Podman API/web container builds and runtime layout were corrected for the workspace-package architecture.
+6. `stack:verify` was added and expanded into a full rebuild/smoke/migrate/seed/restart/smoke/teardown validation path.
+7. Container-only issues discovered during execution were fixed, including Caddy HTTP routing, seed-data runtime assets, migration sequencing, and API graceful shutdown.
+8. The graceful-shutdown cleanup issue was resolved by adding explicit `SIGINT`/`SIGTERM` handling in the API runtime.
+
+Pending after this session:
+1. Broader modularity execution remains in compatibility mode for parts of the target architecture; see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](PHASE_EXECUTION_TRACKER_2_PENDING.md).
+2. Architecture boundary policy remains active but pending final topology completion; see [`docs/ARCHITECTURE_BOUNDARY_POLICY_PENDING.md`](docs/ARCHITECTURE_BOUNDARY_POLICY_PENDING.md).
+3. Test cold-start/self-owned orchestration still needs follow-up; see [`TESTS_IMPROVEMENTS_PENDING_4.md`](TESTS_IMPROVEMENTS_PENDING_4.md).
+4. AI-optimized documentation/rules/check workflow and mandatory cheap local verification rules remain pending; see [`TESTS_IMPROVEMENTS_PENDING_4.md`](TESTS_IMPROVEMENTS_PENDING_4.md).

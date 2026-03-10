@@ -13,6 +13,11 @@ import * as gameSession from '../modules/game-session.js';
 
 const AUTH_RATE_LIMIT = { max: 10, timeWindow: '1 minute' };
 
+function hasAllScopes(allowedScopes: string[], requestedScopes: string[]): boolean {
+  const allowed = new Set(allowedScopes);
+  return requestedScopes.every((scope) => allowed.has(scope));
+}
+
 function signUserAccessToken(app: FastifyInstance, userId: string, email: string): string {
   return app.jwt.sign(
     {
@@ -244,7 +249,21 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
         });
       }
 
-      const requestedScopes = body.data.scopes ?? ['points:add'];
+      const requestedScopes = body.data.scopes ?? game.required_scopes;
+      if (requestedScopes.length === 0) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Game does not define any delegatable scopes',
+        });
+      }
+      if (!hasAllScopes(appClient.scopes, requestedScopes)) {
+        return reply.status(403).send({
+          statusCode: 403,
+          error: 'Forbidden',
+          message: 'Requested scopes are not allowed for this game client',
+        });
+      }
       const token = gameSession.signGameSessionToken(app, {
         userId: request.user.userId,
         email: request.user.email,

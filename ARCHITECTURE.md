@@ -2,7 +2,7 @@
 
 A complete technical reference covering system design, data flow, module structure, database schema, test strategy, and extension points.
 
-> Modular rework status: see [`PHASE_EXECUTION_TRACKER.md`](PHASE_EXECUTION_TRACKER.md).
+> Modular rework status: see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](PHASE_EXECUTION_TRACKER_2_PENDING.md).
 
 ## 2026 Modularity Update (Key Changes)
 1. Closed, allowlisted game integration model is active in backend (`config.allowedGameIds`).
@@ -38,7 +38,7 @@ A complete technical reference covering system design, data flow, module structu
 
 ## System Overview
 
-Kids Games Platform is a **monorepo** of four packages targeting a single-server localhost-first deployment. The architecture is intentionally simple: one Fastify API, one React SPA, one PostgreSQL database, and a Caddy reverse proxy.
+Kids Games Platform is a **monorepo** of five workspace packages targeting a single-server localhost-first deployment. The architecture is intentionally simple: one Fastify API, one React SPA, one PostgreSQL database, a game-owned backend-adapter package for flashcards, and a Caddy reverse proxy.
 
 ```
 Browser
@@ -648,7 +648,7 @@ base (node:22-alpine + corepack)
 ### Caddyfile Routing
 
 ```
-localhost {
+http://localhost {
     handle /api/* {
         uri strip_prefix /api      # Remove /api prefix before forwarding
         reverse_proxy api:3000     # Forward to Fastify

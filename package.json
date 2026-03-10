@@ -23,7 +23,8 @@
     "db:reset": "pnpm --filter @kids-games/api db:reset",
     "stack:backup": "./infra/podman/scripts/backup.sh",
     "stack:restore": "./infra/podman/scripts/restore.sh",
-    "test:e2e:stack": "pnpm --filter @kids-games/web test:e2e:stack"
+    "test:e2e:stack": "pnpm --filter @kids-games/web test:e2e:stack",
+    "stack:verify": "./infra/podman/basic-actions-test.sh"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.18.0",

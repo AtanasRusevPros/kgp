@@ -31,6 +31,8 @@ export function verifyGameSessionClaimsOrNull(
   try {
     const decoded = app.jwt.verify<GameSessionClaims>(token);
     if (decoded.typ !== 'game_session') return null;
+    if (typeof decoded.gameId !== 'string' || decoded.gameId.length === 0) return null;
+    if (typeof decoded.clientId !== 'string' || decoded.clientId.length === 0) return null;
     if (decoded.aud !== `game:${decoded.gameId}`) return null;
     if (!Array.isArray(decoded.scope)) return null;
     return decoded;

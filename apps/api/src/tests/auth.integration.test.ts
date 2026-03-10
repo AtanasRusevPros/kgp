@@ -193,4 +193,48 @@ describe('POST /auth/game-session', () => {
     });
     expect(res.statusCode).toBe(401);
   });
+
+  it('defaults delegated scopes to the game auth policy when omitted', async () => {
+    const loginRes = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { email: TEST_EMAIL, password: TEST_PASS },
+    });
+    const { accessToken } = loginRes.json<{ accessToken: string }>();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/game-session',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'x-game-client-id': 'flashcards-web-dev',
+        'x-game-client-secret': 'flashcards-dev-secret',
+      },
+      payload: { gameId: 'flashcards' },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json<{ scopes: string[] }>();
+    expect(body.scopes).toEqual(['points:add']);
+  });
+
+  it('rejects requested scopes not granted to the integration client', async () => {
+    const loginRes = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { email: TEST_EMAIL, password: TEST_PASS },
+    });
+    const { accessToken } = loginRes.json<{ accessToken: string }>();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/game-session',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'x-game-client-id': 'flashcards-web-dev',
+        'x-game-client-secret': 'flashcards-dev-secret',
+      },
+      payload: { gameId: 'flashcards', scopes: ['admin:all'] },
+    });
+    expect(res.statusCode).toBe(403);
+  });
 });
