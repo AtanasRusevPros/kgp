@@ -5,6 +5,19 @@ Single-server deployment via Podman rootless containers, localhost-first.
 
 > Full developer guide: [`USAGE.md`](USAGE.md)
 
+## Architecture Update (2026-03)
+The platform is now on a phased modularity rework path:
+1. Closed allowlist model for games (`ALLOWED_GAME_IDS`).
+2. Extended game metadata contracts from `/games`.
+3. Registry-driven web game routing (`apps/web/src/games/registry.tsx`).
+4. Delegated game session token flow for privileged routes (`POST /auth/game-session`).
+5. Game/module conformance and boundary checks in quality gates (`pnpm boundary:check`, `pnpm games:conformance`).
+
+Execution tracking:
+- [`GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md`](GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md)
+- [`GAME_MODULARITY_ITERATION_PLAN_SHORT.md`](GAME_MODULARITY_ITERATION_PLAN_SHORT.md)
+- [`PHASE_EXECUTION_TRACKER.md`](PHASE_EXECUTION_TRACKER.md)
+
 ---
 
 ## Table of Contents

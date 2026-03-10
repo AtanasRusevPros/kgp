@@ -15,6 +15,17 @@ const gameRow: GameRow = {
   description: 'Learn vocabulary',
   icon_emoji: '🃏',
   status: 'enabled',
+  route_base: '/flashcards',
+  integration_mode: 'local',
+  client_targets: ['web', 'mobile'],
+  capabilities: ['progress', 'points'],
+  api_version: 'v1',
+  requires_user_auth: true,
+  requires_app_identity: false,
+  required_scopes: ['flashcards:play'],
+  token_audience: 'kids-games-api',
+  entry_web: '/flashcards',
+  entry_mobile: null,
   created_at: now,
 };
 
@@ -47,6 +58,19 @@ describe('mapGame', () => {
     expect(result.description).toBe('Learn vocabulary');
     expect(result.iconEmoji).toBe('🃏');
     expect(result.status).toBe('enabled');
+    expect(result.routeBase).toBe('/flashcards');
+    expect(result.integrationMode).toBe('local');
+    expect(result.clientTargets).toEqual(['web', 'mobile']);
+    expect(result.capabilities).toEqual(['progress', 'points']);
+    expect(result.apiVersion).toBe('v1');
+    expect(result.authPolicy).toEqual({
+      requiresUserAuth: true,
+      requiresAppIdentity: false,
+      requiredScopes: ['flashcards:play'],
+      tokenAudience: 'kids-games-api',
+    });
+    expect(result.entryWeb).toBe('/flashcards');
+    expect(result.entryMobile).toBeNull();
   });
 
   it('does not include raw snake_case fields', () => {

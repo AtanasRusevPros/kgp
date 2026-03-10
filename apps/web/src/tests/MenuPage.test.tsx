@@ -28,7 +28,26 @@ vi.mock('react-router-dom', async (importOriginal) => {
 import { apiFetch } from '../services/api.js';
 
 const MOCK_GAMES = [
-  { id: 'flashcards', title: 'Flash Cards', description: 'Learn words', iconEmoji: '🃏', status: 'enabled' },
+  {
+    id: 'flashcards',
+    title: 'Flash Cards',
+    description: 'Learn words',
+    iconEmoji: '🃏',
+    status: 'enabled',
+    routeBase: '/flashcards',
+    integrationMode: 'local',
+    clientTargets: ['web', 'mobile'],
+    capabilities: ['progress', 'offline-queue'],
+    apiVersion: 'v1',
+    authPolicy: {
+      requiresUserAuth: true,
+      requiresAppIdentity: false,
+      requiredScopes: ['flashcards:play'],
+      tokenAudience: 'kids-games-api',
+    },
+    entryWeb: '/flashcards',
+    entryMobile: null,
+  },
 ];
 
 describe('MenuPage', () => {

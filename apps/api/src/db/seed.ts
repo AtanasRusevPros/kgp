@@ -5,6 +5,7 @@
  */
 import { createPool } from './client.js';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -36,7 +37,26 @@ interface SeedCard {
 }
 
 interface SeedData {
-  game: { id: string; title: string; description: string; iconEmoji: string; status: string };
+  game: {
+    id: string;
+    title: string;
+    description: string;
+    iconEmoji: string;
+    status: string;
+    routeBase?: string;
+    integrationMode?: 'local' | 'external';
+    clientTargets?: string[];
+    capabilities?: string[];
+    apiVersion?: string;
+    authPolicy?: {
+      requiresUserAuth?: boolean;
+      requiresAppIdentity?: boolean;
+      requiredScopes?: string[];
+      tokenAudience?: string;
+    };
+    entryWeb?: string | null;
+    entryMobile?: string | null;
+  };
   deck: { languageCode: string; title: string; description: string; version: number };
   cards: SeedCard[];
 }
@@ -50,13 +70,82 @@ async function seed() {
     const data = JSON.parse(readFileSync(dataPath, 'utf8')) as SeedData;
 
     // Upsert game
+    const routeBase = data.game.routeBase ?? `/games/${data.game.id}`;
+    const integrationMode = data.game.integrationMode ?? 'local';
+    const clientTargets = data.game.clientTargets ?? ['web'];
+    const capabilities = data.game.capabilities ?? ['progress'];
+    const apiVersion = data.game.apiVersion ?? 'v1';
+    const requiresUserAuth = data.game.authPolicy?.requiresUserAuth ?? true;
+    const requiresAppIdentity = data.game.authPolicy?.requiresAppIdentity ?? false;
+    const requiredScopes = data.game.authPolicy?.requiredScopes ?? [];
+    const tokenAudience = data.game.authPolicy?.tokenAudience ?? 'kids-games-api';
+    const entryWeb = data.game.entryWeb ?? routeBase;
+    const entryMobile = data.game.entryMobile ?? null;
+
     await client.query(
-      `INSERT INTO games (id, title, description, icon_emoji, status)
-       VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT (id) DO UPDATE SET title=$2, description=$3, icon_emoji=$4, status=$5`,
-      [data.game.id, data.game.title, data.game.description, data.game.iconEmoji, data.game.status],
+      `INSERT INTO games (
+         id, title, description, icon_emoji, status,
+         route_base, integration_mode, client_targets, capabilities, api_version,
+         requires_user_auth, requires_app_identity, required_scopes, token_audience,
+         entry_web, entry_mobile
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+       ON CONFLICT (id) DO UPDATE SET
+         title=$2,
+         description=$3,
+         icon_emoji=$4,
+         status=$5,
+         route_base=$6,
+         integration_mode=$7,
+         client_targets=$8,
+         capabilities=$9,
+         api_version=$10,
+         requires_user_auth=$11,
+         requires_app_identity=$12,
+         required_scopes=$13,
+         token_audience=$14,
+         entry_web=$15,
+         entry_mobile=$16`,
+      [
+        data.game.id,
+        data.game.title,
+        data.game.description,
+        data.game.iconEmoji,
+        data.game.status,
+        routeBase,
+        integrationMode,
+        clientTargets,
+        capabilities,
+        apiVersion,
+        requiresUserAuth,
+        requiresAppIdentity,
+        requiredScopes,
+        tokenAudience,
+        entryWeb,
+        entryMobile,
+      ],
     );
     console.log(`✓ Upserted game: ${data.game.id}`);
+
+    const defaultClientId = 'flashcards-web-dev';
+    const defaultClientSecret =
+      process.env['FLASHCARDS_CLIENT_SECRET'] ?? 'flashcards-dev-secret';
+    const defaultClientSecretHash = createHash('sha256')
+      .update(defaultClientSecret)
+      .digest('hex');
+
+    await client.query(
+      `INSERT INTO integration_clients (client_id, secret_hash, game_id, scopes, status)
+       VALUES ($1, $2, $3, $4, 'enabled')
+       ON CONFLICT (client_id) DO UPDATE SET
+         secret_hash = $2,
+         game_id = $3,
+         scopes = $4,
+         status = 'enabled',
+         updated_at = NOW()`,
+      [defaultClientId, defaultClientSecretHash, data.game.id, ['flashcards:play', 'points:add']],
+    );
+    console.log(`✓ Upserted integration client: ${defaultClientId}`);
 
     // Check if deck already exists
     const existing = await client.query(

@@ -165,12 +165,12 @@ cmd_build() {
 cmd_server() {
   require_env
   info "Starting API dev server (http://localhost:3000)..."
-  (cd "$PROJ" && pnpm dev:api)
+  (cd "$PROJ" && pnpm dev:server)
 }
 
 cmd_web() {
   info "Starting web dev client (http://localhost:5173)..."
-  (cd "$PROJ" && pnpm dev:web)
+  (cd "$PROJ" && pnpm dev:frontend:web)
 }
 
 # ── tests ─────────────────────────────────────────────────────────────────────
@@ -207,7 +207,7 @@ cmd_test_e2e() {
 
   info "Running Playwright e2e tests (API: ${api_url}, web dev server auto-starts)..."
   set +e
-  (cd "$PROJ" && E2E_API_URL="$api_url" VITE_API_PROXY_TARGET="$api_url" pnpm test:e2e)
+  (cd "$PROJ" && E2E_API_URL="$api_url" VITE_API_PROXY_TARGET="$api_url" pnpm test:e2e:direct)
   local status=$?
   set -e
 

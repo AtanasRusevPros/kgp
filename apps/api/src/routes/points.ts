@@ -2,6 +2,8 @@ import type { FastifyInstance } from 'fastify';
 import { AddPointsSchema } from '@kids-games/shared';
 import { getPool } from '../db/client.js';
 import * as pointsRepo from '../repositories/points.repository.js';
+import * as registry from '../modules/game-registry.js';
+import * as gameSession from '../modules/game-session.js';
 
 export async function pointsRoutes(app: FastifyInstance): Promise<void> {
   // GET /points  (auth required)
@@ -25,6 +27,57 @@ export async function pointsRoutes(app: FastifyInstance): Promise<void> {
           statusCode: 400,
           error: 'Bad Request',
           message: body.error.errors[0]?.message ?? 'Validation error',
+        });
+      }
+
+      const allowedGame = await registry.getAllowlistedEnabledGameById(body.data.gameId);
+      if (!allowedGame) {
+        return reply.status(404).send({
+          statusCode: 404,
+          error: 'Not Found',
+          message: 'Game not allowed or not found',
+        });
+      }
+
+      const sessionToken = request.headers['x-game-session-token'];
+      if (typeof sessionToken !== 'string' || sessionToken.length === 0) {
+        return reply.status(401).send({
+          statusCode: 401,
+          error: 'Unauthorized',
+          message: 'Valid game session token is required',
+        });
+      }
+
+      const sessionClaims = gameSession.verifyGameSessionClaimsOrNull(
+        app,
+        sessionToken,
+      );
+      if (!sessionClaims) {
+        return reply.status(401).send({
+          statusCode: 401,
+          error: 'Unauthorized',
+          message: 'Invalid game session token',
+        });
+      }
+      if (sessionClaims.userId !== request.user.userId) {
+        return reply.status(403).send({
+          statusCode: 403,
+          error: 'Forbidden',
+          message: 'Game session does not match authenticated user',
+        });
+      }
+      if (sessionClaims.gameId !== body.data.gameId) {
+        return reply.status(403).send({
+          statusCode: 403,
+          error: 'Forbidden',
+          message: 'Game session game mismatch',
+        });
+      }
+      if (!gameSession.hasRequiredScope(sessionClaims, 'points:add')) {
+        return reply.status(403).send({
+          statusCode: 403,
+          error: 'Forbidden',
+          message: 'Game session is missing required scope',
         });
       }
 

@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { RegisterSchema, LoginSchema, MarkKnownSchema } from '../schemas.js';
+import {
+  RegisterSchema,
+  LoginSchema,
+  MarkKnownSchema,
+  GameSchema,
+  GameSessionSchema,
+} from '../schemas.js';
 
 describe('RegisterSchema', () => {
   it('accepts valid registration data', () => {
@@ -51,6 +57,74 @@ describe('MarkKnownSchema', () => {
 
   it('rejects non-uuid cardId', () => {
     const result = MarkKnownSchema.safeParse({ cardId: 'not-a-uuid', known: true });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('GameSchema', () => {
+  it('accepts valid modular game metadata', () => {
+    const result = GameSchema.safeParse({
+      id: 'flashcards',
+      title: 'Flash Cards',
+      status: 'enabled',
+      description: 'Learn words',
+      iconEmoji: '🃏',
+      routeBase: '/games/flashcards',
+      integrationMode: 'local',
+      clientTargets: ['web', 'mobile'],
+      capabilities: ['progress', 'points'],
+      apiVersion: 'v1',
+      authPolicy: {
+        requiresUserAuth: true,
+        requiresAppIdentity: true,
+        requiredScopes: ['game.play'],
+        tokenAudience: 'kids-games-api',
+      },
+      entryWeb: '/games/flashcards',
+      entryMobile: null,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects invalid integration mode', () => {
+    const result = GameSchema.safeParse({
+      id: 'flashcards',
+      title: 'Flash Cards',
+      status: 'enabled',
+      description: 'Learn words',
+      iconEmoji: '🃏',
+      routeBase: '/games/flashcards',
+      integrationMode: 'partner',
+      clientTargets: ['web'],
+      capabilities: [],
+      apiVersion: 'v1',
+      authPolicy: {
+        requiresUserAuth: true,
+        requiresAppIdentity: true,
+        requiredScopes: ['game.play'],
+        tokenAudience: 'kids-games-api',
+      },
+      entryWeb: '/games/flashcards',
+      entryMobile: null,
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('GameSessionSchema', () => {
+  it('accepts valid game session payload', () => {
+    const result = GameSessionSchema.safeParse({
+      gameId: 'flashcards',
+      scopes: ['points:add'],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects empty scopes when provided', () => {
+    const result = GameSessionSchema.safeParse({
+      gameId: 'flashcards',
+      scopes: [],
+    });
     expect(result.success).toBe(false);
   });
 });

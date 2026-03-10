@@ -4,7 +4,20 @@
     "title": "Flash Cards",
     "description": "Learn vocabulary with interactive flashcards",
     "iconEmoji": "📚",
-    "status": "enabled"
+    "status": "enabled",
+    "routeBase": "/flashcards",
+    "integrationMode": "local",
+    "clientTargets": ["web", "mobile"],
+    "capabilities": ["progress", "points", "offline-queue"],
+    "apiVersion": "v1",
+    "authPolicy": {
+      "requiresUserAuth": true,
+      "requiresAppIdentity": false,
+      "requiredScopes": ["flashcards:play"],
+      "tokenAudience": "kids-games-api"
+    },
+    "entryWeb": "/flashcards",
+    "entryMobile": null
   },
   "deck": {
     "languageCode": "en",

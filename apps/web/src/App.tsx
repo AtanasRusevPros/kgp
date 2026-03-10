@@ -2,9 +2,8 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage.js';
 import { RegisterPage } from './pages/RegisterPage.js';
 import { MenuPage } from './pages/MenuPage.js';
-import { DeckPickerPage } from './pages/flashcards/DeckPickerPage.js';
-import { FlashcardGamePage } from './pages/flashcards/FlashcardGamePage.js';
 import { ProtectedRoute } from './components/ProtectedRoute.js';
+import { buildGameRoutes } from './games/registry.js';
 
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -17,22 +16,7 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  {
-    path: '/flashcards',
-    element: (
-      <ProtectedRoute>
-        <DeckPickerPage />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: '/flashcards/:deckId',
-    element: (
-      <ProtectedRoute>
-        <FlashcardGamePage />
-      </ProtectedRoute>
-    ),
-  },
+  ...buildGameRoutes(),
 ]);
 
 export function App() {

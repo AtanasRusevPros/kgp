@@ -4,6 +4,15 @@ export type UserId = string;
 export type DeckId = string;
 export type CardId = string;
 export type GameId = string;
+export type GameIntegrationMode = 'local' | 'external';
+export type GameClientTarget = 'web' | 'mobile';
+
+export interface GameAuthPolicy {
+  requiresUserAuth: boolean;
+  requiresAppIdentity: boolean;
+  requiredScopes: string[];
+  tokenAudience: string;
+}
 
 export interface User {
   id: UserId;
@@ -16,8 +25,16 @@ export interface Game {
   id: GameId;
   title: string;
   status: 'enabled' | 'disabled';
-  description?: string;
-  iconEmoji?: string;
+  description: string;
+  iconEmoji: string;
+  routeBase: string;
+  integrationMode: GameIntegrationMode;
+  clientTargets: GameClientTarget[];
+  capabilities: string[];
+  apiVersion: string;
+  authPolicy: GameAuthPolicy;
+  entryWeb: string | null;
+  entryMobile: string | null;
 }
 
 export interface Deck {

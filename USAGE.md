@@ -2,6 +2,12 @@
 
 Everything you need to run the full stack locally, from first clone to playing in a browser.
 
+## 2026 Modularity Workflow Notes
+1. Use `pnpm boundary:check` to enforce architecture boundaries.
+2. Use `pnpm games:conformance` to enforce required game module directory structure.
+3. Use `pnpm test:e2e` for managed end-to-end flow (`dev.sh` auto-prepares DB + API runtime).
+4. Track modularity phase progress in [`PHASE_EXECUTION_TRACKER.md`](PHASE_EXECUTION_TRACKER.md).
+
 ---
 
 ## Table of Contents

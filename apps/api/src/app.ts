@@ -9,6 +9,7 @@ import { authRoutes } from './routes/auth.js';
 import { gameRoutes } from './routes/games.js';
 import { flashcardRoutes } from './routes/flashcards.js';
 import { pointsRoutes } from './routes/points.js';
+import { internalRoutes } from './routes/internal.js';
 
 export async function createApp(opts: { logger?: boolean; databaseUrl?: string } = {}) {
   const app = Fastify({
@@ -37,6 +38,7 @@ export async function createApp(opts: { logger?: boolean; databaseUrl?: string }
   await app.register(gameRoutes);
   await app.register(flashcardRoutes);
   await app.register(pointsRoutes);
+  await app.register(internalRoutes);
 
   return app;
 }

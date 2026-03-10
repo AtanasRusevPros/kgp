@@ -12,6 +12,19 @@ export function mapGame(row: GameRow) {
     description: row.description,
     iconEmoji: row.icon_emoji,
     status: row.status,
+    routeBase: row.route_base,
+    integrationMode: row.integration_mode,
+    clientTargets: row.client_targets,
+    capabilities: row.capabilities,
+    apiVersion: row.api_version,
+    authPolicy: {
+      requiresUserAuth: row.requires_user_auth,
+      requiresAppIdentity: row.requires_app_identity,
+      requiredScopes: row.required_scopes,
+      tokenAudience: row.token_audience,
+    },
+    entryWeb: row.entry_web,
+    entryMobile: row.entry_mobile,
   };
 }
 

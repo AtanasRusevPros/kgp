@@ -32,6 +32,12 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Architecture boundary check
+        run: pnpm boundary:check
+
+      - name: Game module conformance check
+        run: pnpm games:conformance
+
       - name: Lint shell scripts
         run: shellcheck infra/podman/scripts/backup.sh infra/podman/scripts/restore.sh scripts/dev-db.sh infra/podman/smoke-test.sh dev.sh
 

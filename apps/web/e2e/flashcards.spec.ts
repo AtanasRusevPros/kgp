@@ -49,7 +49,7 @@ test.describe('Flashcards e2e flow', () => {
     await expect(page).toHaveURL('/flashcards');
 
     // 3. Pick first deck
-    const deckCard = page.locator('button').filter({ hasText: /\d+ cards/ }).first();
+    const deckCard = page.getByRole('button', { name: /english basics/i });
     await expect(deckCard).toBeVisible();
     await deckCard.click();
     await expect(page.url()).toMatch(/\/flashcards\/.+/);

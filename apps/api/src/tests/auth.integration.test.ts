@@ -150,3 +150,47 @@ describe('GET /auth/me', () => {
     expect(res.statusCode).toBe(401);
   });
 });
+
+describe('POST /auth/game-session', () => {
+  it('issues delegated game session token with valid user + app identity', async () => {
+    const loginRes = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { email: TEST_EMAIL, password: TEST_PASS },
+    });
+    const { accessToken } = loginRes.json<{ accessToken: string }>();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/game-session',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'x-game-client-id': 'flashcards-web-dev',
+        'x-game-client-secret': 'flashcards-dev-secret',
+      },
+      payload: { gameId: 'flashcards', scopes: ['points:add'] },
+    });
+    expect(res.statusCode).toBe(200);
+    const body = res.json<{ gameSessionToken: string; gameId: string; scopes: string[] }>();
+    expect(body.gameSessionToken).toBeTruthy();
+    expect(body.gameId).toBe('flashcards');
+    expect(body.scopes).toContain('points:add');
+  });
+
+  it('rejects missing app identity', async () => {
+    const loginRes = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { email: TEST_EMAIL, password: TEST_PASS },
+    });
+    const { accessToken } = loginRes.json<{ accessToken: string }>();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/auth/game-session',
+      headers: { Authorization: `Bearer ${accessToken}` },
+      payload: { gameId: 'flashcards', scopes: ['points:add'] },
+    });
+    expect(res.statusCode).toBe(401);
+  });
+});

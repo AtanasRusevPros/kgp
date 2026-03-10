@@ -2,6 +2,14 @@
 
 A full narrative of what was built, why each decision was made, what was discovered along the way, and what comes next.
 
+## 2026 Modularity Rework Addendum
+An active re-architecture sequence is now tracked in:
+1. `GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md`
+2. `GAME_MODULARITY_ITERATION_PLAN_SHORT.md`
+3. `PHASE_EXECUTION_TRACKER.md`
+
+This introduces a closed allowlist game model, delegated game-session auth for privileged writes, registry-driven web routing, and new CI conformance gates.
+
 ---
 
 ## Table of Contents

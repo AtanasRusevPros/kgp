@@ -45,7 +45,7 @@ export function MenuPage() {
           {games.map((game) => (
             <button
               key={game.id}
-              onClick={() => navigate(`/flashcards`)}
+              onClick={() => navigate(game.routeBase)}
               className="card hover:shadow-md hover:border-indigo-200 transition-all text-left group cursor-pointer"
             >
               <div className="flex items-start gap-4">

@@ -2,6 +2,16 @@
 
 A complete technical reference covering system design, data flow, module structure, database schema, test strategy, and extension points.
 
+> Modular rework status: see [`PHASE_EXECUTION_TRACKER.md`](PHASE_EXECUTION_TRACKER.md).
+
+## 2026 Modularity Update (Key Changes)
+1. Closed, allowlisted game integration model is active in backend (`config.allowedGameIds`).
+2. `/games` payload includes modular metadata fields (route base, integration mode, client targets, capabilities, api version, auth policy, entry points).
+3. Backend game registry and diagnostics endpoint are implemented (`GET /internal/games/health`).
+4. Delegated game-session tokens are implemented (`POST /auth/game-session`) and enforced in privileged points writes.
+5. Web shell routes are built from registry metadata (`apps/web/src/games/registry.tsx`) instead of direct hardcoded game route declarations.
+6. Quality gates include architecture boundary and game structure conformance checks.
+
 ---
 
 ## Table of Contents

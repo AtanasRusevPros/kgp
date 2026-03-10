@@ -9,6 +9,22 @@ import type { FastifyInstance } from 'fastify';
 
 let app: FastifyInstance;
 let accessToken: string;
+const GAME_CLIENT_HEADERS = {
+  'x-game-client-id': 'flashcards-web-dev',
+  'x-game-client-secret': 'flashcards-dev-secret',
+};
+let gameSessionToken: string;
+
+async function createGameSessionToken(): Promise<string> {
+  const res = await app.inject({
+    method: 'POST',
+    url: '/auth/game-session',
+    headers: { Authorization: `Bearer ${accessToken}`, ...GAME_CLIENT_HEADERS },
+    payload: { gameId: 'flashcards', scopes: ['points:add'] },
+  });
+  expect(res.statusCode).toBe(200);
+  return res.json<{ gameSessionToken: string }>().gameSessionToken;
+}
 
 beforeAll(async () => {
   app = await createApp({ logger: false, databaseUrl: testConfig.databaseUrl });
@@ -20,6 +36,7 @@ beforeAll(async () => {
     payload: { email, password: 'TestPass123!', displayName: 'Points Tester' },
   });
   accessToken = regRes.json<{ accessToken: string }>().accessToken;
+  gameSessionToken = await createGameSessionToken();
 });
 
 afterAll(async () => {
@@ -49,7 +66,10 @@ describe('POST /points/add', () => {
     const res = await app.inject({
       method: 'POST',
       url: '/points/add',
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'x-game-session-token': gameSessionToken,
+      },
       payload: { gameId: 'flashcards', points: 10 },
     });
     expect(res.statusCode).toBe(200);
@@ -74,7 +94,10 @@ describe('POST /points/add', () => {
     await app.inject({
       method: 'POST',
       url: '/points/add',
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'x-game-session-token': gameSessionToken,
+      },
       payload: { gameId: 'flashcards', points: 5 },
     });
 
@@ -114,6 +137,42 @@ describe('POST /points/add', () => {
       payload: { points: 10 },
     });
     expect(res.statusCode).toBe(400);
+  });
+
+  it('returns 404 for non-allowlisted game', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/points/add',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'x-game-session-token': gameSessionToken,
+      },
+      payload: { gameId: 'not-allowed', points: 10 },
+    });
+    expect(res.statusCode).toBe(404);
+  });
+
+  it('returns 401 when game session token is missing', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/points/add',
+      headers: { Authorization: `Bearer ${accessToken}` },
+      payload: { gameId: 'flashcards', points: 10 },
+    });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('returns 401 for invalid game session token', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/points/add',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'x-game-session-token': 'bad-token',
+      },
+      payload: { gameId: 'flashcards', points: 10 },
+    });
+    expect(res.statusCode).toBe(401);
   });
 
   it('requires authentication', async () => {

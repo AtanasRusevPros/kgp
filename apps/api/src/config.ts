@@ -1,3 +1,10 @@
+function parseCsvList(value: string): string[] {
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 export const config = {
   port: parseInt(process.env['PORT'] ?? '3000', 10),
   nodeEnv: process.env['NODE_ENV'] ?? 'development',
@@ -8,6 +15,7 @@ export const config = {
   refreshExpiresInMs: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
   valKeyUrl: process.env['VALKEY_URL'],
   corsOrigins: ['http://localhost:5173', 'http://localhost', 'https://localhost'],
+  allowedGameIds: parseCsvList(process.env['ALLOWED_GAME_IDS'] ?? 'flashcards'),
 } as const;
 
 export const testConfig = {

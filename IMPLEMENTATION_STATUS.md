@@ -5,6 +5,17 @@ Every entry is evidence-backed with file paths, script names, or endpoint refere
 
 > **See also:** [`WORKLOG.md`](WORKLOG.md) for phase-by-phase narrative and rationale.
 > **Roadmap context:** [`USAGE.md`](USAGE.md) for executable workflows.
+> **Modularity execution tracker:** [`PHASE_EXECUTION_TRACKER.md`](PHASE_EXECUTION_TRACKER.md).
+
+## 2026 Modularity Rework Snapshot
+Current completed phases: `P0-P6` plus major `P8` quality gates.
+
+Implemented highlights:
+1. Backend allowlist registry and health endpoint.
+2. Expanded game metadata contracts and schema migration.
+3. Delegated game-session token issuance and privileged scope checks for points writes.
+4. Registry-driven game routing in web shell.
+5. Game module structure and architecture boundary checks wired into CI.
 
 ---
 
