@@ -281,6 +281,18 @@ Recommended wrapper commands:
 ```
 These include preflight setup and clearer failure messages.
 
+Clean-checkout note:
+The repo currently keeps some internal workspace packages runtime-oriented by exporting built artifacts from `dist/`. Because of that, cold-start local verification and CI jobs prebuild a narrow set of internal packages before typecheck and DB-backed/unit test flows. The canonical command is:
+
+```bash
+pnpm prebuild:internal
+```
+
+It builds only:
+- `@kids-games/shared`
+- `@kids-games/game-sdk`
+- `@kids-games/flashcards-backend-adapter`
+
 ### Unit tests
 
 ```bash
@@ -482,6 +494,8 @@ pnpm db:migrate && pnpm db:seed
 ```bash
 pnpm lint && pnpm typecheck
 ```
+
+If you are running `pnpm typecheck` directly from a cold checkout, run `pnpm prebuild:internal` first. `./dev.sh check` now does this automatically.
 
 ---
 

@@ -5,6 +5,7 @@
   "scripts": {
     "boundary:check": "./scripts/check-boundaries.sh",
     "games:conformance": "./scripts/check-game-structure.sh",
+    "prebuild:internal": "pnpm --filter @kids-games/shared build && pnpm --filter @kids-games/game-sdk build && pnpm --filter @kids-games/flashcards-backend-adapter build",
     "dev:server": "pnpm --filter @kids-games/api dev",
     "dev:frontend:web": "pnpm --filter @kids-games/web dev",
     "build": "pnpm -r build",

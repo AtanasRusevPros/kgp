@@ -4,6 +4,8 @@ A complete technical reference covering system design, data flow, module structu
 
 > Modular rework status: see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](PHASE_EXECUTION_TRACKER_2_PENDING.md).
 
+Updated: 2026-03-11 00:16 EET
+
 ## 2026 Modularity Update (Key Changes)
 1. Closed, allowlisted game integration model is active in backend (`config.allowedGameIds`).
 2. `/games` payload includes modular metadata fields (route base, integration mode, client targets, capabilities, api version, auth policy, entry points).
@@ -671,8 +673,8 @@ flowchart TD
     Push --> Quality & UnitTests & WebTests
 
     subgraph Parallel["Jobs run in parallel"]
-        Quality["quality<br/>pnpm typecheck<br/>pnpm lint"]
-        UnitTests["unit-tests<br/>pnpm test:unit<br/>(24 tests)"]
+        Quality["quality<br/>pnpm prebuild:internal<br/>pnpm typecheck<br/>pnpm lint"]
+        UnitTests["unit-tests<br/>pnpm prebuild:internal<br/>pnpm test:unit<br/>(24 tests)"]
         WebTests["web-tests<br/>pnpm test:web<br/>(69 tests)"]
         Build["build<br/>pnpm build"]
     end
@@ -686,7 +688,7 @@ flowchart TD
     subgraph Integration["integration-tests<br/>(postgres:16 service)"]
         Migrate["Run migrations"]
         Seed["Run seed"]
-        IntTests["pnpm test:integration<br/>(65 tests)"]
+        IntTests["pnpm prebuild:internal<br/>pnpm test:integration<br/>(65 tests)"]
         Migrate --> Seed --> IntTests
     end
 

@@ -474,11 +474,17 @@ Completed:
 4. `stack:verify` was added and expanded into a real container lifecycle validation path.
 5. API graceful shutdown was fixed so the stack teardown no longer relies on Podman `SIGKILL` fallback in normal verification runs.
 6. The completed review artifact is now tracked in `COMMIT_CODE_REVIEW_2_DONE.md`.
+7. Clean-checkout CI and local verification now prebuild the internal workspace packages that intentionally export built runtime artifacts, avoiding false failures without changing the current package/runtime organization.
 
 Still pending:
 1. The broader architecture cutover remains in compatibility mode; see `PHASE_EXECUTION_TRACKER_2_PENDING.md`.
 2. Boundary-policy completion remains pending final topology completion; see `docs/ARCHITECTURE_BOUNDARY_POLICY_PENDING.md`.
 3. Cold-start/self-owned test orchestration improvements remain pending; see `TESTS_IMPROVEMENTS_PENDING_4.md`.
+
+Why this path was chosen:
+1. The current repo organization now treats some internal workspace packages as runtime-oriented artifacts for containers and built app execution.
+2. Reverting to source-first exports would reopen the container/runtime resolution problem solved earlier.
+3. The lower-risk long-run fit for the current architecture is to keep build-oriented package exports and make the narrow internal-package prebuild explicit in CI and cold-start local verification.
 - Stack E2E is intentionally excluded from the default CI pipeline (`pnpm test:full`) because it requires a running container stack. It's a pre-release validation step, not a PR gate.
 - `retries: 1` added (vs. `retries: 0` in dev config) because container startup can add brief latency on first request.
 - Documented as Milestone 7 in `IMPLEMENTATION_STATUS.md` — adding a CI job for stack E2E on release branches is a recommended future step.

@@ -13,6 +13,16 @@ ok()   { echo "✓ $*"; }
 info() { echo "→ $*"; }
 die()  { echo "✗ $*" >&2; exit 1; }
 
+ensure_internal_package_artifacts() {
+  if [[ "${KG_INTERNAL_PACKAGES_READY:-}" == "1" ]]; then
+    return 0
+  fi
+
+  info "Building internal workspace package artifacts required by clean verification..."
+  (cd "$PROJ" && pnpm prebuild:internal)
+  export KG_INTERNAL_PACKAGES_READY=1
+}
+
 require_env() {
   if [[ ! -f "$PROJ/apps/api/.env" ]]; then
     die "apps/api/.env not found. Run:  ./dev.sh init"
@@ -176,17 +186,20 @@ cmd_web() {
 # ── tests ─────────────────────────────────────────────────────────────────────
 
 cmd_test_unit() {
+  ensure_internal_package_artifacts
   info "Running unit tests..."
   (cd "$PROJ" && pnpm test:unit)
 }
 
 cmd_test_web() {
+  ensure_internal_package_artifacts
   info "Running web component tests..."
   (cd "$PROJ" && pnpm test:web)
 }
 
 cmd_test_integration() {
   require_env
+  ensure_internal_package_artifacts
   prepare_test_db
   info "Running integration tests (requires DB)..."
   (cd "$PROJ" && pnpm test:integration)
@@ -194,6 +207,7 @@ cmd_test_integration() {
 
 cmd_test_e2e() {
   require_env
+  ensure_internal_package_artifacts
   local test_db_url api_pid api_log api_port api_url
   test_db_url="$(get_test_database_url)"
   api_log="$(mktemp /tmp/kg-api-e2e.XXXX.log)"
@@ -229,6 +243,7 @@ cmd_test_e2e_stack() {
 
 cmd_test_full() {
   require_env
+  ensure_internal_package_artifacts
   info "Running full test suite..."
   cmd_check
   cmd_test_unit
@@ -247,12 +262,14 @@ cmd_lint() {
 }
 
 cmd_typecheck() {
+  ensure_internal_package_artifacts
   info "Running TypeScript type check..."
   (cd "$PROJ" && pnpm typecheck)
   ok "Typecheck passed."
 }
 
 cmd_check() {
+  ensure_internal_package_artifacts
   info "Running lint + typecheck..."
   (cd "$PROJ" && pnpm lint && pnpm typecheck)
   ok "All checks passed."

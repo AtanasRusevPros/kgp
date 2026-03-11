@@ -243,6 +243,12 @@ Open **http://localhost:8080** (Caddy serves on port 8080).
 | `pnpm lint` | ESLint (all packages) | No |
 
 Prefer `./dev.sh test:int`, `./dev.sh test:e2e`, and `./dev.sh test:full` for local/server runs because they include test preflight steps (DB migrate/seed and e2e API bootstrap).
+They now also prebuild the internal workspace packages that intentionally export built artifacts for runtime/container use, so clean local runs and clean CI checkouts resolve internal package imports deterministically.
+
+`pnpm prebuild:internal` is the canonical narrow preflight for this. It builds only:
+- `@kids-games/shared`
+- `@kids-games/game-sdk`
+- `@kids-games/flashcards-backend-adapter`
 
 See [USAGE.md → Running Tests](USAGE.md#running-tests) for details.
 
