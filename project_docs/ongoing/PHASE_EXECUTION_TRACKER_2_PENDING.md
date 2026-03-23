@@ -3,8 +3,8 @@
 Updated: 2026-03-11 00:16 EET
 
 Tracking source:
-- Master plan: `GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md`
-- Iteration runbook: `GAME_MODULARITY_ITERATION_PLAN_SHORT.md`
+- Master plan: [`GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md`](GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md)
+- Iteration runbook: [`GAME_MODULARITY_ITERATION_PLAN_SHORT.md`](GAME_MODULARITY_ITERATION_PLAN_SHORT.md)
 
 ## Current interpretation
 This tracker remains pending because the execution batch materially advanced the modularity plan, but the repository is still in compatibility mode for parts of the broader target architecture.
@@ -13,8 +13,8 @@ This tracker remains pending because the execution batch materially advanced the
 1. Broader `server/` and `frontend/*` topology migration is still not the primary runtime shape.
 2. Adapter loading remains partially static rather than fully loader-driven.
 3. Mobile readiness is still scaffold-level.
-4. Full cold-start/self-owned test orchestration is still pending and is now tracked in `TESTS_IMPROVEMENTS_PENDING_4.md`.
-5. AI-optimized documentation/rules/check workflow is still pending and is also tracked in `TESTS_IMPROVEMENTS_PENDING_4.md`.
+4. Full cold-start/self-owned test orchestration is still pending and is now tracked in [`TESTS_IMPROVEMENTS_PENDING_4.md`](TESTS_IMPROVEMENTS_PENDING_4.md).
+5. AI-optimized documentation/rules/check workflow is still pending and is also tracked in [`TESTS_IMPROVEMENTS_PENDING_4.md`](TESTS_IMPROVEMENTS_PENDING_4.md).
 
 ## Status legend
 - `todo`
@@ -183,10 +183,10 @@ This tracker remains pending because the execution batch materially advanced the
 ## P9 evidence (executed)
 1. Updated core docs:
    - `README.md`
-   - `ARCHITECTURE.md`
-   - `IMPLEMENTATION_STATUS.md`
-   - `USAGE.md`
-   - `WORKLOG.md`
+   - [`ARCHITECTURE.md`](../RnD_docs/ARCHITECTURE.md)
+   - [`IMPLEMENTATION_STATUS.md`](../RnD_docs/IMPLEMENTATION_STATUS.md)
+   - [`USAGE.md`](../RnD_docs/USAGE.md)
+   - [`WORKLOG_curr.md`](../RnD_docs/WORKLOG_curr.md)
 2. Added new modular docs:
    - `docs/game-module-spec.md`
    - `docs/backend-allowlist-security.md`

@@ -3,7 +3,7 @@
 Free/open-source kids games platform MVP. Initial game: Flash Cards.
 Single-server deployment via Podman rootless containers, localhost-first.
 
-> Full developer guide: [`USAGE.md`](USAGE.md)
+> Full developer guide: [`USAGE.md`](project_docs/RnD_docs/USAGE.md)
 
 ## Architecture Update (2026-03)
 The platform is now on a phased modularity rework path:
@@ -14,9 +14,9 @@ The platform is now on a phased modularity rework path:
 5. Game/module conformance and boundary checks in quality gates (`pnpm boundary:check`, `pnpm games:conformance`).
 
 Execution tracking:
-- [`GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md`](GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md)
-- [`GAME_MODULARITY_ITERATION_PLAN_SHORT.md`](GAME_MODULARITY_ITERATION_PLAN_SHORT.md)
-- [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](PHASE_EXECUTION_TRACKER_2_PENDING.md)
+- [`GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md`](project_docs/ongoing/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md)
+- [`GAME_MODULARITY_ITERATION_PLAN_SHORT.md`](project_docs/ongoing/GAME_MODULARITY_ITERATION_PLAN_SHORT.md)
+- [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](project_docs/ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md)
 
 ---
 
@@ -250,7 +250,7 @@ They now also prebuild the internal workspace packages that intentionally export
 - `@kids-games/game-sdk`
 - `@kids-games/flashcards-backend-adapter`
 
-See [USAGE.md → Running Tests](USAGE.md#running-tests) for details.
+See [USAGE.md → Running Tests](project_docs/RnD_docs/USAGE.md#running-tests) for details.
 
 ---
 
@@ -326,4 +326,4 @@ curl http://localhost:3000/flashcards/decks
 | 502 Bad Gateway from Caddy | API container not healthy | `./dev.sh stack:logs api` |
 | `pnpm install` fails | Cache corruption | `pnpm store prune && rm -rf node_modules **/node_modules && pnpm install` |
 
-For full troubleshooting scenarios and playbooks, see [USAGE.md](USAGE.md).
+For full troubleshooting scenarios and playbooks, see [USAGE.md](project_docs/RnD_docs/USAGE.md).

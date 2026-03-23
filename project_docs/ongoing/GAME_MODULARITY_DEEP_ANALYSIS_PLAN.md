@@ -37,8 +37,8 @@ What this is **not**:
 2. Branching model: one branch per phase (`phase/p0-*`, `phase/p1-*`, etc.) with merge only after phase gate passes.
 3. Control documents:
    - This file is the decision-complete architecture source of truth.
-   - `GAME_MODULARITY_ITERATION_PLAN_SHORT.md` is the operational runbook for iterative implementation.
-   - `PHASE_EXECUTION_TRACKER_2_PENDING.md` records live status, commands run, evidence, and blockers.
+   - [`GAME_MODULARITY_ITERATION_PLAN_SHORT.md`](GAME_MODULARITY_ITERATION_PLAN_SHORT.md) is the operational runbook for iterative implementation.
+   - [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](PHASE_EXECUTION_TRACKER_2_PENDING.md) records live status, commands run, evidence, and blockers.
 4. Quality gate policy:
    - Each phase must deliver code artifacts, test updates/new tests, and doc updates for any changed behavior.
    - No “temporary skip” of affected tests/docs is accepted for phase completion.
@@ -260,11 +260,11 @@ Goal: align all docs with final architecture and operations.
 
 Planned artifacts:
 1. Updated existing docs:
-   - `ARCHITECTURE.md`
-   - `IMPLEMENTATION_STATUS.md`
+   - [`ARCHITECTURE.md`](../RnD_docs/ARCHITECTURE.md)
+   - [`IMPLEMENTATION_STATUS.md`](../RnD_docs/IMPLEMENTATION_STATUS.md)
    - `README.md`
-   - `USAGE.md`
-   - `WORKLOG.md`
+   - [`USAGE.md`](../RnD_docs/USAGE.md)
+   - [`WORKLOG_curr.md`](../RnD_docs/WORKLOG_curr.md)
 2. New docs:
    - `docs/game-module-spec.md`
    - `docs/backend-allowlist-security.md`

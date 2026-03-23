@@ -9,8 +9,8 @@ It is read automatically at the start of every session.
 
 Kids Games Platform MVP — a modular, free/open-source kids games platform.
 Primary sources of truth (read these before acting):
-- `Cursor_Plan_Kids_Games_Platform_AGENT.md` — concise implementation spec
-- `Cursor_Plan_Kids_Games_Platform_PHASES.md` — phase gate execution control
+- [`Cursor_Plan_Kids_Games_Platform_AGENT-2026-03-06.md`](project_docs/history/Cursor_Plan_Kids_Games_Platform_AGENT-2026-03-06.md) — concise implementation spec
+- [`Cursor_Plan_Kids_Games_Platform_PHASES-2026-03-06.md`](project_docs/history/Cursor_Plan_Kids_Games_Platform_PHASES-2026-03-06.md) — phase gate execution control
 
 ---
 
@@ -32,7 +32,7 @@ Primary sources of truth (read these before acting):
 
 ## Phase Discipline
 
-- Follow `Cursor_Plan_Kids_Games_Platform_PHASES.md` strictly.
+- Follow [`Cursor_Plan_Kids_Games_Platform_PHASES-2026-03-06.md`](project_docs/history/Cursor_Plan_Kids_Games_Platform_PHASES-2026-03-06.md) strictly.
 - Do not start a phase until its entry criteria are met.
 - Do not mark a phase complete until all acceptance criteria and required tests pass locally.
 - When a later phase modifies earlier code, re-run the earlier phase's tests before advancing.

@@ -3,10 +3,10 @@
 Single source of truth for what is implemented, what is partial, and what is deferred.
 Every entry is evidence-backed with file paths, script names, or endpoint references.
 
-> **See also:** [`WORKLOG.md`](WORKLOG.md) for phase-by-phase narrative and rationale.
+> **See also:** [`WORKLOG_initial.md`](WORKLOG_initial.md) for phase-by-phase narrative and rationale.
 > **Roadmap context:** [`USAGE.md`](USAGE.md) for executable workflows.
-> **Modularity execution tracker:** [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](PHASE_EXECUTION_TRACKER_2_PENDING.md).
-> **Pending test-orchestration follow-up:** [`TESTS_IMPROVEMENTS_PENDING_4.md`](TESTS_IMPROVEMENTS_PENDING_4.md).
+> **Modularity execution tracker:** [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
+> **Pending test-orchestration follow-up:** [`TESTS_IMPROVEMENTS_PENDING_4.md`](../ongoing/TESTS_IMPROVEMENTS_PENDING_4.md).
 
 Updated: 2026-03-11 00:16 EET
 
@@ -156,7 +156,7 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | TypeScript strict mode | Implemented | `strict: true`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` across all packages |
 | ESLint passing | Implemented | Enforced as phase gate; `pnpm lint` passes clean |
 | Type checking passing | Implemented | `pnpm typecheck` passes across all 5 workspace packages |
-| Local test orchestration | Partial | `./dev.sh test:int`, `test:e2e`, `test:full` automate substantial setup, but DB-backed suites still rely on the long-lived local DB container model; see `TESTS_IMPROVEMENTS_PENDING_4.md` |
+| Local test orchestration | Partial | `./dev.sh test:int`, `test:e2e`, `test:full` automate substantial setup, but DB-backed suites still rely on the long-lived local DB container model; see `../ongoing/TESTS_IMPROVEMENTS_PENDING_4.md` |
 | HTTPS (production) | Ready | Caddy auto-provisions TLS when given a real domain in Caddyfile |
 | HTTPS (localhost) | Optional | `ignoreHTTPSErrors: true` in playwright stack config |
 | Rootless containers | Implemented | Podman rootless via `infra/podman/compose.yml` |
@@ -224,7 +224,7 @@ Ordered by product value and risk reduction.
 ### Milestone 2 — Second game (Medium risk, high value)
 
 - Choose a game type (e.g., Spelling Bee, Word Match)
-- Follow the guide in `WORKLOG.md` → "Adding More Games"
+- Follow the guide in [`WORKLOG_initial.md`](WORKLOG_initial.md) → "Adding More Games"
 - Implement API routes, web pages, and vitest tests
 - Register in `App.tsx` and update `MenuPage`
 
@@ -266,7 +266,7 @@ Ordered by product value and risk reduction.
 This session completed the second commit review/fix cycle and the follow-up container/documentation hardening.
 
 Completed in this session:
-1. Review findings were implemented and the closed review was preserved as [`COMMIT_CODE_REVIEW_2_DONE.md`](COMMIT_CODE_REVIEW_2_DONE.md).
+1. Review findings were implemented and the closed review was preserved as [`COMMIT_CODE_REVIEW_2_DONE-2026-03-11.md`](../history/COMMIT_CODE_REVIEW_2_DONE-2026-03-11.md).
 2. Delegated game-session scope issuance was hardened and aligned with game metadata enforcement.
 3. Flashcards metadata, tests, env docs, and guard-rail scripts were corrected to match the implemented security and modularity behavior.
 4. The flashcards backend adapter was extracted into a dedicated workspace package under `games/flashcards/backend-adapter`.
@@ -276,7 +276,7 @@ Completed in this session:
 8. The graceful-shutdown cleanup issue was resolved by adding explicit `SIGINT`/`SIGTERM` handling in the API runtime.
 
 Pending after this session:
-1. Broader modularity execution remains in compatibility mode for parts of the target architecture; see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](PHASE_EXECUTION_TRACKER_2_PENDING.md).
-2. Architecture boundary policy remains active but pending final topology completion; see [`docs/ARCHITECTURE_BOUNDARY_POLICY_PENDING.md`](docs/ARCHITECTURE_BOUNDARY_POLICY_PENDING.md).
-3. Test cold-start/self-owned orchestration still needs follow-up; see [`TESTS_IMPROVEMENTS_PENDING_4.md`](TESTS_IMPROVEMENTS_PENDING_4.md).
-4. AI-optimized documentation/rules/check workflow and mandatory cheap local verification rules remain pending; see [`TESTS_IMPROVEMENTS_PENDING_4.md`](TESTS_IMPROVEMENTS_PENDING_4.md).
+1. Broader modularity execution remains in compatibility mode for parts of the target architecture; see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
+2. Architecture boundary policy remains active but pending final topology completion; see [`ARCHITECTURE_BOUNDARY_POLICY_PENDING.md`](../../docs/ARCHITECTURE_BOUNDARY_POLICY_PENDING.md).
+3. Test cold-start/self-owned orchestration still needs follow-up; see [`TESTS_IMPROVEMENTS_PENDING_4.md`](../ongoing/TESTS_IMPROVEMENTS_PENDING_4.md).
+4. AI-optimized documentation/rules/check workflow and mandatory cheap local verification rules remain pending; see [`TESTS_IMPROVEMENTS_PENDING_4.md`](../ongoing/TESTS_IMPROVEMENTS_PENDING_4.md).

@@ -2,7 +2,7 @@
 
 A complete technical reference covering system design, data flow, module structure, database schema, test strategy, and extension points.
 
-> Modular rework status: see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](PHASE_EXECUTION_TRACKER_2_PENDING.md).
+> Modular rework status: see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
 
 Updated: 2026-03-11 00:16 EET
 

@@ -2,11 +2,14 @@
 
 A full narrative of what was built, why each decision was made, what was discovered along the way, and what comes next.
 
+This file is the original baseline work log.
+For dated current/future append-only entries, see [`WORKLOG_curr.md`](WORKLOG_curr.md).
+
 ## 2026 Modularity Rework Addendum
 An active re-architecture sequence is now tracked in:
-1. `GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md`
-2. `GAME_MODULARITY_ITERATION_PLAN_SHORT.md`
-3. `PHASE_EXECUTION_TRACKER_2_PENDING.md`
+1. [`GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md`](../ongoing/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md)
+2. [`GAME_MODULARITY_ITERATION_PLAN_SHORT.md`](../ongoing/GAME_MODULARITY_ITERATION_PLAN_SHORT.md)
+3. [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md)
 
 Updated: 2026-03-11 00:09 EET
 
@@ -43,9 +46,9 @@ Three plan documents were created before implementation:
 
 | Document | Purpose |
 |----------|---------|
-| `Cursor_Plan_Kids_Games_Platform.md` | Full spec (961 lines) — detailed requirements for every feature |
-| `Cursor_Plan_Kids_Games_Platform_AGENT.md` | Concise implementation source of truth for AI-assisted development |
-| `Cursor_Plan_Kids_Games_Platform_PHASES.md` | Phase-gate execution plan with entry/exit criteria for each phase |
+| [`Cursor_Plan_Kids_Games_Platform-2-2026-03-06.md`](../history/Cursor_Plan_Kids_Games_Platform-2-2026-03-06.md) | Full spec (961 lines) — detailed requirements for every feature |
+| [`Cursor_Plan_Kids_Games_Platform_AGENT-2026-03-06.md`](../history/Cursor_Plan_Kids_Games_Platform_AGENT-2026-03-06.md) | Concise implementation source of truth for AI-assisted development |
+| [`Cursor_Plan_Kids_Games_Platform_PHASES-2026-03-06.md`](../history/Cursor_Plan_Kids_Games_Platform_PHASES-2026-03-06.md) | Phase-gate execution plan with entry/exit criteria for each phase |
 
 Before implementation began, a **gap analysis** was performed against the three documents. Key findings:
 
@@ -425,7 +428,7 @@ The `sessions` table exists in the schema for future multiplayer/PvP mode but ha
 
 ## Operational Hardening (Post-MVP)
 
-Implemented after the 7-phase MVP was complete, based on the `NEXT_AI_IMPLEMENTATION_PLAN.md` review.
+Implemented after the 7-phase MVP was complete, based on the [`NEXT_AI_IMPLEMENTATION_PLAN-2026-03-06.md`](../history/NEXT_AI_IMPLEMENTATION_PLAN-2026-03-06.md) review.
 
 ### Improvement 1 — Backup/Restore Scripts
 
@@ -473,13 +476,13 @@ Completed:
 3. Podman container runtime/build logic was corrected for workspace-package execution.
 4. `stack:verify` was added and expanded into a real container lifecycle validation path.
 5. API graceful shutdown was fixed so the stack teardown no longer relies on Podman `SIGKILL` fallback in normal verification runs.
-6. The completed review artifact is now tracked in `COMMIT_CODE_REVIEW_2_DONE.md`.
+6. The completed review artifact is now tracked in [`COMMIT_CODE_REVIEW_2_DONE-2026-03-11.md`](../history/COMMIT_CODE_REVIEW_2_DONE-2026-03-11.md).
 7. Clean-checkout CI and local verification now prebuild the internal workspace packages that intentionally export built runtime artifacts, avoiding false failures without changing the current package/runtime organization.
 
 Still pending:
-1. The broader architecture cutover remains in compatibility mode; see `PHASE_EXECUTION_TRACKER_2_PENDING.md`.
-2. Boundary-policy completion remains pending final topology completion; see `docs/ARCHITECTURE_BOUNDARY_POLICY_PENDING.md`.
-3. Cold-start/self-owned test orchestration improvements remain pending; see `TESTS_IMPROVEMENTS_PENDING_4.md`.
+1. The broader architecture cutover remains in compatibility mode; see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
+2. Boundary-policy completion remains pending final topology completion; see [`ARCHITECTURE_BOUNDARY_POLICY_PENDING.md`](../../docs/ARCHITECTURE_BOUNDARY_POLICY_PENDING.md).
+3. Cold-start/self-owned test orchestration improvements remain pending; see [`TESTS_IMPROVEMENTS_PENDING_4.md`](../ongoing/TESTS_IMPROVEMENTS_PENDING_4.md).
 
 Why this path was chosen:
 1. The current repo organization now treats some internal workspace packages as runtime-oriented artifacts for containers and built app execution.
@@ -487,7 +490,7 @@ Why this path was chosen:
 3. The lower-risk long-run fit for the current architecture is to keep build-oriented package exports and make the narrow internal-package prebuild explicit in CI and cold-start local verification.
 - Stack E2E is intentionally excluded from the default CI pipeline (`pnpm test:full`) because it requires a running container stack. It's a pre-release validation step, not a PR gate.
 - `retries: 1` added (vs. `retries: 0` in dev config) because container startup can add brief latency on first request.
-- Documented as Milestone 7 in `IMPLEMENTATION_STATUS.md` — adding a CI job for stack E2E on release branches is a recommended future step.
+- Documented as Milestone 7 in [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md) — adding a CI job for stack E2E on release branches is a recommended future step.
 
 **Usage:**
 ```bash
@@ -504,8 +507,8 @@ pnpm test:e2e:stack
 ### Improvement 3 — Documentation Suite Completion
 
 **Artifacts created:**
-- `IMPLEMENTATION_STATUS.md` — evidence-backed status matrix for all features, non-functionals, tests, gaps, and milestones. Single source of truth for project maturity.
-- `USAGE.md` extended with 6 scenario playbooks: dev loop, full stack run, stack validation, backup/restore drill, DB maintenance reference, and troubleshooting map.
+- [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md) — evidence-backed status matrix for all features, non-functionals, tests, gaps, and milestones. Single source of truth for project maturity.
+- [`USAGE.md`](USAGE.md) extended with 6 scenario playbooks: dev loop, full stack run, stack validation, backup/restore drill, DB maintenance reference, and troubleshooting map.
 
 ---
 

@@ -128,19 +128,19 @@ All of the above passed in the current workspace, so the findings are about logi
 ## Plan Alignment Review
 
 I reviewed the findings against:
-- [GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md](/home/luke/git/kgp1/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md#L3)
-- [GAME_MODULARITY_ITERATION_PLAN_SHORT.md](/home/luke/git/kgp1/GAME_MODULARITY_ITERATION_PLAN_SHORT.md#L3)
-- [IMPLEMENTATION_STATUS.md](/home/luke/git/kgp1/IMPLEMENTATION_STATUS.md#L10)
-- [PHASE_EXECUTION_TRACKER_2_PENDING.md](/home/luke/git/kgp1/PHASE_EXECUTION_TRACKER_2_PENDING.md#L1)
+- [GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md](../ongoing/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md#L3)
+- [GAME_MODULARITY_ITERATION_PLAN_SHORT.md](../ongoing/GAME_MODULARITY_ITERATION_PLAN_SHORT.md#L3)
+- [IMPLEMENTATION_STATUS.md](../RnD_docs/IMPLEMENTATION_STATUS.md#L10)
+- [PHASE_EXECUTION_TRACKER_2_PENDING.md](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md#L1)
 
 ### Finding 1 status against plan: valid
 
 The scope-escalation finding is fully valid against the declared plan.
 
 Why:
-- The master plan requires backend authority and least privilege for delegated game-session tokens, including scoped and audience-bound claims: [GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md](/home/luke/git/kgp1/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md#L26)
-- P4 explicitly requires deny-by-default privileged operations and rejection of scope mismatches: [GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md](/home/luke/git/kgp1/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md#L145)
-- The short plan repeats that P4 must enforce audience/scope/game/client claims: [GAME_MODULARITY_ITERATION_PLAN_SHORT.md](/home/luke/git/kgp1/GAME_MODULARITY_ITERATION_PLAN_SHORT.md#L48)
+- The master plan requires backend authority and least privilege for delegated game-session tokens, including scoped and audience-bound claims: [GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md](../ongoing/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md#L26)
+- P4 explicitly requires deny-by-default privileged operations and rejection of scope mismatches: [GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md](../ongoing/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md#L145)
+- The short plan repeats that P4 must enforce audience/scope/game/client claims: [GAME_MODULARITY_ITERATION_PLAN_SHORT.md](../ongoing/GAME_MODULARITY_ITERATION_PLAN_SHORT.md#L48)
 
 Current code does not meet that bar because `POST /auth/game-session` signs caller-requested scopes without validating them against the integration client's scopes or the game's metadata policy.
 
@@ -149,8 +149,8 @@ Current code does not meet that bar because `POST /auth/game-session` signs call
 The metadata mismatch is also valid against the declared plan.
 
 Why:
-- P2 says `/games` must provide complete routing and policy metadata needed by shells, and validation must fail for invalid/incompatible metadata: [GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md](/home/luke/git/kgp1/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md#L102)
-- The short plan states `/games` metadata should drive routing and policy awareness: [GAME_MODULARITY_ITERATION_PLAN_SHORT.md](/home/luke/git/kgp1/GAME_MODULARITY_ITERATION_PLAN_SHORT.md#L37)
+- P2 says `/games` must provide complete routing and policy metadata needed by shells, and validation must fail for invalid/incompatible metadata: [GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md](../ongoing/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md#L102)
+- The short plan states `/games` metadata should drive routing and policy awareness: [GAME_MODULARITY_ITERATION_PLAN_SHORT.md](../ongoing/GAME_MODULARITY_ITERATION_PLAN_SHORT.md#L37)
 
 Current flashcards seed metadata advertises `requiresAppIdentity: false` and `requiredScopes: ["flashcards:play"]`, while the implemented privileged flow requires app identity and a `points:add` session scope. That makes the exposed metadata incomplete or semantically misleading.
 
@@ -159,9 +159,9 @@ Current flashcards seed metadata advertises `requiresAppIdentity: false` and `re
 The incomplete env/docs update is valid against the declared plan.
 
 Why:
-- The master plan requires a full docs sweep with updated docs for changed behavior in every phase: [GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md](/home/luke/git/kgp1/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md#L35)
-- P9 is explicitly a full documentation sweep: [GAME_MODULARITY_ITERATION_PLAN_SHORT.md](/home/luke/git/kgp1/GAME_MODULARITY_ITERATION_PLAN_SHORT.md#L73)
-- The tracker previously marked P9 as done: [PHASE_EXECUTION_TRACKER_2_PENDING.md](/home/luke/git/kgp1/PHASE_EXECUTION_TRACKER_2_PENDING.md#L1)
+- The master plan requires a full docs sweep with updated docs for changed behavior in every phase: [GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md](../ongoing/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md#L35)
+- P9 is explicitly a full documentation sweep: [GAME_MODULARITY_ITERATION_PLAN_SHORT.md](../ongoing/GAME_MODULARITY_ITERATION_PLAN_SHORT.md#L73)
+- The tracker previously marked P9 as done: [PHASE_EXECUTION_TRACKER_2_PENDING.md](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md#L1)
 
 Given that `ALLOWED_GAME_IDS` and `FLASHCARDS_CLIENT_SECRET` materially affect the new allowlist/security model, omitting them from the env template and README is a real miss, not acceptable residual debt under the stated phase criteria.
 
@@ -170,11 +170,11 @@ Given that `ALLOWED_GAME_IDS` and `FLASHCARDS_CLIENT_SECRET` materially affect t
 The guard-rail and canonical-topology finding remains valid, and the plan review makes it stronger.
 
 Why:
-- P1 says backend code moves into `server/` and the new directory structure is canonical: [GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md](/home/luke/git/kgp1/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md#L79)
-- P3 calls for adapter loading from `games/*/backend-adapter` with strict validation: [GAME_MODULARITY_ITERATION_PLAN_SHORT.md](/home/luke/git/kgp1/GAME_MODULARITY_ITERATION_PLAN_SHORT.md#L42)
-- P7 says flashcards must be fully migrated and backend integration must use the flashcards adapter only via the allowlist registry path: [GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md](/home/luke/git/kgp1/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md#L210)
-- Compatibility shims are allowed only until P10: [GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md](/home/luke/git/kgp1/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md#L45)
-- The tracker previously overstated P7/P10 completion before follow-up corrections: [PHASE_EXECUTION_TRACKER_2_PENDING.md](/home/luke/git/kgp1/PHASE_EXECUTION_TRACKER_2_PENDING.md#L1)
+- P1 says backend code moves into `server/` and the new directory structure is canonical: [GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md](../ongoing/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md#L79)
+- P3 calls for adapter loading from `games/*/backend-adapter` with strict validation: [GAME_MODULARITY_ITERATION_PLAN_SHORT.md](../ongoing/GAME_MODULARITY_ITERATION_PLAN_SHORT.md#L42)
+- P7 says flashcards must be fully migrated and backend integration must use the flashcards adapter only via the allowlist registry path: [GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md](../ongoing/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md#L210)
+- Compatibility shims are allowed only until P10: [GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md](../ongoing/GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md#L45)
+- The tracker previously overstated P7/P10 completion before follow-up corrections: [PHASE_EXECUTION_TRACKER_2_PENDING.md](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md#L1)
 
 Current code still uses a compatibility bridge:
 - [games/flashcards/backend-adapter/src/index.ts](/home/luke/git/kgp1/games/flashcards/backend-adapter/src/index.ts#L1) re-exports from `apps/api`.
@@ -185,11 +185,11 @@ That means the codebase does not yet support the tracker's claim that cleanup is
 ### Additional finding from plan/status review: documentation and tracker overstate completion or contain stale evidence
 
 Files:
-- [IMPLEMENTATION_STATUS.md](/home/luke/git/kgp1/IMPLEMENTATION_STATUS.md#L10)
-- [IMPLEMENTATION_STATUS.md](/home/luke/git/kgp1/IMPLEMENTATION_STATUS.md#L35)
-- [PHASE_EXECUTION_TRACKER_2_PENDING.md](/home/luke/git/kgp1/PHASE_EXECUTION_TRACKER_2_PENDING.md#L1)
-- [PHASE_EXECUTION_TRACKER_2_PENDING.md](/home/luke/git/kgp1/PHASE_EXECUTION_TRACKER_2_PENDING.md#L1)
-- [PHASE_EXECUTION_TRACKER_2_PENDING.md](/home/luke/git/kgp1/PHASE_EXECUTION_TRACKER_2_PENDING.md#L1)
+- [IMPLEMENTATION_STATUS.md](../RnD_docs/IMPLEMENTATION_STATUS.md#L10)
+- [IMPLEMENTATION_STATUS.md](../RnD_docs/IMPLEMENTATION_STATUS.md#L35)
+- [PHASE_EXECUTION_TRACKER_2_PENDING.md](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md#L1)
+- [PHASE_EXECUTION_TRACKER_2_PENDING.md](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md#L1)
+- [PHASE_EXECUTION_TRACKER_2_PENDING.md](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md#L1)
 
 Why this is a real issue:
 - `IMPLEMENTATION_STATUS.md` says completed phases are `P0-P6` plus major `P8`, while the tracker says `P0-P10` are done.

@@ -68,7 +68,7 @@ Add reliable database backup and restore workflows for stack mode.
 - `infra/podman/scripts/backup.sh` (new)
 - `infra/podman/scripts/restore.sh` (new)
 - `package.json` (update scripts)
-- `USAGE.md` (document scenarios)
+- [`USAGE.md`](../RnD_docs/USAGE.md) (document scenarios)
 
 ## Implementation details
 1. Create `backup.sh`:
@@ -124,7 +124,7 @@ Run Playwright against the running Podman+Caddy stack endpoint, separate from de
 ## Target files
 - `playwright.stack.config.ts` (new, repository root)
 - `package.json` (update scripts)
-- `USAGE.md` (new test scenario section)
+- [`USAGE.md`](../RnD_docs/USAGE.md) (new test scenario section)
 - Optionally CI workflow (deferred or manual trigger)
 
 ## Implementation details
@@ -142,7 +142,7 @@ Run Playwright against the running Podman+Caddy stack endpoint, separate from de
 - Stack is already up (`podman-compose ... up -d`).
 - Health/smoke passes before E2E invocation.
 
-4. Document a canonical flow in `USAGE.md`:
+4. Document a canonical flow in [`USAGE.md`](../RnD_docs/USAGE.md):
 - Bring up stack.
 - Run smoke test.
 - Run `test:e2e:stack`.
@@ -172,7 +172,7 @@ Run Playwright against the running Podman+Caddy stack endpoint, separate from de
 Create explicit implementation-status document with objective traceability.
 
 ## Target file
-- `IMPLEMENTATION_STATUS.md` (new, repo root under `kids-games-platform/`)
+- [`IMPLEMENTATION_STATUS.md`](../RnD_docs/IMPLEMENTATION_STATUS.md) (new status document)
 
 ## Required structure
 1. Executive summary
@@ -225,7 +225,7 @@ Create explicit implementation-status document with objective traceability.
 Refactor usage guidance around realistic workflows rather than only tool-by-tool reference.
 
 ## Target file
-- `USAGE.md` (update)
+- [`USAGE.md`](../RnD_docs/USAGE.md) (update)
 
 ## Required scenario sections
 1. Quick local development loop
@@ -253,7 +253,7 @@ Refactor usage guidance around realistic workflows rather than only tool-by-tool
   - Steps
   - Expected success signals
   - Failure hints
-- Cross-link to `IMPLEMENTATION_STATUS.md` for roadmap context.
+- Cross-link to [`IMPLEMENTATION_STATUS.md`](../RnD_docs/IMPLEMENTATION_STATUS.md) for roadmap context.
 
 ## Purpose and expected impact
 - Shortens onboarding time.
@@ -261,7 +261,7 @@ Refactor usage guidance around realistic workflows rather than only tool-by-tool
 - Makes release-check and recovery flows repeatable.
 
 ## Acceptance criteria
-- A contributor can execute stack run + stack E2E + backup/restore using only `USAGE.md`.
+- A contributor can execute stack run + stack E2E + backup/restore using only [`USAGE.md`](../RnD_docs/USAGE.md).
 
 ---
 
@@ -269,8 +269,8 @@ Refactor usage guidance around realistic workflows rather than only tool-by-tool
 1. Workstream A (backup/restore scripts).
 2. Workstream B (stack E2E config + script).
 3. Validate A+B locally.
-4. Workstream C (`IMPLEMENTATION_STATUS.md`).
-5. Workstream D (`USAGE.md` scenario-first update).
+4. Workstream C ([`IMPLEMENTATION_STATUS.md`](../RnD_docs/IMPLEMENTATION_STATUS.md)).
+5. Workstream D ([`USAGE.md`](../RnD_docs/USAGE.md) scenario-first update).
 6. Final consistency pass: every documented command is executable as written.
 
 ---
@@ -278,8 +278,8 @@ Refactor usage guidance around realistic workflows rather than only tool-by-tool
 ## Final Definition of Done
 - Backup and restore scripts exist, are executable, and validated end-to-end.
 - `test:e2e:stack` exists and works against running stack.
-- `IMPLEMENTATION_STATUS.md` exists with evidence-based statuses.
-- `USAGE.md` includes scenario-driven flows including stack validation and backup/restore.
+- [`IMPLEMENTATION_STATUS.md`](../RnD_docs/IMPLEMENTATION_STATUS.md) exists with evidence-based statuses.
+- [`USAGE.md`](../RnD_docs/USAGE.md) includes scenario-driven flows including stack validation and backup/restore.
 - No regression in existing core checks (`typecheck`, `lint`, unit/integration/web tests).
 
 ---

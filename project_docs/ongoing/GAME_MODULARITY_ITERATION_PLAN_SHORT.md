@@ -13,8 +13,8 @@ Deliver closed, allowlisted modular architecture with backend independence, dual
 ## Execution method
 1. Execute strictly `P0 -> P10` (no phase skipping).
 2. Use one branch per phase (`phase/pN-*`).
-3. Use `GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md` as architecture truth.
-4. Use `PHASE_EXECUTION_TRACKER_2_PENDING.md` for live status/evidence/blockers.
+3. Use [`GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md`](GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md) as architecture truth.
+4. Use [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](PHASE_EXECUTION_TRACKER_2_PENDING.md) for live status/evidence/blockers.
 5. Complete each phase with code + tests + docs for changed behavior.
 6. Enforce hard gates: no affected test/doc skipping.
 7. Delivery waves:
@@ -71,7 +71,7 @@ Deliver closed, allowlisted modular architecture with backend independence, dual
 - Gate: `pnpm test:full` + `pnpm test:e2e:stack`.
 
 ### P9 Full docs sweep
-- Update: `ARCHITECTURE.md`, `IMPLEMENTATION_STATUS.md`, `README.md`, `USAGE.md`, `WORKLOG.md`.
+- Update: [`ARCHITECTURE.md`](../RnD_docs/ARCHITECTURE.md), [`IMPLEMENTATION_STATUS.md`](../RnD_docs/IMPLEMENTATION_STATUS.md), [`README.md`](../../README.md), [`USAGE.md`](../RnD_docs/USAGE.md), [`WORKLOG_curr.md`](../RnD_docs/WORKLOG_curr.md).
 - Add: game module spec, allowlist security, migration guide, add-game checklist.
 - Gate: doc consistency check complete.
 
