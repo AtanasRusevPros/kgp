@@ -33,12 +33,14 @@ Make safe, minimal, well-verified changes with as little context as necessary.
 10. Pause only for architectural decisions, explicit user choices, or destructive actions.
 11. Do not push to remotes, run `git reset --hard`, or perform destructive DB actions outside local dev/test without confirmation.
 12. If a command or test cannot be run, say so clearly and explain why.
+13. In the main Codex-user thread, do not stage files until the user explicitly asks. Ignore this rule for agents explicitly tasked to prepare a commit.
 
 ## Code Conventions
 
 1. Prefer editing existing files over creating new ones.
 2. Avoid `any` unless it is necessary and justified.
 3. When adding tests, keep them close to the code they verify.
+4. Every append to any `.md` file must include a timestamp. This applies to all agents.
 
 ## Verification Rules
 
