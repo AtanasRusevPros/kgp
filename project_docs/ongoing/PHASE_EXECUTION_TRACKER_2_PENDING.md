@@ -33,7 +33,7 @@ This tracker remains pending because the execution batch materially advanced the
 | P5 Web dynamic routing | done | Codex | 2026-03-09 | App routes now built from web game registry |
 | P6 Mobile readiness | in_progress | Codex | 2026-03-10 | Directory conformance gate exists, but mobile shell/module contract work is still scaffold-level |
 | P7 Flashcards full migration | done | Codex | 2026-03-10 | Web manifest is live and flashcards backend adapter now loads through a dedicated workspace package rooted under `games/flashcards/backend-adapter` |
-| P8 Full test sweep | in_progress | Codex | 2026-03-24 | Expanded auth/points matrix plus first adapter-loader validation coverage are in place; broader blocked-launch/expanded multi-game coverage still partial |
+| P8 Full test sweep | in_progress | Codex | 2026-03-24 | Expanded auth/points matrix plus adapter-loader validation, startup-path unit coverage, and internal health assertions are in place; broader blocked-launch/expanded multi-game coverage still partial |
 | P9 Full docs sweep | in_progress | Codex | 2026-03-10 | Core docs updated, but repo state is still compatibility mode rather than fully-final architecture |
 | P10 Cleanup | in_progress | Codex | 2026-03-10 | Canonical dev commands normalized, but compatibility paths and broader topology cleanup remain |
 
@@ -194,6 +194,12 @@ This tracker remains pending because the execution batch materially advanced the
    - `apps/api/src/tests/game-adapter-loader.test.ts` now also covers multi-game load-plan ordering/filtering, combined duplicate-plus-missing plan reporting, duplicate-adapter registration failure, and adapter registration failure propagation.
 8. Verification run for second loader coverage slice:
    - `pnpm test:unit && ./dev.sh test:int` -> passed.
+9. Third loader/runtime coverage slice:
+   - `apps/api/src/tests/app-loader-startup.test.ts` now covers successful allowlisted adapter registration during app startup and propagation of startup-time adapter registration failures.
+   - `apps/api/src/tests/internal.integration.test.ts` now asserts the exact allowlisted flashcards health payload returned by `/internal/games/health`.
+10. Verification run for third loader/runtime coverage slice:
+   - `pnpm test:unit` -> passed (41 total tests, including 30 API unit tests).
+   - `./dev.sh test:int` -> passed (77 integration tests).
 
 ## P9 evidence (executed)
 1. Updated core docs:

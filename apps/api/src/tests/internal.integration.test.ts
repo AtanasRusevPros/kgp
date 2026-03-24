@@ -33,9 +33,13 @@ describe('GET /internal/games/health', () => {
     expect(Array.isArray(body.loadedAdapterGameIds)).toBe(true);
     expect(Array.isArray(body.missingAdapterGameIds)).toBe(true);
     expect(Array.isArray(body.duplicateAdapterGameIds)).toBe(true);
-    expect(body.allowedGameIds).toContain('flashcards');
-    expect(body.loadedGames.some((game) => game.id === 'flashcards')).toBe(true);
-    expect(body.loadedAdapterGameIds).toContain('flashcards');
+    expect(body.allowedGameIds).toEqual(['flashcards']);
+    expect(body.loadedGames).toContainEqual({
+      id: 'flashcards',
+      title: 'Flash Cards',
+      routeBase: '/flashcards',
+    });
+    expect(body.loadedAdapterGameIds).toEqual(['flashcards']);
     expect(body.missingAdapterGameIds).toEqual([]);
     expect(body.duplicateAdapterGameIds).toEqual([]);
   });

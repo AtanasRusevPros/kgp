@@ -178,3 +178,23 @@ Summary:
 - Reviewed the latest uncommitted `P8` follow-up slice across documentation, test coverage, and the affected runtime surface.
 - Synced stale test-count references in the docs, clarified one historical tracker line so it reads correctly as prior evidence, and kept the current status docs aligned with the latest verified totals.
 - Preparing the final narrow verification and commit for this loader-coverage and docs-sync mini-slice.
+
+## 2026-03-24 22:37 EET
+
+Summary:
+- Reassessed the remaining roadmap after the recent `P3` and `P8` commits.
+- Chose to continue with `P8` autonomously before attempting the broader `P1` cutover.
+- Immediate focus:
+  1. add runtime-path coverage around backend adapter registration during app startup
+  2. strengthen internal registry-health assertions for the current allowlisted flashcards path
+  3. update tracker/worklog evidence and any affected test counts after verification
+
+## 2026-03-24 22:39 EET
+
+Summary:
+- Completed another bounded `P8` slice focused on startup/runtime-path confidence around the backend adapter loader.
+- Added `apps/api/src/tests/app-loader-startup.test.ts` to cover successful allowlisted adapter registration during app startup and failure propagation when adapter registration rejects.
+- Tightened `apps/api/src/tests/internal.integration.test.ts` so `/internal/games/health` now asserts the exact current flashcards allowlist payload instead of only broad shape checks.
+- Updated the affected test-count documentation after the extra API unit coverage and reverified with:
+  - `pnpm test:unit` -> passed (`41` total unit tests, `30` API unit tests)
+  - `./dev.sh test:int` -> passed (`77` integration tests)

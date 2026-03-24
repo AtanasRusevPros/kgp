@@ -674,7 +674,7 @@ flowchart TD
 
     subgraph Parallel["Jobs run in parallel"]
         Quality["quality<br/>pnpm prebuild:internal<br/>pnpm typecheck<br/>pnpm lint"]
-        UnitTests["unit-tests<br/>pnpm prebuild:internal<br/>pnpm test:unit<br/>(39 tests)"]
+        UnitTests["unit-tests<br/>pnpm prebuild:internal<br/>pnpm test:unit<br/>(41 tests)"]
         WebTests["web-tests<br/>pnpm test:web<br/>(71 tests)"]
         Build["build<br/>pnpm build"]
     end
@@ -719,7 +719,7 @@ All jobs use:
         │Integration│ vitest + real PostgreSQL — 77 tests
         │  (API)   │  Isolated test database (kids_games_test)
         ├──────────┤
-        │   Unit   │  vitest — 39 tests
+        │   Unit   │  vitest — 41 tests
         │  (fast)  │  No DB, no network, pure logic
         └──────────┘
 ```
