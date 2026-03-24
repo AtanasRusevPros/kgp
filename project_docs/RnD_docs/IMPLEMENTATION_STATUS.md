@@ -8,12 +8,12 @@ Every entry is evidence-backed with file paths, script names, or endpoint refere
 > **Modularity execution tracker:** [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
 > **In-progress test-orchestration follow-up:** [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](../ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
 
-Updated: 2026-03-11 00:16 EET
+Updated: 2026-03-25 00:30 EET
 
 ## 2026 Modularity Rework Snapshot
 Current effective state:
 1. `P0`, `P2`, `P4`, `P5`, and the flashcards game-module slice of `P7` are implemented.
-2. `P3`, `P6`, `P9`, and `P10` remain partial because not every planned gate and cleanup phase is complete yet.
+2. `P3` and `P6` remain partial, while the remaining doc/cleanup follow-up has been narrowed to future-game agent readiness and test-orchestration work.
 
 Implemented highlights:
 1. Backend allowlist registry and health endpoint.
@@ -37,7 +37,7 @@ Implemented highlights:
 
 ## Executive Summary
 
-The MVP remains usable and the automated suite is green, and the canonical runtime now lives under `server/` and `frontend/web/`, but later mobile/docs/cleanup phases are still open.
+The MVP remains usable and the automated suite is green, and the canonical runtime now lives under `server/` and `frontend/web/`; the main remaining platform work is future-game guidance, mobile readiness, and the remaining test-orchestration follow-up.
 
 | Dimension | Status |
 |-----------|--------|
@@ -47,7 +47,7 @@ The MVP remains usable and the automated suite is green, and the canonical runti
 | CI pipeline (GitHub Actions) | Complete |
 | Test suite | 198 tests passing (unit + integration + web + E2E) |
 | Ops tooling (backup/restore, stack E2E) | Complete (added post-MVP) |
-| Documentation | Implemented, with compatibility-mode caveats documented |
+| Documentation | Implemented, with canonical `server/` and `frontend/*` runtime docs aligned |
 
 Deferred items (audio, points server-authority, mobile app, observability) are explicitly documented below.
 
@@ -138,7 +138,7 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 
 | Feature | Status | Evidence |
 |---------|--------|----------|
-| Mobile app | Deferred (stub) | `apps/mobile/README.md` only; no React Native/Expo code |
+| Mobile app | Deferred (stub) | `frontend/mobile/README.md` only; no React Native/Expo code |
 
 ### Additional Games
 
@@ -203,7 +203,7 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | 6 | No account deletion | Store compliance risk (Apple/Google) | Medium (if going to store) | Add `DELETE /auth/me` with CASCADE |
 | 7 | `sessions` table is unused | Dead schema weight | Very Low | Implement when multiplayer planned; table does no harm |
 | 8 | Mobile app is a stub | No mobile experience | N/A for localhost | Implement React Native / Expo app as separate effort |
-| 9 | Some docs and cleanup tasks still assume compatibility-era wording even though the canonical runtime now lives under `server/` and `frontend/*` | Future work can be misprioritized or explained inconsistently | Medium | Finish the remaining doc sweep and cleanup phases against the new canonical runtime roots |
+| 9 | Additional-game guidance is still too implicit for a low-context independent AI agent to add a new game flawlessly | Future game work may require extra clarification or produce inconsistent integration patterns | Medium | Finish the dedicated add-game agent-readiness follow-up in `../ongoing/ADDITIONAL_GAME_AGENT_READINESS_PENDING.md` |
 | 10 | No observability beyond health endpoint | Can't diagnose production issues | Medium (if going to production) | Add Pino log forwarding, prom-client metrics, Grafana |
 | 11 | Stack E2E not in CI | Deployment-only regressions not automatically caught | Low | Add optional CI job triggered on release branch |
 
@@ -224,9 +224,9 @@ Ordered by product value and risk reduction.
 ### Milestone 2 — Second game (Medium risk, high value)
 
 - Choose a game type (e.g., Spelling Bee, Word Match)
-- Follow the guide in [`WORKLOG_initial.md`](WORKLOG_initial.md) → "Adding More Games"
-- Implement API routes, web pages, and vitest tests
-- Register in `App.tsx` and update `MenuPage`
+- Finish the dedicated add-game guidance tracked in [`ADDITIONAL_GAME_AGENT_READINESS_PENDING.md`](../ongoing/ADDITIONAL_GAME_AGENT_READINESS_PENDING.md)
+- Follow the canonical add-game docs in `docs/add-game-checklist.md`, `docs/game-module-spec.md`, and `docs/backend-allowlist-security.md`
+- Implement the game module under `games/<id>/...`, add any required backend adapter, add web pages/tests, and verify allowlist exposure through the current registry/loader flow
 
 ### Milestone 3 — Account deletion (Medium risk, store compliance)
 
@@ -276,7 +276,7 @@ Completed in this session:
 8. The graceful-shutdown cleanup issue was resolved by adding explicit `SIGINT`/`SIGTERM` handling in the API runtime.
 
 Pending after this session:
-1. Broader modularity execution still has open follow-up in `P3`, `P6`, `P9`, and `P10`; see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
-2. Architecture boundary policy remains active but pending final topology completion; see [`ARCHITECTURE_BOUNDARY_POLICY_PENDING.md`](../../docs/ARCHITECTURE_BOUNDARY_POLICY_PENDING.md).
+1. Broader modularity execution still has open follow-up in `P3` and `P6`, plus the dedicated add-game guidance follow-up; see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md) and [`ADDITIONAL_GAME_AGENT_READINESS_PENDING.md`](../ongoing/ADDITIONAL_GAME_AGENT_READINESS_PENDING.md).
+2. Architecture boundary policy remains active and should stay aligned with future mobile and additional-game work; see [`ARCHITECTURE_BOUNDARY_POLICY_PENDING.md`](../../docs/ARCHITECTURE_BOUNDARY_POLICY_PENDING.md).
 3. Test cold-start/self-owned orchestration still needs follow-up; see [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](../ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
 4. AI-optimized documentation/rules/check workflow and mandatory cheap local verification rules remain pending; see [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](../ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).

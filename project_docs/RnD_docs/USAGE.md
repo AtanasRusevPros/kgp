@@ -164,13 +164,13 @@ Run the API and web app in two separate terminals. Hot-reload is active in both.
 
 **Terminal 1 — API server:**
 ```bash
-pnpm --filter @kids-games/api dev
+./dev.sh server
 # Listens on http://localhost:3000
 ```
 
 **Terminal 2 — Web app:**
 ```bash
-pnpm --filter @kids-games/web dev
+./dev.sh web
 # Listens on http://localhost:5173
 ```
 
@@ -370,8 +370,8 @@ Raw command path (manual preflight):
 
 ```bash
 # Start API and web in background (two terminals, or use &)
-pnpm --filter @kids-games/api dev &
-pnpm --filter @kids-games/web dev &
+./dev.sh server &
+./dev.sh web &
 
 # Run Playwright tests (Chromium only)
 pnpm test:e2e
@@ -645,11 +645,11 @@ Cross-reference status of features at any time in [`IMPLEMENTATION_STATUS.md`](I
 
 ```bash
 # Terminal 1 — API with hot reload
-pnpm --filter @kids-games/api dev
+./dev.sh server
 # Expected: "Server listening at http://localhost:3000"
 
 # Terminal 2 — Web with hot reload
-pnpm --filter @kids-games/web dev
+./dev.sh web
 # Expected: "Local: http://localhost:5173"
 ```
 
@@ -860,7 +860,7 @@ Quick lookup: error signature → exact remediation.
 
 | Error signature | Root cause | Remediation |
 |----------------|-----------|-------------|
-| `ECONNREFUSED localhost:3000` | API not running | `pnpm --filter @kids-games/api dev` |
+| `ECONNREFUSED localhost:3000` | API not running | `./dev.sh server` |
 | `ECONNREFUSED localhost:5432` | DB not running | `./scripts/dev-db.sh start` |
 | `relation already exists` on migrate | Migration already applied | Safe to ignore, or `pnpm db:reset` |
 | Integration tests: `ECONNREFUSED` | Test DB missing or not running | See USAGE.md → Integration tests section |

@@ -284,3 +284,21 @@ Review result:
   1. moved package-local workspace links required a root `pnpm install` refresh
   2. fresh-stack bootstrap needed explicit DB-readiness ordering plus startup retry handling
 - Both issues were fixed in the same `P1` slice and reverified before closeout.
+
+## 2026-03-25 00:30 EET
+
+Summary:
+- Added a dedicated pending tracker for independent-agent add-game readiness: `project_docs/ongoing/ADDITIONAL_GAME_AGENT_READINESS_PENDING.md`.
+- Finished the remaining `P9` docs sweep against the canonical runtime by aligning active usage/status/tracker language with `server/` and `frontend/web/`, and by removing the last compatibility-era wording from current-facing docs.
+- Finished the active `P10` cleanup slice by removing transitional root dev command wrappers from `package.json`, making `./dev.sh` require `server/.env` directly, and stopping the active workflow from depending on the legacy `apps/api/.env` fallback.
+
+Verification:
+- Before changes:
+  - `pnpm build` -> passed
+  - `./dev.sh test:full` -> passed
+- After changes:
+  - `pnpm build`
+  - `pnpm boundary:check`
+  - `./dev.sh test:full`
+  - `./dev.sh stack:verify`
+  -> all passed

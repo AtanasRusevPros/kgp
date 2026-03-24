@@ -1,19 +1,19 @@
 # Phase Execution Tracker 2 Pending
 
-Updated: 2026-03-11 00:16 EET
+Updated: 2026-03-25 00:30 EET
 
 Tracking source:
 - Master plan: [`GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md`](GAME_MODULARITY_DEEP_ANALYSIS_PLAN.md)
 - Iteration runbook: [`GAME_MODULARITY_ITERATION_PLAN_SHORT.md`](GAME_MODULARITY_ITERATION_PLAN_SHORT.md)
 
 ## Current interpretation
-This tracker remains pending because the modularity plan is materially advanced, but later-phase mobile, docs, orchestration, and cleanup work is still open.
+This tracker remains pending because the modularity plan is materially advanced, but later-phase mobile, future-game guidance, and orchestration work is still open.
 
 ## What remains
-1. The core allowlist-driven backend adapter loader is in place, but broader future adapter expansion and final end-state cleanup are still open.
+1. The core allowlist-driven backend adapter loader is in place, but broader future adapter expansion remains open when additional games are introduced.
 2. Mobile readiness is still scaffold-level.
 3. Full cold-start/self-owned test orchestration is still in progress and is now tracked in [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
-4. AI-optimized documentation/rules/check workflow is still pending and is also tracked in [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
+4. Independent-agent add-game guidance is now split into [`ADDITIONAL_GAME_AGENT_READINESS_PENDING.md`](ADDITIONAL_GAME_AGENT_READINESS_PENDING.md).
 
 ## Status legend
 - `todo`
@@ -33,8 +33,8 @@ This tracker remains pending because the modularity plan is materially advanced,
 | P6 Mobile readiness | in_progress | Codex | 2026-03-10 | Directory conformance gate exists, but mobile shell/module contract work is still scaffold-level |
 | P7 Flashcards full migration | done | Codex | 2026-03-10 | Web manifest is live and flashcards backend adapter now loads through a dedicated workspace package rooted under `games/flashcards/backend-adapter` |
 | P8 Full test sweep | done | Codex | 2026-03-24 | Full local suite and stack e2e are green; backend allowlist/loader coverage, web blocked-route coverage, and stack-aware e2e verification are all in place |
-| P9 Full docs sweep | in_progress | Codex | 2026-03-24 | Core docs are updated for the canonical `server/` and `frontend/web/` roots, but the final doc sweep and long-tail consistency cleanup are still open |
-| P10 Cleanup | in_progress | Codex | 2026-03-10 | Canonical dev commands normalized, but compatibility paths and broader topology cleanup remain |
+| P9 Full docs sweep | done | Codex | 2026-03-25 | Core docs, usage paths, status docs, and tracker wording now reflect the canonical `server/` and `frontend/web/` runtime; remaining add-game guidance is split into its own pending tracker |
+| P10 Cleanup | done | Codex | 2026-03-25 | Legacy compatibility wrappers and stale command references were removed from the active workflow; broader future-game/mobile work now lives in separate follow-up phases rather than cleanup debt |
 
 ## P0 checklist
 - [x] Create boundary policy document.
@@ -236,19 +236,22 @@ This tracker remains pending because the modularity plan is materially advanced,
 3. Follow-up doc corrections applied after review:
    - env template now documents `ALLOWED_GAME_IDS` and `FLASHCARDS_CLIENT_SECRET`
    - status/tracker wording updated to reflect compatibility-mode reality instead of overstating full cleanup
+4. Final doc sweep against canonical runtime roots:
+   - direct local dev instructions now use `./dev.sh server` and `./dev.sh web`
+   - status docs now describe the canonical `server/` and `frontend/*` runtime without compatibility-mode caveats
+   - remaining add-game guidance work is split into `ADDITIONAL_GAME_AGENT_READINESS_PENDING.md`
 
 ## P10 evidence (executed)
 1. Removed temporary migration script:
    - deleted `phase:p1:verify` from root scripts.
 2. Canonicalized dev command paths:
-   - removed `dev:api` and `dev:web` aliases.
-   - kept canonical `dev:server` and `dev:frontend:web`.
-   - updated `dev.sh` to call canonical commands.
-3. Remaining cleanup still open:
-   - broader `server/` / `frontend/*` migration is not complete
-   - compatibility wrappers remain in place
+   - removed transitional `dev:server` and `dev:frontend:web` root wrappers.
+   - updated `dev.sh` and live docs to use the canonical runtime entrypoints directly.
+3. Removed active legacy env fallback:
+   - `dev.sh` now requires `server/.env` and no longer treats `apps/api/.env` as part of the active workflow.
 4. Verification:
-   - `pnpm test:full` -> passed after cleanup-adjacent changes, but final no-compatibility end-state is not yet reached.
+   - `pnpm build` -> passed.
+   - `./dev.sh test:full` -> passed.
 
 ## 2026-03-24 00:24 EET
 
@@ -275,7 +278,7 @@ P3 remaining-work assessment:
 2. The remaining `P3` work is now narrower than the original phase definition:
    - keep the loader contract stable as new games are added
    - expand from the built-in adapter set only when a second real backend adapter exists
-   - fold the final adapter path into the later `P10` cleanup so no compatibility-era assumptions remain
+   - keep the remaining add-game guidance and future cleanup aligned as new adapters are introduced
 3. Execution recommendation:
    - treat `P3` as functionally strong enough to stop being the immediate focus
    - move the roadmap priority past `P1`, with only small `P3` hardening if later work exposes gaps

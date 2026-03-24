@@ -1,4 +1,4 @@
-# Flashcards Game Module (Phase P1 Scaffold)
+# Flashcards Game Module
 
 This folder defines the canonical modular game layout.
 
@@ -9,4 +9,5 @@ This folder defines the canonical modular game layout.
 - `backend-adapter/`: backend integration adapter loaded only when allowlisted
 
 ## Current status
-P1 scaffold only. Existing runtime remains in legacy locations until phased migration.
+Flashcards is the current reference game module.
+Its backend adapter and web module are live in the canonical modular runtime.

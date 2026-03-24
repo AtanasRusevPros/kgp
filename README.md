@@ -176,13 +176,13 @@ Run the API and web app in two separate terminals. Hot-reload is active in both.
 
 **Terminal 1 — API server:**
 ```bash
-pnpm --filter @kids-games/api dev
+./dev.sh server
 # Listens on http://localhost:3000
 ```
 
 **Terminal 2 — Web app:**
 ```bash
-pnpm --filter @kids-games/web dev
+./dev.sh web
 # Listens on http://localhost:5173
 ```
 
@@ -320,7 +320,7 @@ curl http://localhost:3000/flashcards/decks
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `ECONNREFUSED localhost:3000` | API not running | `pnpm --filter @kids-games/api dev` |
+| `ECONNREFUSED localhost:3000` | API not running | `./dev.sh server` |
 | `ECONNREFUSED localhost:5432` | DB not running | `./scripts/dev-db.sh start` |
 | `relation already exists` on migrate | Already applied | Safe to ignore, or `pnpm db:reset` |
 | `Cannot find module` in web tests | Shared packages not built | `pnpm --filter @kids-games/shared build` |

@@ -27,21 +27,7 @@ ensure_internal_package_artifacts() {
 }
 
 require_env() {
-  get_server_env_file >/dev/null || die "server/.env not found. Run: ./dev.sh init"
-}
-
-get_server_env_file() {
-  if [[ -f "$PROJ/server/.env" ]]; then
-    echo "$PROJ/server/.env"
-    return 0
-  fi
-
-  if [[ -f "$PROJ/apps/api/.env" ]]; then
-    echo "$PROJ/apps/api/.env"
-    return 0
-  fi
-
-  return 1
+  [[ -f "$PROJ/server/.env" ]] || die "server/.env not found. Run: ./dev.sh init"
 }
 
 port_in_use() {
@@ -116,8 +102,7 @@ get_test_database_url() {
     return 0
   fi
 
-  local env_file
-  env_file="$(get_server_env_file || true)"
+  local env_file="$PROJ/server/.env"
   if [[ -f "$env_file" ]]; then
     test_db_url="$(grep -E '^TEST_DATABASE_URL=' "$env_file" | tail -n1 | cut -d '=' -f2- || true)"
   fi
@@ -243,12 +228,9 @@ cmd_init() {
   info "Installing dependencies..."
   (cd "$PROJ" && pnpm install)
 
-  info "Preparing server/.env (prefers existing server/.env, then legacy apps/api/.env, otherwise copies .env.example)..."
+  info "Preparing server/.env (skipped if it already exists)..."
   if [[ -f "$PROJ/server/.env" ]]; then
     ok "server/.env already exists, skipping"
-  elif [[ -f "$PROJ/apps/api/.env" ]]; then
-    cp "$PROJ/apps/api/.env" "$PROJ/server/.env"
-    ok "Copied legacy apps/api/.env to server/.env"
   else
     cp "$PROJ/server/.env.example" "$PROJ/server/.env"
     ok ".env created — review server/.env and adjust secrets if needed"
@@ -277,12 +259,12 @@ cmd_build() {
 cmd_server() {
   require_env
   info "Starting API dev server (http://localhost:3000)..."
-  (cd "$PROJ" && pnpm dev:server)
+  (cd "$PROJ" && pnpm --filter @kids-games/api dev)
 }
 
 cmd_web() {
   info "Starting web dev client (http://localhost:5173)..."
-  (cd "$PROJ" && pnpm dev:frontend:web)
+  (cd "$PROJ" && pnpm --filter @kids-games/web dev)
 }
 
 # ── tests ─────────────────────────────────────────────────────────────────────
@@ -560,8 +542,6 @@ cmd_status() {
   echo "=== .env file ==="
   if [[ -f "$PROJ/server/.env" ]]; then
     ok "server/.env exists"
-  elif [[ -f "$PROJ/apps/api/.env" ]]; then
-    ok "legacy apps/api/.env exists (server/.env fallback available)"
   else
     echo "✗ server/.env MISSING — run ./dev.sh init"
   fi
