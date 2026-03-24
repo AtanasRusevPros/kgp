@@ -13,8 +13,8 @@ This tracker remains pending because the execution batch materially advanced the
 1. Broader `server/` and `frontend/*` topology migration is still not the primary runtime shape.
 2. Adapter loading remains partially static rather than fully loader-driven.
 3. Mobile readiness is still scaffold-level.
-4. Full cold-start/self-owned test orchestration is still pending and is now tracked in [`TESTS_IMPROVEMENTS_PENDING_4.md`](TESTS_IMPROVEMENTS_PENDING_4.md).
-5. AI-optimized documentation/rules/check workflow is still pending and is also tracked in [`TESTS_IMPROVEMENTS_PENDING_4.md`](TESTS_IMPROVEMENTS_PENDING_4.md).
+4. Full cold-start/self-owned test orchestration is still in progress and is now tracked in [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
+5. AI-optimized documentation/rules/check workflow is still pending and is also tracked in [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
 
 ## Status legend
 - `todo`
@@ -208,3 +208,17 @@ This tracker remains pending because the execution batch materially advanced the
    - compatibility wrappers remain in place
 4. Verification:
    - `pnpm test:full` -> passed after cleanup-adjacent changes, but final no-compatibility end-state is not yet reached.
+
+## 2026-03-24 00:24 EET
+
+Progress update:
+1. The "full cold-start/self-owned test orchestration" item moved from pure pending to materially in progress.
+2. `./dev.sh test:int` now provisions, prepares, and tears down its own isolated Postgres test container instead of relying on the long-lived local dev DB container.
+3. `./dev.sh test:e2e` now uses the same isolated owned test DB flow for its DB-backed preparation.
+4. `./dev.sh test:full` now owns a single shared isolated test DB session for the DB-backed substeps and reuses that prepared state within the top-level run.
+5. Root `pnpm test:full` now routes through the `./dev.sh test:full` orchestrator.
+
+Remaining follow-up for this tracker item:
+1. CI still uses a separate service-container setup rather than the local shell-managed orchestration path.
+2. Stack e2e remains a distinct verification path.
+3. The broader modularity phases (`P1`, `P3`, `P6`, `P8`, `P9`, `P10`) are still open exactly as previously noted.

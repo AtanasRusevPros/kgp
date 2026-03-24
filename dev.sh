@@ -6,6 +6,9 @@ set -euo pipefail
 
 PROJ="$(cd "$(dirname "$0")" && pwd)"
 COMPOSE_FILE="infra/podman/compose.yml"
+TEST_DB_CONTAINER_NAME=""
+TEST_DB_HOST_PORT=""
+TEST_DB_CONTAINER_CREATED="0"
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -27,6 +30,71 @@ require_env() {
   if [[ ! -f "$PROJ/apps/api/.env" ]]; then
     die "apps/api/.env not found. Run:  ./dev.sh init"
   fi
+}
+
+port_in_use() {
+  local port="$1"
+  ss -tlnH 2>/dev/null | awk '{print $4}' | grep -Eq "(^|:)$port$"
+}
+
+pick_test_db_port() {
+  local port
+  for port in $(seq 55432 55462); do
+    if ! port_in_use "$port"; then
+      echo "$port"
+      return 0
+    fi
+  done
+
+  die "Could not find a free port for an isolated test Postgres container."
+}
+
+cleanup_owned_test_db() {
+  if [[ "${TEST_DB_CONTAINER_CREATED}" != "1" ]]; then
+    return 0
+  fi
+
+  if [[ "${KG_KEEP_TEST_DB:-0}" == "1" ]]; then
+    info "Keeping managed test DB container '${TEST_DB_CONTAINER_NAME}' because KG_KEEP_TEST_DB=1."
+    return 0
+  fi
+
+  if [[ -n "${TEST_DB_CONTAINER_NAME}" ]]; then
+    info "Cleaning up managed test DB container '${TEST_DB_CONTAINER_NAME}'..."
+    (
+      cd "$PROJ" && \
+      KG_DB_CONTAINER_NAME="$TEST_DB_CONTAINER_NAME" \
+      KG_DB_HOST_PORT="$TEST_DB_HOST_PORT" \
+      ./scripts/dev-db.sh reset
+    ) >/dev/null 2>&1 || true
+  fi
+}
+
+ensure_owned_test_db_session() {
+  if [[ "${KG_TEST_DB_SESSION_ACTIVE:-0}" == "1" ]] && [[ -n "${TEST_DATABASE_URL:-}" ]]; then
+    return 0
+  fi
+
+  command -v podman >/dev/null 2>&1 || die "podman is required for self-owned DB-backed test runs."
+
+  local container_name="kids-games-test-postgres-$$"
+  local host_port
+  host_port="$(pick_test_db_port)"
+
+  info "Starting isolated test DB container '${container_name}' on port ${host_port}..."
+  (
+    cd "$PROJ" && \
+    KG_DB_CONTAINER_NAME="$container_name" \
+    KG_DB_HOST_PORT="$host_port" \
+    ./scripts/dev-db.sh start
+  )
+
+  TEST_DB_CONTAINER_NAME="$container_name"
+  TEST_DB_HOST_PORT="$host_port"
+  TEST_DB_CONTAINER_CREATED="1"
+  export TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:${host_port}/kids_games_test"
+  export KG_TEST_DB_SESSION_ACTIVE="1"
+  trap cleanup_owned_test_db EXIT
 }
 
 get_test_database_url() {
@@ -54,22 +122,28 @@ get_test_database_url() {
 }
 
 prepare_test_db() {
+  if [[ "${KG_TEST_DB_PREPARED:-0}" == "1" ]]; then
+    return 0
+  fi
+
   local test_db_url
   test_db_url="$(get_test_database_url)"
 
   info "Applying migrations to test database..."
   if ! (cd "$PROJ/apps/api" && DATABASE_URL="$test_db_url" pnpm db:migrate); then
     die "Could not apply test DB migrations.
-Run: ./dev.sh db:start
-Then retry: ./dev.sh test:int"
+Managed test DB URL: ${test_db_url}
+Retry: ./dev.sh test:int"
   fi
 
   info "Seeding test database..."
   if ! (cd "$PROJ/apps/api" && DATABASE_URL="$test_db_url" pnpm db:seed); then
     die "Could not seed test DB.
-Run: ./dev.sh db:start
-Then retry: ./dev.sh test:int"
+Managed test DB URL: ${test_db_url}
+Retry: ./dev.sh test:int"
   fi
+
+  export KG_TEST_DB_PREPARED="1"
 }
 
 wait_for_http_ok() {
@@ -200,6 +274,7 @@ cmd_test_web() {
 cmd_test_integration() {
   require_env
   ensure_internal_package_artifacts
+  ensure_owned_test_db_session
   prepare_test_db
   info "Running integration tests (requires DB)..."
   (cd "$PROJ" && pnpm test:integration)
@@ -209,6 +284,7 @@ cmd_test_e2e() {
   require_env
   ensure_internal_package_artifacts
   local test_db_url api_pid api_log api_port api_url
+  ensure_owned_test_db_session
   test_db_url="$(get_test_database_url)"
   api_log="$(mktemp /tmp/kg-api-e2e.XXXX.log)"
   api_pid=""
@@ -247,6 +323,8 @@ cmd_test_full() {
   info "Running full test suite..."
   cmd_check
   cmd_test_unit
+  ensure_owned_test_db_session
+  prepare_test_db
   cmd_test_integration
   cmd_test_web
   cmd_test_e2e
@@ -476,10 +554,10 @@ Quality
 Tests
   test:unit           Unit tests (no DB required)
   test:web            Web component tests — vitest + jsdom (no DB required)
-  test:int            API integration tests (requires DB)
-  test:e2e            Playwright e2e tests (auto-prepares DB and API)
+  test:int            API integration tests (owns an isolated test DB container)
+  test:e2e            Playwright e2e tests (owns an isolated test DB container + API)
   test:e2e:stack      Playwright e2e tests against container stack (http://localhost:8080)
-  test:full           Full local suite (check + unit + integration + web + e2e)
+  test:full           Full local suite with one shared isolated test DB for DB-backed steps
 
 Database (local dev container)
   db:start            Start Postgres container

@@ -70,10 +70,10 @@ Quality
 Tests
   test:unit           Unit tests (no DB required)
   test:web            Web component tests — vitest + jsdom (no DB required)
-  test:int            API integration tests (auto-prepares test DB via migrate + seed)
-  test:e2e            Playwright e2e tests (auto-prepares test DB + starts API + web)
+  test:int            API integration tests (owns an isolated test DB container)
+  test:e2e            Playwright e2e tests (owns an isolated test DB container + API)
   test:e2e:stack      Playwright e2e tests against container stack (http://localhost:8080)
-  test:full           Full local suite: check + unit + integration + web + e2e
+  test:full           Full local suite with one shared isolated test DB for DB-backed steps
 
 Database (local dev container)
   db:start            Start Postgres container
@@ -237,12 +237,12 @@ Open **http://localhost:8080** (Caddy serves on port 8080).
 | `pnpm test:unit` | Shared schemas, SDK, API unit tests | No |
 | `pnpm test:web` | React component tests (vitest + jsdom) | No |
 | `pnpm test:integration` | API integration tests against test DB | Yes |
-| `pnpm test:e2e` | Playwright end-to-end browser tests | Yes (API + web runtime required) |
-| `pnpm test:full` | All of the above, in sequence | Yes |
+| `pnpm test:e2e` | Playwright end-to-end browser tests via `./dev.sh test:e2e` | Yes |
+| `pnpm test:full` | Full local suite via `./dev.sh test:full` | Yes |
 | `pnpm typecheck` | TypeScript type check (all packages) | No |
 | `pnpm lint` | ESLint (all packages) | No |
 
-Prefer `./dev.sh test:int`, `./dev.sh test:e2e`, and `./dev.sh test:full` for local/server runs because they include test preflight steps (DB migrate/seed and e2e API bootstrap).
+Prefer `./dev.sh test:int`, `./dev.sh test:e2e`, and `./dev.sh test:full` for local/server runs because they own DB-backed test setup directly. `test:int` and `test:e2e` create isolated Postgres test containers, and `test:full` reuses one prepared isolated test DB across its DB-backed steps before cleaning it up.
 They now also prebuild the internal workspace packages that intentionally export built artifacts for runtime/container use, so clean local runs and clean CI checkouts resolve internal package imports deterministically.
 
 `pnpm prebuild:internal` is the canonical narrow preflight for this. It builds only:

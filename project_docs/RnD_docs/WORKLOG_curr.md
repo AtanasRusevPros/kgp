@@ -24,7 +24,7 @@ Summary:
 - Confirmed that `P5` is improved but not fully final because the web shell uses a manifest-driven registry shape while still directly importing and wiring flashcards-specific route elements.
 - Confirmed that `P6` remains scaffold-level because mobile readiness is currently enforced mostly through directory/entry presence checks rather than a real mobile shell or contract-driven runtime.
 - Confirmed that `P8` remains partial because useful auth/allowlist tests exist, but broader loader/conformance/blocked-launch coverage and CI enforcement are not yet complete, and stack E2E is not wired into CI.
-- Confirmed that `TESTS_IMPROVEMENTS_PENDING_4.md` is still valid for DB-backed orchestration: `test:int` and `test:full` still depend on shared local Postgres lifecycle rather than fully isolated, self-owned setup and teardown.
+- Confirmed that `TESTS_IMPROVEMENTS_IN_PROGRESS_4.md` is still valid for DB-backed orchestration: `test:int` and `test:full` still depend on shared local Postgres lifecycle rather than fully isolated, self-owned setup and teardown.
 - Noted one stale area in the pending docs: the AI-optimized documentation/workflow task has progressed further than recorded because the `project_docs` reorganization already happened on 2026-03-23.
 - Recommended next execution order based on real code state:
   1. Finish DB-backed test orchestration hardening first.
@@ -37,3 +37,53 @@ Summary:
 Notes:
 - This entry reflects analysis against actual repository files, scripts, and CI configuration, not only against the planning markdown.
 - No repository code behavior was changed as part of this assessment; this was a documentation append only.
+
+## 2026-03-24 00:24 EET
+
+Summary:
+- Implemented the first test-orchestration hardening slice from `TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`.
+- `./dev.sh test:int` now owns an isolated Postgres test container, applies migrations and seed data there, runs integration tests, and cleans up only the container it created.
+- `./dev.sh test:e2e` now uses the same owned isolated test DB flow before starting the local API runtime for Playwright.
+- `./dev.sh test:full` now acts as the top-level orchestrator for the local full suite and reuses one prepared isolated test DB across the DB-backed substeps instead of bootstrapping repeatedly.
+- Root `pnpm test:full` now delegates to `./dev.sh test:full` so the orchestrated path is canonical.
+- Extended `scripts/dev-db.sh` to accept environment-driven container name, port, and database overrides so the same helper can manage both long-lived dev DB resources and isolated test DB resources.
+- Tightened the Postgres readiness check in `scripts/dev-db.sh` so isolated DB startup no longer emits the transient socket error observed during the first verification pass.
+
+Verification:
+- Baseline before edits:
+  - `pnpm test:unit` -> passed
+  - `pnpm test:web` -> passed
+  - `./dev.sh test:int` -> passed
+- After edits:
+  - `bash -n dev.sh` -> passed
+  - `bash -n scripts/dev-db.sh` -> passed
+  - `./dev.sh test:int` -> passed using an isolated `kids-games-test-postgres-*` container
+  - `pnpm test:full` -> passed using `./dev.sh test:full`
+  - `podman ps -a --filter name=kids-games-test-postgres ...` -> no leftover managed test DB containers after cleanup
+
+Remaining follow-up:
+- CI still uses its own Postgres service-container setup and has not yet been aligned with the local shell-managed orchestration flow.
+- Stack e2e remains separate from this local isolated DB-backed orchestration path.
+- Local DB-backed test commands still rely on `apps/api/.env` for non-DB configuration, so the DB lifecycle is now self-owned even though the broader environment bootstrap is not yet fully zero-setup.
+
+## 2026-03-24 07:29 EET
+
+Summary:
+- Marked the first local test-orchestration hardening slice as completed in the current working documentation.
+- Updated `README.md` so the root command reference and test guidance now describe isolated owned test DB behavior for `test:int`, `test:e2e`, and `test:full`.
+- Updated `project_docs/RnD_docs/USAGE.md` so the detailed local workflow guide matches the current wrapper behavior, including isolated test DB ownership and the top-level `test:full` reuse flow.
+- Updated `project_docs/RnD_docs/IMPLEMENTATION_STATUS.md` to reflect the current local test-orchestration status and the latest verified test counts.
+- Left the task tracked as partially complete at the broader project level because CI alignment, stack-path alignment, and fully zero-setup local bootstrap are still follow-up work.
+
+Commit message:
+`harden local test orchestration and sync test workflow docs`
+
+## 2026-03-24 07:38 EET
+
+Summary:
+- Renamed the active test-orchestration tracker from `TESTS_IMPROVEMENTS_PENDING_4.md` to `TESTS_IMPROVEMENTS_IN_PROGRESS_4.md` to match the current implementation state.
+- Added an explicit status section to that tracker clarifying what is now done and what still remains before the work can be considered fully complete.
+- Updated repository documentation references so they point to the renamed in-progress tracker consistently.
+
+Commit message:
+`harden local test orchestration, rename tracker to in-progress, and sync docs`

@@ -70,10 +70,10 @@ Quality
 Tests
   test:unit           Unit tests (no DB required)
   test:web            Web component tests — vitest + jsdom (no DB required)
-  test:int            API integration tests (auto-prepares test DB via migrate + seed)
-  test:e2e            Playwright e2e tests (auto-prepares test DB + starts API + web)
+  test:int            API integration tests (owns an isolated test DB container)
+  test:e2e            Playwright e2e tests (owns an isolated test DB container + API)
   test:e2e:stack      Playwright e2e tests against container stack (http://localhost:8080)
-  test:full           Full local suite: check + unit + integration + web + e2e
+  test:full           Full local suite with one shared isolated test DB for DB-backed steps
 
 Database (local dev container)
   db:start            Start Postgres container
@@ -268,8 +268,8 @@ All commands run from the repo root.
 | `pnpm test:unit` | Shared schemas, SDK, API unit tests | No |
 | `pnpm test:web` | React component tests (vitest + jsdom) | No |
 | `pnpm test:integration` | API integration tests against test DB | Yes |
-| `pnpm test:e2e` | Playwright end-to-end browser tests | Yes (API + web runtime required) |
-| `pnpm test:full` | All of the above, in sequence | Yes |
+| `pnpm test:e2e` | Playwright end-to-end browser tests via `./dev.sh test:e2e` | Yes |
+| `pnpm test:full` | Full local suite via `./dev.sh test:full` | Yes |
 | `pnpm typecheck` | TypeScript type check (all packages) | No |
 | `pnpm lint` | ESLint (all packages) | No |
 
@@ -279,7 +279,7 @@ Recommended wrapper commands:
 ./dev.sh test:e2e
 ./dev.sh test:full
 ```
-These include preflight setup and clearer failure messages.
+These include the self-owned DB-backed flow and clearer failure messages.
 
 Clean-checkout note:
 The repo currently keeps some internal workspace packages runtime-oriented by exporting built artifacts from `dist/`. Because of that, cold-start local verification and CI jobs prebuild a narrow set of internal packages before typecheck and DB-backed/unit test flows. The canonical command is:
@@ -297,7 +297,7 @@ It builds only:
 
 ```bash
 pnpm test:unit
-# 24 tests total currently (shared + sdk + api-unit suites)
+# 30 tests total currently (shared + sdk + api-unit suites)
 # No DB required — pure logic only
 ```
 
@@ -305,7 +305,7 @@ pnpm test:unit
 
 ```bash
 pnpm test:web
-# 69 tests across 10 test files
+# 71 tests across 11 test files
 # Uses vitest + jsdom + @testing-library/react
 # No server required — all API calls are mocked
 ```
@@ -321,6 +321,12 @@ Preferred (self-preparing):
 ```bash
 ./dev.sh test:int
 ```
+
+What the wrapper does:
+- Starts an isolated Postgres test container on a dedicated high port
+- Migrates and seeds that owned test database
+- Runs integration tests against the managed `TEST_DATABASE_URL`
+- Tears down only the container it created on exit
 
 Raw command path (manual preflight):
 
@@ -340,10 +346,10 @@ NODE_ENV=test DATABASE_URL=postgresql://postgres:postgres@localhost:5432/kids_ga
 
 # Run integration tests
 pnpm test:integration
-# 65 tests: migration schema, seed data, auth endpoints, flashcard endpoints, repositories, points, games
+# 77 tests: migration schema, seed data, auth endpoints, flashcard endpoints, repositories, points, games, internal health
 ```
 
-The integration tests use `TEST_DATABASE_URL` from `apps/api/.env` automatically.
+The wrapper uses `apps/api/.env` for non-DB settings, but it overrides `TEST_DATABASE_URL` to point at its owned isolated test container.
 
 ### End-to-end tests
 
@@ -353,9 +359,11 @@ Preferred (self-preparing):
 ```
 
 What the wrapper does:
-- Migrates + seeds test DB using `TEST_DATABASE_URL`
+- Starts an isolated Postgres test container on a dedicated high port
+- Migrates + seeds that owned test DB using an overridden `TEST_DATABASE_URL`
 - Starts API on a dedicated e2e port (`E2E_API_PORT`, default `3300`)
 - Runs Playwright with `E2E_API_URL` and Vite proxy override
+- Tears down only the owned test DB container it created
 - Stops the temporary API process on exit
 
 Raw command path (manual preflight):
@@ -381,9 +389,12 @@ Preferred:
 Sequence:
 1. `./dev.sh check`
 2. `./dev.sh test:unit`
-3. `./dev.sh test:int`
-4. `./dev.sh test:web`
-5. `./dev.sh test:e2e`
+3. Start one isolated test DB session and prepare it once
+4. `./dev.sh test:int`
+5. `./dev.sh test:web`
+6. `./dev.sh test:e2e`
+
+This top-level flow now reuses one prepared isolated test DB across the DB-backed substeps instead of bootstrapping the test database twice.
 
 ---
 

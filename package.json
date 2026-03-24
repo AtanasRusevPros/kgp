@@ -17,7 +17,7 @@
     "test:e2e:direct": "pnpm --filter @kids-games/web test:e2e",
     "test:e2e": "./dev.sh test:e2e",
     "test": "pnpm typecheck && pnpm lint && pnpm boundary:check && pnpm games:conformance && pnpm test:unit",
-    "test:full": "pnpm test && pnpm test:integration && pnpm test:web && pnpm test:e2e",
+    "test:full": "./dev.sh test:full",
     "db:migrate": "pnpm --filter @kids-games/api db:migrate",
     "db:migrate:down": "pnpm --filter @kids-games/api db:migrate:down",
     "db:seed": "pnpm --filter @kids-games/api db:seed",

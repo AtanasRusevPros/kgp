@@ -6,7 +6,7 @@ Every entry is evidence-backed with file paths, script names, or endpoint refere
 > **See also:** [`WORKLOG_initial.md`](WORKLOG_initial.md) for phase-by-phase narrative and rationale.
 > **Roadmap context:** [`USAGE.md`](USAGE.md) for executable workflows.
 > **Modularity execution tracker:** [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
-> **Pending test-orchestration follow-up:** [`TESTS_IMPROVEMENTS_PENDING_4.md`](../ongoing/TESTS_IMPROVEMENTS_PENDING_4.md).
+> **In-progress test-orchestration follow-up:** [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](../ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
 
 Updated: 2026-03-11 00:16 EET
 
@@ -156,7 +156,7 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | TypeScript strict mode | Implemented | `strict: true`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` across all packages |
 | ESLint passing | Implemented | Enforced as phase gate; `pnpm lint` passes clean |
 | Type checking passing | Implemented | `pnpm typecheck` passes across all 5 workspace packages |
-| Local test orchestration | Partial | `./dev.sh test:int`, `test:e2e`, `test:full` automate substantial setup, but DB-backed suites still rely on the long-lived local DB container model; see `../ongoing/TESTS_IMPROVEMENTS_PENDING_4.md` |
+| Local test orchestration | Partial | `./dev.sh test:int`, `test:e2e`, and `test:full` now own isolated local DB-backed setup with managed test containers, but CI/stack alignment and fully zero-setup local bootstrap remain follow-up work; see `../ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md` |
 | HTTPS (production) | Ready | Caddy auto-provisions TLS when given a real domain in Caddyfile |
 | HTTPS (localhost) | Optional | `ignoreHTTPSErrors: true` in playwright stack config |
 | Rootless containers | Implemented | Podman rootless via `infra/podman/compose.yml` |
@@ -174,14 +174,14 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 
 | Suite | Runner | Test count | DB required | CI job | Notes |
 |-------|--------|-----------|-------------|--------|-------|
-| Shared schemas | vitest | 6 | No | `unit-tests` | Zod schema validation |
+| Shared schemas | vitest | 10 | No | `unit-tests` | Zod schema validation |
 | Game SDK | vitest | 1 | No | `unit-tests` | Type export check |
-| API unit | vitest | 17 | No | `unit-tests` | Auth service logic, health route, mappers |
-| Web components | vitest + jsdom | 69 | No | `web-tests` | All pages, services, hooks |
-| API integration | vitest + pg | 65 | Yes (test DB) | `integration-tests` | All routes, repos, schema, seed, points |
-| E2E (dev mode) | Playwright | 2 | Yes (test DB + API runtime) | `e2e` (manual) | Use `./dev.sh test:e2e` to auto-prepare DB + start API + run via Vite dev server |
+| API unit | vitest | 19 | No | `unit-tests` | Auth service logic, health route, mappers, server lifecycle |
+| Web components | vitest + jsdom | 71 | No | `web-tests` | All pages, services, hooks |
+| API integration | vitest + pg | 77 | Yes (test DB) | `integration-tests` | All routes, repos, schema, seed, points, internal health |
+| E2E (dev mode) | Playwright | 2 | Yes (test DB + API runtime) | `e2e` (manual) | Use `./dev.sh test:e2e` to create an isolated test DB, start API, and run via Vite dev server |
 | E2E (stack mode) | Playwright | 2 | Yes (full stack) | Manual (`pnpm test:e2e:stack`) | Same suite against Podman+Caddy stack |
-| **Total automated** | | **162** | | | |
+| **Total automated** | | **180** | | | |
 
 **Config files:**
 - Dev E2E: `apps/web/playwright.config.ts`
@@ -278,5 +278,5 @@ Completed in this session:
 Pending after this session:
 1. Broader modularity execution remains in compatibility mode for parts of the target architecture; see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
 2. Architecture boundary policy remains active but pending final topology completion; see [`ARCHITECTURE_BOUNDARY_POLICY_PENDING.md`](../../docs/ARCHITECTURE_BOUNDARY_POLICY_PENDING.md).
-3. Test cold-start/self-owned orchestration still needs follow-up; see [`TESTS_IMPROVEMENTS_PENDING_4.md`](../ongoing/TESTS_IMPROVEMENTS_PENDING_4.md).
-4. AI-optimized documentation/rules/check workflow and mandatory cheap local verification rules remain pending; see [`TESTS_IMPROVEMENTS_PENDING_4.md`](../ongoing/TESTS_IMPROVEMENTS_PENDING_4.md).
+3. Test cold-start/self-owned orchestration still needs follow-up; see [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](../ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
+4. AI-optimized documentation/rules/check workflow and mandatory cheap local verification rules remain pending; see [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](../ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).

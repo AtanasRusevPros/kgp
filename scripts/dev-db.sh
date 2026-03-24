@@ -3,10 +3,12 @@
 # Usage: ./scripts/dev-db.sh [start|stop|reset]
 set -euo pipefail
 
-CONTAINER_NAME="kids-games-postgres"
-POSTGRES_PASSWORD="postgres"
-POSTGRES_USER="postgres"
-HOST_PORT="5432"
+CONTAINER_NAME="${KG_DB_CONTAINER_NAME:-kids-games-postgres}"
+POSTGRES_PASSWORD="${KG_DB_POSTGRES_PASSWORD:-postgres}"
+POSTGRES_USER="${KG_DB_POSTGRES_USER:-postgres}"
+HOST_PORT="${KG_DB_HOST_PORT:-5432}"
+DEV_DATABASE_NAME="${KG_DB_DEV_DATABASE_NAME:-kids_games_dev}"
+TEST_DATABASE_NAME="${KG_DB_TEST_DATABASE_NAME:-kids_games_test}"
 
 is_project_managed_conflict() {
   local name="$1"
@@ -86,7 +88,7 @@ case "$cmd" in
     echo "→ Waiting for Postgres to be ready..."
     tries=30
     while (( tries > 0 )); do
-      if podman exec "$CONTAINER_NAME" pg_isready -U "$POSTGRES_USER" &>/dev/null; then
+      if podman exec "$CONTAINER_NAME" psql -U "$POSTGRES_USER" -d postgres -c "SELECT 1" &>/dev/null; then
         break
       fi
       tries=$((tries - 1))
@@ -95,16 +97,16 @@ case "$cmd" in
 
     echo "→ Creating databases..."
     podman exec "$CONTAINER_NAME" psql -U "$POSTGRES_USER" -tc \
-      "SELECT 1 FROM pg_database WHERE datname='kids_games_dev'" | grep -q 1 || \
-      podman exec "$CONTAINER_NAME" psql -U "$POSTGRES_USER" -c "CREATE DATABASE kids_games_dev;"
+      "SELECT 1 FROM pg_database WHERE datname='${DEV_DATABASE_NAME}'" | grep -q 1 || \
+      podman exec "$CONTAINER_NAME" psql -U "$POSTGRES_USER" -c "CREATE DATABASE ${DEV_DATABASE_NAME};"
 
     podman exec "$CONTAINER_NAME" psql -U "$POSTGRES_USER" -tc \
-      "SELECT 1 FROM pg_database WHERE datname='kids_games_test'" | grep -q 1 || \
-      podman exec "$CONTAINER_NAME" psql -U "$POSTGRES_USER" -c "CREATE DATABASE kids_games_test;"
+      "SELECT 1 FROM pg_database WHERE datname='${TEST_DATABASE_NAME}'" | grep -q 1 || \
+      podman exec "$CONTAINER_NAME" psql -U "$POSTGRES_USER" -c "CREATE DATABASE ${TEST_DATABASE_NAME};"
 
     echo "✓ Postgres ready on port ${HOST_PORT}"
-    echo "  DATABASE_URL=postgresql://postgres:postgres@localhost:${HOST_PORT}/kids_games_dev"
-    echo "  TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:${HOST_PORT}/kids_games_test"
+    echo "  DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${HOST_PORT}/${DEV_DATABASE_NAME}"
+    echo "  TEST_DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${HOST_PORT}/${TEST_DATABASE_NAME}"
     ;;
 
   stop)

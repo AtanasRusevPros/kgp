@@ -482,7 +482,7 @@ Completed:
 Still pending:
 1. The broader architecture cutover remains in compatibility mode; see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
 2. Boundary-policy completion remains pending final topology completion; see [`ARCHITECTURE_BOUNDARY_POLICY_PENDING.md`](../../docs/ARCHITECTURE_BOUNDARY_POLICY_PENDING.md).
-3. Cold-start/self-owned test orchestration improvements remain pending; see [`TESTS_IMPROVEMENTS_PENDING_4.md`](../ongoing/TESTS_IMPROVEMENTS_PENDING_4.md).
+3. Cold-start/self-owned test orchestration improvements remain in progress; see [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](../ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
 
 Why this path was chosen:
 1. The current repo organization now treats some internal workspace packages as runtime-oriented artifacts for containers and built app execution.
