@@ -34,6 +34,8 @@ Make safe, minimal, well-verified changes with as little context as necessary.
 11. Do not push to remotes, run `git reset --hard`, or perform destructive DB actions outside local dev/test without confirmation.
 12. If a command or test cannot be run, say so clearly and explain why.
 13. In the main Codex-user thread, do not stage files until the user explicitly asks. Ignore this rule for agents explicitly tasked to prepare a commit.
+14. When the user explicitly asks for a plan-first workflow, stop after planning, list open questions, and do not execute until those questions are resolved.
+15. Prefer renames over delete-and-recreate when moving or retitling files so history stays readable.
 
 ## Code Conventions
 
@@ -41,6 +43,8 @@ Make safe, minimal, well-verified changes with as little context as necessary.
 2. Avoid `any` unless it is necessary and justified.
 3. When adding tests, keep them close to the code they verify.
 4. Every append to any `.md` file must include a timestamp. This applies to all agents.
+5. When a task changes user-facing behavior, workflows, status tracking, or verification expectations, update the relevant `.md` documents in the same task.
+6. When promoting a tracker from `PENDING` to `IN_PROGRESS` or similar, update both the title/state and the remaining-work summary so the file reflects the new reality.
 
 ## Verification Rules
 
@@ -83,6 +87,14 @@ Blast-radius guide:
 - e2e paths, startup flows, stack/container behavior: relevant e2e or stack verification
 
 If full verification is not possible, run the best narrower checks available and state exactly what remains unverified.
+
+### Review after autonomous work
+
+After each autonomous implementation task:
+
+1. Review the blast radius for stale docs, scripts, test setup, and runtime entrypoints affected by the change.
+2. Confirm whether any additional verification is needed beyond the original narrow checks.
+3. Report findings before treating the task as complete.
 
 ## Preferred Commands
 
@@ -143,3 +155,8 @@ Keep the final handoff compact:
 A task is not complete until the relevant local checks pass and no previously working behavior has been knowingly broken.
 
 Do not paste long logs unless they are necessary to explain a blocker.
+
+## Commit and Cleanup
+
+1. When the user asks to prepare a commit, first mark the task status in the relevant tracker/worklog/docs, then stage the intended files, then propose or use a commit message that matches the actual change scope.
+2. After each commit, perform a short cleanup pass: confirm the worktree is clean, note any intentional follow-up left out of the commit, and mention any temporary resources or verification gaps that still need attention.
