@@ -1,14 +1,10 @@
-# Add Game Checklist (Allowlisted Model)
+# Add Game Checklist
 
-1. Create `games/<gameId>/{contracts,web,mobile,backend-adapter}`.
-2. Add game record in DB seed and metadata fields.
-3. Add/verify allowlist entry (`ALLOWED_GAME_IDS`).
-4. Add app client credentials and scopes for privileged flows.
-5. Register web game module manifest/registry entry.
-6. Add backend adapter registration path.
-7. Add tests:
-   - game metadata and routing
-   - allowlist behavior
-   - auth/session scope behavior (if privileged writes)
-8. Run `pnpm games:conformance`.
-9. Run `pnpm test:full`.
+The canonical add-game workflow now lives in [`add-game-guide.md`](./add-game-guide.md).
+
+Use that guide as the single source of truth for:
+1. required game layout
+2. backend and web integration steps
+3. allowlist and privileged-flow rules
+4. verification commands
+5. required docs updates

@@ -203,7 +203,7 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | 6 | No account deletion | Store compliance risk (Apple/Google) | Medium (if going to store) | Add `DELETE /auth/me` with CASCADE |
 | 7 | `sessions` table is unused | Dead schema weight | Very Low | Implement when multiplayer planned; table does no harm |
 | 8 | Mobile app is a stub | No mobile experience | N/A for localhost | Implement React Native / Expo app as separate effort |
-| 9 | Additional-game guidance is still too implicit for a low-context independent AI agent to add a new game flawlessly | Future game work may require extra clarification or produce inconsistent integration patterns | Medium | Finish the dedicated add-game agent-readiness follow-up in `../ongoing/ADDITIONAL_GAME_AGENT_READINESS_PENDING.md` |
+| 9 | Adding a second real game will still exercise the current manually assembled registry and adapter-extension path rather than a fuller discovery model | Future game work remains more explicit and hands-on than a fully pluggable architecture would allow | Medium | Use `../../docs/add-game-guide.md` for the current integration contract and continue `P3` only if multi-game expansion exposes gaps |
 | 10 | No observability beyond health endpoint | Can't diagnose production issues | Medium (if going to production) | Add Pino log forwarding, prom-client metrics, Grafana |
 | 11 | Stack E2E not in CI | Deployment-only regressions not automatically caught | Low | Add optional CI job triggered on release branch |
 
@@ -224,8 +224,7 @@ Ordered by product value and risk reduction.
 ### Milestone 2 — Second game (Medium risk, high value)
 
 - Choose a game type (e.g., Spelling Bee, Word Match)
-- Finish the dedicated add-game guidance tracked in [`ADDITIONAL_GAME_AGENT_READINESS_PENDING.md`](../ongoing/ADDITIONAL_GAME_AGENT_READINESS_PENDING.md)
-- Follow the canonical add-game docs in `docs/add-game-checklist.md`, `docs/game-module-spec.md`, and `docs/backend-allowlist-security.md`
+- Follow the canonical add-game guide in [`../../docs/add-game-guide.md`](../../docs/add-game-guide.md)
 - Implement the game module under `games/<id>/...`, add any required backend adapter, add web pages/tests, and verify allowlist exposure through the current registry/loader flow
 
 ### Milestone 3 — Account deletion (Medium risk, store compliance)
@@ -276,7 +275,7 @@ Completed in this session:
 8. The graceful-shutdown cleanup issue was resolved by adding explicit `SIGINT`/`SIGTERM` handling in the API runtime.
 
 Pending after this session:
-1. Broader modularity execution still has open follow-up in `P3` and `P6`, plus the dedicated add-game guidance follow-up; see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md) and [`ADDITIONAL_GAME_AGENT_READINESS_PENDING.md`](../ongoing/ADDITIONAL_GAME_AGENT_READINESS_PENDING.md).
+1. Broader modularity execution still has open follow-up in `P3` and `P6`; see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
 2. Architecture boundary policy remains active and should stay aligned with future mobile and additional-game work; see [`ARCHITECTURE_BOUNDARY_POLICY_PENDING.md`](../../docs/ARCHITECTURE_BOUNDARY_POLICY_PENDING.md).
 3. Test cold-start/self-owned orchestration still needs follow-up; see [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](../ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
 4. AI-optimized documentation/rules/check workflow and mandatory cheap local verification rules remain pending; see [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](../ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).

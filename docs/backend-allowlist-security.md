@@ -1,21 +1,9 @@
 # Backend Allowlist and Security Model
 
-## Allowlist
-1. Backend loads game access policy from `config.allowedGameIds`.
-2. Non-allowlisted game IDs are rejected for protected game flows.
-3. Registry diagnostics endpoint: `GET /internal/games/health`.
+The canonical backend integration and security guidance for additional games now lives in [`add-game-guide.md`](./add-game-guide.md).
 
-## Dual identity model (implemented core slice)
-1. User identity: standard access token (`Authorization: Bearer ...`).
-2. App identity: validated during `POST /auth/game-session` via game client credentials.
-3. Delegated token: `gameSessionToken` issued by backend with game-bound audience and scopes.
-4. Issued scopes must be a subset of the integration client's stored scopes.
-5. If the caller omits scopes, backend defaults to the game's configured required scopes.
-
-## Privileged route enforcement
-For `POST /points/add`:
-1. User must be authenticated.
-2. `x-game-session-token` must be valid.
-3. Session token user must match authenticated user.
-4. Session token game must match payload `gameId`.
-5. Session token must include every required scope declared by the game's auth policy.
+Use that guide as the single source of truth for:
+1. allowlist exposure rules
+2. backend adapter requirements
+3. current loader limitations
+4. delegated game-session rules for privileged flows

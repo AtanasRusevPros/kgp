@@ -302,3 +302,21 @@ Verification:
   - `./dev.sh test:full`
   - `./dev.sh stack:verify`
   -> all passed
+
+## 2026-03-25 00:41 EET
+
+Summary:
+- Completed the add-game agent-readiness task by consolidating all active additional-game guidance into one canonical document: `docs/add-game-guide.md`.
+- Reduced the previous split add-game docs (`docs/add-game-checklist.md`, `docs/game-module-spec.md`, `docs/backend-allowlist-security.md`) to compatibility pointer pages so they no longer act as competing sources of truth.
+- Updated active project docs to point to the canonical guide, and converted `project_docs/ongoing/ADDITIONAL_GAME_AGENT_READINESS_PENDING.md` into a short completion record that redirects to the new canonical spec.
+
+Verification:
+- Before changes:
+  - `pnpm games:conformance` -> passed
+  - `pnpm boundary:check` -> passed
+  - `pnpm build` -> passed
+- After changes:
+  - `pnpm games:conformance`
+  - `pnpm boundary:check`
+  - `pnpm build`
+  -> all passed

@@ -18,6 +18,9 @@ Execution tracking:
 - [`GAME_MODULARITY_ITERATION_PLAN_SHORT.md`](project_docs/ongoing/GAME_MODULARITY_ITERATION_PLAN_SHORT.md)
 - [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](project_docs/ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md)
 
+Additional game implementation guidance:
+- [`docs/add-game-guide.md`](docs/add-game-guide.md)
+
 ---
 
 ## Table of Contents

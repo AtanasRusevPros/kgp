@@ -4,7 +4,7 @@ A complete technical reference covering system design, data flow, module structu
 
 > Modular rework status: see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
 
-Updated: 2026-03-11 00:16 EET
+Updated: 2026-03-25 00:41 EET
 
 ## 2026 Modularity Update (Key Changes)
 1. Closed, allowlisted game integration model is active in backend (`config.allowedGameIds`).
@@ -822,65 +822,14 @@ Create `server/src/tests/badges.integration.test.ts` following the same pattern 
 
 ## Integrating a New Game
 
-Example: adding a "Spelling Bee" game.
+Use [`../../docs/add-game-guide.md`](../../docs/add-game-guide.md) as the canonical source of truth for adding any additional game.
 
-### 1. Game record in seed
-
-Add to `server/src/db/seed.ts` or a new seed file:
-
-```typescript
-await pool.query(`
-    INSERT INTO games (id, title, description, icon_emoji, status)
-    VALUES ('spelling-bee', 'Spelling Bee', 'Spell words correctly to earn points', '🐝', 'enabled')
-    ON CONFLICT (id) DO NOTHING
-`);
-```
-
-### 2. API routes (optional — if game needs its own endpoints)
-
-Create `server/src/routes/spellingBee.ts` with game-specific routes.
-Register in `app.ts`.
-
-### 3. Frontend pages
-
-Create:
-- `frontend/web/src/pages/spellingBee/SpellingBeeLobbyPage.tsx`
-- `frontend/web/src/pages/spellingBee/SpellingBeeGamePage.tsx`
-
-### 4. Register routes in App.tsx
-
-```tsx
-<Route path="/spelling-bee" element={<ProtectedRoute><SpellingBeeLobbyPage /></ProtectedRoute>} />
-<Route path="/spelling-bee/play" element={<ProtectedRoute><SpellingBeeGamePage /></ProtectedRoute>} />
-```
-
-### 5. MenuPage navigation
-
-Update `MenuPage.tsx` click handler to route based on game ID:
-
-```tsx
-onClick={() => {
-    const paths: Record<string, string> = {
-        flashcards: '/flashcards',
-        'spelling-bee': '/spelling-bee',
-    };
-    navigate(paths[game.id] ?? '/');
-}}
-```
-
-### 6. (Future) Game SDK integration
-
-Once the game registry is built:
-
-```typescript
-// frontend/web/src/games/registry.ts
-import type { GameModule } from '@kids-games/game-sdk';
-import { SpellingBeeModule } from './spellingBee/module.js';
-
-export const gameRegistry: GameModule[] = [
-    SpellingBeeModule,
-];
-```
+This architecture reference no longer carries a separate add-game specification. The canonical guide now covers:
+1. required `games/<id>/` structure and file layout
+2. web manifest and registry integration
+3. backend adapter and allowlist rules
+4. privileged-flow requirements
+5. verification and docs-update obligations
 
 ---
 

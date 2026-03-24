@@ -13,7 +13,7 @@ This tracker remains pending because the modularity plan is materially advanced,
 1. The core allowlist-driven backend adapter loader is in place, but broader future adapter expansion remains open when additional games are introduced.
 2. Mobile readiness is still scaffold-level.
 3. Full cold-start/self-owned test orchestration is still in progress and is now tracked in [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
-4. Independent-agent add-game guidance is now split into [`ADDITIONAL_GAME_AGENT_READINESS_PENDING.md`](ADDITIONAL_GAME_AGENT_READINESS_PENDING.md).
+4. Independent-agent add-game guidance is complete and now centralized in [`../../docs/add-game-guide.md`](../../docs/add-game-guide.md).
 
 ## Status legend
 - `todo`
@@ -233,13 +233,14 @@ This tracker remains pending because the modularity plan is materially advanced,
    - `docs/backend-allowlist-security.md`
    - `docs/migration-guide.md`
    - `docs/add-game-checklist.md`
+   - `docs/add-game-guide.md`
 3. Follow-up doc corrections applied after review:
    - env template now documents `ALLOWED_GAME_IDS` and `FLASHCARDS_CLIENT_SECRET`
    - status/tracker wording updated to reflect compatibility-mode reality instead of overstating full cleanup
 4. Final doc sweep against canonical runtime roots:
    - direct local dev instructions now use `./dev.sh server` and `./dev.sh web`
    - status docs now describe the canonical `server/` and `frontend/*` runtime without compatibility-mode caveats
-   - remaining add-game guidance work is split into `ADDITIONAL_GAME_AGENT_READINESS_PENDING.md`
+   - add-game guidance is consolidated into the canonical `docs/add-game-guide.md`
 
 ## P10 evidence (executed)
 1. Removed temporary migration script:
