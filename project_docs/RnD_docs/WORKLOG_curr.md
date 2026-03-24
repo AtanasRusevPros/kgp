@@ -198,3 +198,26 @@ Summary:
 - Updated the affected test-count documentation after the extra API unit coverage and reverified with:
   - `pnpm test:unit` -> passed (`41` total unit tests, `30` API unit tests)
   - `./dev.sh test:int` -> passed (`77` integration tests)
+
+## 2026-03-24 22:39 EET
+
+Status:
+- Continuing directly into another `P3/P8` follow-up slice without pausing.
+- Immediate focus:
+  1. prove seeded-but-unallowlisted games are blocked at runtime
+  2. prove registry health reports missing allowlisted IDs deterministically
+  3. update tracker/worklog evidence after verification
+
+## 2026-03-24 22:46 EET
+
+Summary:
+- Completed another backend-focused `P3/P8` slice around blocked allowlist behavior.
+- Added `apps/api/src/tests/allowlist.integration.test.ts` to prove:
+  - seeded-but-unallowlisted games are blocked from `/games` and `/games/:gameId`
+  - `/internal/games/health` reports missing allowlisted IDs deterministically when config includes a non-existent game
+- Reverified the affected backend surface with:
+  - `pnpm test:unit` -> passed (`41` total unit tests, `30` API unit tests)
+  - `./dev.sh test:int` -> passed (`79` integration tests)
+- Review result:
+  - backend `P3/P8` coverage is materially stronger now
+  - the most meaningful remaining `P8` work has shifted to broader web blocked-launch behavior and stack/CI gating rather than another immediate backend loader test

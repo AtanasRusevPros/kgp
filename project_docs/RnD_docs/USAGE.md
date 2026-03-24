@@ -346,7 +346,7 @@ NODE_ENV=test DATABASE_URL=postgresql://postgres:postgres@localhost:5432/kids_ga
 
 # Run integration tests
 pnpm test:integration
-# 77 tests: migration schema, seed data, auth endpoints, flashcard endpoints, repositories, points, games, internal health
+# 79 tests: migration schema, seed data, auth endpoints, flashcard endpoints, repositories, points, games, internal health, allowlist blocking
 ```
 
 The wrapper uses `apps/api/.env` for non-DB settings, but it overrides `TEST_DATABASE_URL` to point at its owned isolated test container.

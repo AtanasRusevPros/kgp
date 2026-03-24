@@ -33,7 +33,7 @@ This tracker remains pending because the execution batch materially advanced the
 | P5 Web dynamic routing | done | Codex | 2026-03-09 | App routes now built from web game registry |
 | P6 Mobile readiness | in_progress | Codex | 2026-03-10 | Directory conformance gate exists, but mobile shell/module contract work is still scaffold-level |
 | P7 Flashcards full migration | done | Codex | 2026-03-10 | Web manifest is live and flashcards backend adapter now loads through a dedicated workspace package rooted under `games/flashcards/backend-adapter` |
-| P8 Full test sweep | in_progress | Codex | 2026-03-24 | Expanded auth/points matrix plus adapter-loader validation, startup-path unit coverage, and internal health assertions are in place; broader blocked-launch/expanded multi-game coverage still partial |
+| P8 Full test sweep | in_progress | Codex | 2026-03-24 | Expanded auth/points matrix plus adapter-loader validation, startup-path unit coverage, internal health assertions, and backend blocked-allowlist coverage are in place; broader multi-game/web blocked-launch coverage still partial |
 | P9 Full docs sweep | in_progress | Codex | 2026-03-10 | Core docs updated, but repo state is still compatibility mode rather than fully-final architecture |
 | P10 Cleanup | in_progress | Codex | 2026-03-10 | Canonical dev commands normalized, but compatibility paths and broader topology cleanup remain |
 
@@ -200,6 +200,12 @@ This tracker remains pending because the execution batch materially advanced the
 10. Verification run for third loader/runtime coverage slice:
    - `pnpm test:unit` -> passed (41 total tests, including 30 API unit tests).
    - `./dev.sh test:int` -> passed (77 integration tests).
+11. Fourth loader/runtime coverage slice:
+   - `apps/api/src/tests/allowlist.integration.test.ts` now proves seeded-but-unallowlisted games are blocked from `/games` and `/games/:gameId`.
+   - `apps/api/src/tests/allowlist.integration.test.ts` also proves `/internal/games/health` reports missing allowlisted IDs deterministically when config includes a non-existent game.
+12. Verification run for fourth loader/runtime coverage slice:
+   - `pnpm test:unit` -> passed (41 total tests, including 30 API unit tests).
+   - `./dev.sh test:int` -> passed (79 integration tests).
 
 ## P9 evidence (executed)
 1. Updated core docs:

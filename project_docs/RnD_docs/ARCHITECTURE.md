@@ -688,7 +688,7 @@ flowchart TD
     subgraph Integration["integration-tests<br/>(postgres:16 service)"]
         Migrate["Run migrations"]
         Seed["Run seed"]
-        IntTests["pnpm prebuild:internal<br/>pnpm test:integration<br/>(77 tests)"]
+        IntTests["pnpm prebuild:internal<br/>pnpm test:integration<br/>(79 tests)"]
         Migrate --> Seed --> IntTests
     end
 
@@ -716,7 +716,7 @@ All jobs use:
         │  Web     │  vitest + jsdom + @testing-library — 71 tests
         │ Component│  All API calls mocked with vi.mock
         ├──────────┤
-        │Integration│ vitest + real PostgreSQL — 77 tests
+        │Integration│ vitest + real PostgreSQL — 79 tests
         │  (API)   │  Isolated test database (kids_games_test)
         ├──────────┤
         │   Unit   │  vitest — 41 tests
