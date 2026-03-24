@@ -8,16 +8,18 @@ Reach a test workflow where any suite can be started from a cold machine state, 
 ## Current state
 1. `test:unit` is self-contained.
 2. `test:web` is self-contained.
-3. `test:e2e` is partly self-contained because it prepares the test DB and starts runtime processes as needed.
-4. `test:e2e:stack` is fairly self-contained when run through the stack flow.
-5. `test:int` and `test:full` still depend on the long-lived local DB container model and do not fully own DB lifecycle recovery.
+3. `test:int` now owns an isolated local Postgres test container lifecycle.
+4. `test:e2e` now uses the same owned isolated test DB pattern locally before starting the API runtime.
+5. `test:full` now acts as the local top-level orchestrator and reuses one prepared isolated test DB across DB-backed substeps.
+6. DB-backed local cleanup now removes only the managed test resources created by the run.
+7. `test:e2e:stack` is fairly self-contained when run through the stack flow.
 
 ## What remains
-1. Separate DB-backed test lifecycle ownership from the long-lived local dev DB container.
-2. Make `test:int` able to cold-start, repair, or recreate its own isolated test Postgres resource automatically.
-3. Make `test:full` the single top-level orchestrator for shared DB-backed setup so sub-suites do not repeat expensive bootstrap work unless isolation requires it.
-4. Ensure every test command tears down only the resources it created.
-5. Remove remaining manual recovery expectations such as recreating a broken local DB container outside the test command.
+1. Align CI with the same owned orchestration model where appropriate, or document clearly why it intentionally remains separate.
+2. Decide whether stack-mode e2e should stay a distinct path or be partially unified with the local orchestration model.
+3. Reduce remaining local dependence on `apps/api/.env` for non-DB config if full zero-setup cold-start behavior is still a goal.
+4. Consider whether optional debug retention for the managed test DB container should remain an escape hatch or become a documented workflow.
+5. Decide whether the broader AI-optimized documentation and cheap local verification workflow should stay in this tracker or move to a separate follow-up document.
 
 ## Additional future task: AI-optimized documentation and cheap local verification workflow
 Added: 2026-03-11 00:16 EET

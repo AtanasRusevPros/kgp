@@ -688,7 +688,7 @@ flowchart TD
     subgraph Integration["integration-tests<br/>(postgres:16 service)"]
         Migrate["Run migrations"]
         Seed["Run seed"]
-        IntTests["pnpm prebuild:internal<br/>pnpm test:integration<br/>(65 tests)"]
+        IntTests["pnpm prebuild:internal<br/>pnpm test:integration<br/>(77 tests)"]
         Migrate --> Seed --> IntTests
     end
 

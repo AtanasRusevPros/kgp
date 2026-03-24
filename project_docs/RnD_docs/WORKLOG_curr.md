@@ -87,3 +87,62 @@ Summary:
 
 Commit message:
 `harden local test orchestration, rename tracker to in-progress, and sync docs`
+
+## 2026-03-24 07:49 EET
+
+Summary:
+- Compacted the outstanding-work view from the earlier repo-state analysis.
+- Remaining major items from the ongoing planning docs are:
+  - finish real backend adapter loading and validation (`P3`)
+  - expand matching modularity/security/blocked-launch coverage and CI gating (`P8`)
+  - complete the true runtime cutover from `apps/*` to `server/` and `frontend/*` (`P1`)
+  - complete the remaining mobile-readiness slice (`P6`)
+  - finish the broader docs/cleanup endgame (`P9`, `P10`)
+  - continue the remaining CI/stack/bootstrap follow-up in `TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`
+- Best autonomous next move identified:
+  1. implement the bounded `P3` backend adapter-loader slice
+  2. add the matching `P8` tests/coverage immediately after
+  3. reassess the broader `P1` runtime cutover only after that
+
+## 2026-03-24 07:49 EET
+
+Status:
+- Starting autonomous execution of `P3` and `P8`.
+- Immediate focus:
+  1. replace the current partially static backend adapter wiring with a stricter allowlist-driven loader path
+  2. add matching tests for loader validation, allowlist behavior, and failure paths
+  3. update tracker/status docs after verification
+
+## 2026-03-24 07:52 EET
+
+Summary:
+- Implemented the first bounded `P3` backend adapter-loader slice.
+- Added `apps/api/src/modules/game-adapter-loader.ts` to resolve and register allowlisted enabled backend adapters and fail fast on missing or duplicate adapter configuration.
+- Updated `apps/api/src/app.ts` so backend route registration now flows through the allowlist-driven loader instead of directly hardcoding flashcards route registration at the app level.
+- Updated `apps/api/src/modules/game-registry.ts` health output so `/internal/games/health` now reports loaded adapter IDs plus missing/duplicate adapter conditions.
+- Kept the current scope intentionally narrow: this is a stricter allowlist-driven loader path for the built-in adapter set, not yet a broader dynamic discovery system.
+- Implemented the matching first `P8` coverage slice:
+  - added `apps/api/src/tests/game-adapter-loader.test.ts`
+  - expanded `apps/api/src/tests/internal.integration.test.ts` to assert adapter health reporting
+- Updated project status/tracker docs to reflect the stronger `P3` and `P8` state and the latest verified suite counts.
+
+Verification:
+- Baseline before edits:
+  - `pnpm test:unit` -> passed
+  - `./dev.sh test:int` -> passed
+- After edits:
+  - `pnpm test:unit` -> passed
+  - `./dev.sh test:int` -> passed
+  - `pnpm --filter @kids-games/api typecheck` -> passed
+
+Remaining follow-up:
+- Backend adapter loading is now allowlist-driven at startup, but still limited to the built-in adapter set rather than a broader future multi-game/dynamic module expansion model.
+- Broader `P8` work still remains for additional blocked-launch, invalid-adapter-startup, and multi-game coverage.
+
+## 2026-03-24 20:51 EET
+
+Summary:
+- Performed a review pass over the markdown docs and the runtime/test surface affected by the recent `P3`/`P8` loader work.
+- Fixed `project_docs/ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md` so its `Current state` and `What remains` sections now match the actual completed local orchestration slice instead of contradicting the later progress updates.
+- Fixed `project_docs/RnD_docs/ARCHITECTURE.md` so the integration-test count in the CI architecture diagram matches the currently verified suite size.
+- Reconfirmed the changed backend path through unit/integration verification, API typecheck, and a direct API startup smoke check against an isolated review Postgres container.

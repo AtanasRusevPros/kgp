@@ -28,12 +28,12 @@ This tracker remains pending because the execution batch materially advanced the
 | P0 Guard rails | done | Codex | 2026-03-09 | Boundary policy doc, boundary script, CI wiring, baseline commands executed |
 | P1 Topology migration | in_progress | Codex | 2026-03-10 | Target topology scaffolded, but runtime still primarily lives under `apps/*` compatibility paths |
 | P2 Contracts/metadata | done | Codex | 2026-03-09 | Game metadata model extended end-to-end (DB/shared/API/tests) |
-| P3 Allowlist/adapter loader | in_progress | Codex | 2026-03-10 | Allowlist registry and health route are live; adapter loading/validation is still static rather than a strict dynamic loader |
+| P3 Allowlist/adapter loader | in_progress | Codex | 2026-03-24 | Allowlist registry and health route are live, and app startup now routes through an allowlist-driven backend adapter loader; broader dynamic discovery/future adapter expansion is still open |
 | P4 Dual identity/BFF | done | Codex | 2026-03-09 | Delegated game session tokens + scoped enforcement for points flow |
 | P5 Web dynamic routing | done | Codex | 2026-03-09 | App routes now built from web game registry |
 | P6 Mobile readiness | in_progress | Codex | 2026-03-10 | Directory conformance gate exists, but mobile shell/module contract work is still scaffold-level |
 | P7 Flashcards full migration | done | Codex | 2026-03-10 | Web manifest is live and flashcards backend adapter now loads through a dedicated workspace package rooted under `games/flashcards/backend-adapter` |
-| P8 Full test sweep | in_progress | Codex | 2026-03-10 | Expanded auth/points matrix added; broader adapter-loader and blocked-launch coverage still partial |
+| P8 Full test sweep | in_progress | Codex | 2026-03-24 | Expanded auth/points matrix plus first adapter-loader validation coverage are in place; broader blocked-launch/expanded multi-game coverage still partial |
 | P9 Full docs sweep | in_progress | Codex | 2026-03-10 | Core docs updated, but repo state is still compatibility mode rather than fully-final architecture |
 | P10 Cleanup | in_progress | Codex | 2026-03-10 | Canonical dev commands normalized, but compatibility paths and broader topology cleanup remain |
 
@@ -102,6 +102,12 @@ This tracker remains pending because the execution batch materially advanced the
    - `apps/api/src/tests/points.integration.test.ts` (allowlist rejection case).
 7. Verification run:
    - `pnpm build && pnpm test:unit && pnpm test:integration && pnpm test:web` -> passed.
+8. Follow-up loader slice:
+   - `apps/api/src/modules/game-adapter-loader.ts` added to resolve/register allowlisted enabled backend adapters and fail fast on missing/duplicate adapter configuration.
+   - `apps/api/src/app.ts` now registers backend adapters through the loader rather than hardcoding flashcards route wiring at the app level.
+   - `apps/api/src/modules/game-registry.ts` health output now reports loaded/missing/duplicate adapter IDs.
+9. Verification run for loader slice:
+   - `pnpm test:unit && ./dev.sh test:int && pnpm --filter @kids-games/api typecheck` -> passed.
 
 ## P4 evidence (initial slice executed)
 1. Integration-client datastore added:
@@ -179,6 +185,11 @@ This tracker remains pending because the execution batch materially advanced the
    - `apps/web/e2e/flashcards.spec.ts` stable deck selector.
 4. Full quality gate result:
    - `pnpm test:full` -> passed.
+5. Follow-up loader coverage slice:
+   - `apps/api/src/tests/game-adapter-loader.test.ts` adds unit coverage for adapter resolution, duplicate detection, missing-adapter failure, and successful registration.
+   - `apps/api/src/tests/internal.integration.test.ts` now asserts adapter health reporting for the allowlisted flashcards adapter.
+6. Verification run for loader coverage slice:
+   - `pnpm test:unit && ./dev.sh test:int` -> passed.
 
 ## P9 evidence (executed)
 1. Updated core docs:

@@ -45,7 +45,7 @@ The MVP remains usable and the automated suite is green, but the modularity rewo
 | Auth (register/login/refresh/logout) | Complete |
 | Podman container stack | Complete |
 | CI pipeline (GitHub Actions) | Complete |
-| Test suite | 162 tests passing (unit + integration + web + E2E) |
+| Test suite | 187 tests passing (unit + integration + web + E2E) |
 | Ops tooling (backup/restore, stack E2E) | Complete (added post-MVP) |
 | Documentation | Implemented, with compatibility-mode caveats documented |
 
@@ -111,7 +111,7 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | `GET /games` | Implemented | `apps/api/src/routes/games.ts` |
 | `GET /games/:gameId` | Implemented | Returns 404 for unknown ID |
 | Game menu UI | Implemented | `apps/web/src/pages/MenuPage.tsx` |
-| Game plugin registry | Partial | Web shell uses a registry-driven route build, but backend adapter loading is still statically wired rather than fully loader-driven |
+| Game plugin registry | Partial | Web shell uses a registry-driven route build, and backend now registers allowlisted enabled adapters through a stricter loader path, but the system is still limited to the current built-in adapter set rather than a fuller dynamic module ecosystem |
 | Second game (beyond flashcards) | Deferred | Placeholder in menu; implementation is future work |
 
 ### Rate Limiting
@@ -176,12 +176,12 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 |-------|--------|-----------|-------------|--------|-------|
 | Shared schemas | vitest | 10 | No | `unit-tests` | Zod schema validation |
 | Game SDK | vitest | 1 | No | `unit-tests` | Type export check |
-| API unit | vitest | 19 | No | `unit-tests` | Auth service logic, health route, mappers, server lifecycle |
+| API unit | vitest | 24 | No | `unit-tests` | Auth service logic, health route, mappers, server lifecycle, adapter-loader validation |
 | Web components | vitest + jsdom | 71 | No | `web-tests` | All pages, services, hooks |
 | API integration | vitest + pg | 77 | Yes (test DB) | `integration-tests` | All routes, repos, schema, seed, points, internal health |
 | E2E (dev mode) | Playwright | 2 | Yes (test DB + API runtime) | `e2e` (manual) | Use `./dev.sh test:e2e` to create an isolated test DB, start API, and run via Vite dev server |
 | E2E (stack mode) | Playwright | 2 | Yes (full stack) | Manual (`pnpm test:e2e:stack`) | Same suite against Podman+Caddy stack |
-| **Total automated** | | **180** | | | |
+| **Total automated** | | **187** | | | |
 
 **Config files:**
 - Dev E2E: `apps/web/playwright.config.ts`

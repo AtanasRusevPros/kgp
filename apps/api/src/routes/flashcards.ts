@@ -4,6 +4,7 @@ import { getPool } from '../db/client.js';
 import * as deckRepo from '../repositories/deck.repository.js';
 import * as progressRepo from '../repositories/progress.repository.js';
 import { mapDeck, mapCard } from '../mappers.js';
+import type { BackendGameAdapter } from '../modules/game-adapter-loader.js';
 
 const FLASHCARD_GAME_ID = 'flashcards';
 
@@ -48,3 +49,8 @@ export async function flashcardRoutes(app: FastifyInstance): Promise<void> {
     },
   });
 }
+
+export const flashcardsBackendAdapter: BackendGameAdapter = {
+  gameId: FLASHCARD_GAME_ID,
+  register: flashcardRoutes,
+};
