@@ -129,20 +129,20 @@ jobs:
         run: pnpm prebuild:internal
 
       - name: Run migrations
-        working-directory: apps/api
+        working-directory: server
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/kids_games_test
         run: node --env-file=/dev/null -r tsx/esm src/db/migrate.ts
         # DATABASE_URL is set inline above; --env-file=/dev/null prevents loading .env
 
       - name: Run seed
-        working-directory: apps/api
+        working-directory: server
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/kids_games_test
         run: node --env-file=/dev/null -r tsx/esm src/db/seed.ts
 
       - name: Integration tests
-        working-directory: apps/api
+        working-directory: server
         env:
           NODE_ENV: test
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/kids_games_dev

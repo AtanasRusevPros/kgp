@@ -11,7 +11,7 @@ Updated: 2026-03-11 00:16 EET
 2. `/games` payload includes modular metadata fields (route base, integration mode, client targets, capabilities, api version, auth policy, entry points).
 3. Backend game registry and diagnostics endpoint are implemented (`GET /internal/games/health`).
 4. Delegated game-session tokens are implemented (`POST /auth/game-session`) and enforced in privileged points writes.
-5. Web shell routes are built from registry metadata (`apps/web/src/games/registry.tsx`) instead of direct hardcoded game route declarations.
+5. Web shell routes are built from registry metadata (`frontend/web/src/games/registry.tsx`) instead of direct hardcoded game route declarations.
 6. Quality gates include architecture boundary and game structure conformance checks.
 
 ---
@@ -63,82 +63,48 @@ Browser
 
 ```
 kids-games-platform/
-├── apps/
-│   ├── api/                          # Fastify backend
-│   │   ├── src/
-│   │   │   ├── index.ts              # Entry point (listen)
-│   │   │   ├── app.ts                # App factory (createApp)
-│   │   │   ├── config.ts             # Env-var config with testConfig
-│   │   │   ├── types.ts              # Fastify type augmentations
-│   │   │   ├── mappers.ts            # DB row → API DTO mappers
-│   │   │   ├── routes/
-│   │   │   │   ├── auth.ts           # POST /auth/*
-│   │   │   │   ├── games.ts          # GET /games, GET /games/:id
-│   │   │   │   ├── flashcards.ts     # GET+POST /flashcards/*
-│   │   │   │   ├── points.ts         # GET+POST /points
-│   │   │   │   └── health.ts         # GET /health
-│   │   │   ├── repositories/
-│   │   │   │   ├── user.repository.ts
-│   │   │   │   ├── deck.repository.ts
-│   │   │   │   ├── progress.repository.ts
-│   │   │   │   ├── game.repository.ts
-│   │   │   │   ├── token.repository.ts
-│   │   │   │   └── points.repository.ts
-│   │   │   ├── services/
-│   │   │   │   └── auth.service.ts   # Password hashing, token logic
-│   │   │   ├── plugins/
-│   │   │   │   ├── auth.ts           # JWT preHandler decorator
-│   │   │   │   ├── db.ts             # Pool lifecycle plugin
-│   │   │   │   └── rateLimit.ts      # Rate-limit plugin
-│   │   │   └── db/
-│   │   │       ├── client.ts         # Pool singleton + createPool
-│   │   │       ├── migrate.ts        # node-pg-migrate runner
-│   │   │       ├── seed.ts           # Seed script
-│   │   │       ├── reset.ts          # Drop + migrate + seed
-│   │   │       ├── migrations/
-│   │   │       │   └── 001_initial_schema.sql
-│   │   │       └── seed-data/
-│   │   │           └── english-deck.json
-│   │   └── src/tests/
-│   │       ├── auth.service.test.ts         # Unit
-│   │       ├── health.test.ts               # Unit
-│   │       ├── auth.integration.test.ts     # Integration
-│   │       ├── flashcards.integration.test.ts
-│   │       ├── games.integration.test.ts
-│   │       ├── migration.integration.test.ts
-│   │       ├── repositories.integration.test.ts
-│   │       └── seed.integration.test.ts
-│   │
-│   ├── web/                          # React SPA frontend
+├── server/                           # Fastify backend package
+│   ├── src/
+│   │   ├── index.ts                  # Entry point (listen)
+│   │   ├── app.ts                    # App factory (createApp)
+│   │   ├── config.ts                 # Env-var config with testConfig
+│   │   ├── types.ts                  # Fastify type augmentations
+│   │   ├── mappers.ts                # DB row → API DTO mappers
+│   │   ├── routes/
+│   │   │   ├── auth.ts               # POST /auth/*
+│   │   │   ├── games.ts              # GET /games, GET /games/:id
+│   │   │   ├── flashcards.ts         # GET+POST /flashcards/*
+│   │   │   ├── points.ts             # GET+POST /points
+│   │   │   └── health.ts             # GET /health
+│   │   ├── repositories/
+│   │   ├── services/
+│   │   ├── plugins/
+│   │   ├── modules/
+│   │   ├── tests/
+│   │   └── db/
+│   │       ├── client.ts             # Pool singleton + createPool
+│   │       ├── migrate.ts            # node-pg-migrate runner
+│   │       ├── seed.ts               # Seed script
+│   │       ├── reset.ts              # Drop + migrate + seed
+│   │       ├── migrations/
+│   │       └── seed-data/
+│   ├── .env.example
+│   └── package.json
+├── frontend/
+│   ├── web/                          # React SPA frontend package
 │   │   ├── src/
 │   │   │   ├── main.tsx              # React root
 │   │   │   ├── App.tsx               # Router definition
 │   │   │   ├── pages/
-│   │   │   │   ├── LoginPage.tsx
-│   │   │   │   ├── RegisterPage.tsx
-│   │   │   │   ├── MenuPage.tsx
-│   │   │   │   └── flashcards/
-│   │   │   │       ├── DeckPickerPage.tsx
-│   │   │   │       └── FlashcardGamePage.tsx
 │   │   │   ├── components/
-│   │   │   │   ├── Layout.tsx
-│   │   │   │   ├── ProtectedRoute.tsx
-│   │   │   │   └── flashcards/
-│   │   │   │       ├── FlashCard.tsx
-│   │   │   │       └── ProgressBar.tsx
 │   │   │   ├── services/
-│   │   │   │   ├── api.ts            # apiFetch + auto-refresh
-│   │   │   │   ├── auth.service.ts   # Login/register/token storage
-│   │   │   │   ├── progress.service.ts  # Deck progress reads/writes
-│   │   │   │   └── offlineQueue.ts   # localStorage write queue
 │   │   │   ├── hooks/
-│   │   │   │   └── useOnlineStatus.ts
-│   │   │   └── test-setup.ts         # Vitest global setup
-│   │   ├── src/tests/                # Component tests (vitest+jsdom)
-│   │   ├── e2e/                      # Playwright tests
-│   │   └── playwright.config.ts
-│   │
-│   └── mobile/                       # Stub — README only
+│   │   │   └── tests/
+│   │   ├── e2e/
+│   │   ├── playwright.config.ts
+│   │   ├── playwright.stack.config.ts
+│   │   └── package.json
+│   └── mobile/                       # Mobile shell placeholder
 │
 ├── packages/
 │   ├── shared/                       # Shared types + Zod schemas
@@ -161,7 +127,7 @@ kids-games-platform/
 │   │   ├── smoke-test.sh             # Post-deploy health verification
 │   │   └── caddy/Caddyfile           # Reverse proxy routing rules
 │   └── sql/
-│       └── migrations/               # Symlink to apps/api/src/db/migrations
+│       └── migrations/               # Symlink to server/src/db/migrations
 │
 ├── .github/
 │   └── workflows/ci.yml             # GitHub Actions pipeline
@@ -771,7 +737,7 @@ Example: adding a `badges` system (user achievements).
 
 ### 1. Database migration
 
-Create `apps/api/src/db/migrations/002_badges.sql`:
+Create `server/src/db/migrations/002_badges.sql`:
 
 ```sql
 -- Up
@@ -794,7 +760,7 @@ Run: `pnpm db:migrate`
 
 ### 2. Repository
 
-Create `apps/api/src/repositories/badge.repository.ts`:
+Create `server/src/repositories/badge.repository.ts`:
 
 ```typescript
 import type pg from 'pg';
@@ -812,7 +778,7 @@ export async function getUserBadges(pool: pg.Pool, userId: string) {
 
 ### 3. Route
 
-Create `apps/api/src/routes/badges.ts`:
+Create `server/src/routes/badges.ts`:
 
 ```typescript
 import type { FastifyInstance } from 'fastify';
@@ -850,7 +816,7 @@ export interface Badge {
 
 ### 6. Write integration tests
 
-Create `apps/api/src/tests/badges.integration.test.ts` following the same pattern as `games.integration.test.ts`.
+Create `server/src/tests/badges.integration.test.ts` following the same pattern as `games.integration.test.ts`.
 
 ---
 
@@ -860,7 +826,7 @@ Example: adding a "Spelling Bee" game.
 
 ### 1. Game record in seed
 
-Add to `apps/api/src/db/seed.ts` or a new seed file:
+Add to `server/src/db/seed.ts` or a new seed file:
 
 ```typescript
 await pool.query(`
@@ -872,14 +838,14 @@ await pool.query(`
 
 ### 2. API routes (optional — if game needs its own endpoints)
 
-Create `apps/api/src/routes/spellingBee.ts` with game-specific routes.
+Create `server/src/routes/spellingBee.ts` with game-specific routes.
 Register in `app.ts`.
 
 ### 3. Frontend pages
 
 Create:
-- `apps/web/src/pages/spellingBee/SpellingBeeLobbyPage.tsx`
-- `apps/web/src/pages/spellingBee/SpellingBeeGamePage.tsx`
+- `frontend/web/src/pages/spellingBee/SpellingBeeLobbyPage.tsx`
+- `frontend/web/src/pages/spellingBee/SpellingBeeGamePage.tsx`
 
 ### 4. Register routes in App.tsx
 
@@ -907,7 +873,7 @@ onClick={() => {
 Once the game registry is built:
 
 ```typescript
-// apps/web/src/games/registry.ts
+// frontend/web/src/games/registry.ts
 import type { GameModule } from '@kids-games/game-sdk';
 import { SpellingBeeModule } from './spellingBee/module.js';
 

@@ -18,14 +18,14 @@ check_no_match() {
   fi
 }
 
-# API must not import web/mobile internals.
-check_no_match "apps/api importing apps/web or apps/mobile internals" "apps/api/src/**/*.{ts,tsx,js,jsx}" "apps/(web|mobile)/"
-check_no_match "apps/api importing @kids-games/web package" "apps/api/src/**/*.{ts,tsx,js,jsx}" "@kids-games/web"
+# Server must not import frontend/mobile internals.
+check_no_match "server importing frontend/web or apps/mobile internals" "server/src/**/*.{ts,tsx,js,jsx}" "frontend/|apps/(web|mobile)/"
+check_no_match "server importing @kids-games/web package" "server/src/**/*.{ts,tsx,js,jsx}" "@kids-games/web"
 
-# Web/mobile must not import API internals.
-check_no_match "apps/web importing apps/api internals" "apps/web/src/**/*.{ts,tsx,js,jsx}" "apps/api/"
-check_no_match "apps/web importing @kids-games/api package" "apps/web/src/**/*.{ts,tsx,js,jsx}" "@kids-games/api"
-check_no_match "apps/mobile importing apps/api internals" "apps/mobile/**/*.{ts,tsx,js,jsx}" "apps/api/"
+# Web/mobile must not import backend internals.
+check_no_match "frontend/web importing server internals" "frontend/web/src/**/*.{ts,tsx,js,jsx}" "apps/api/|server/"
+check_no_match "frontend/web importing @kids-games/api package" "frontend/web/src/**/*.{ts,tsx,js,jsx}" "@kids-games/api"
+check_no_match "apps/mobile importing backend internals" "apps/mobile/**/*.{ts,tsx,js,jsx}" "apps/api/|server/"
 check_no_match "apps/mobile importing @kids-games/api package" "apps/mobile/**/*.{ts,tsx,js,jsx}" "@kids-games/api"
 
 # Target topology boundaries.

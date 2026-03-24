@@ -136,8 +136,8 @@ cd <repo-name>
 pnpm install
 
 # 3. Copy the API environment file
-cp apps/api/.env.example apps/api/.env
-# Edit apps/api/.env if you need non-default values
+cp server/.env.example server/.env
+# Edit server/.env if you need non-default values
 
 # 4. Start the database (Podman, rootless)
 ./scripts/dev-db.sh start
@@ -216,8 +216,8 @@ Use `./dev.sh stack:verify` after changing container builds, workspace package w
 **First-time container run — seed the DB inside the container:**
 ```bash
 # After containers are up and healthy:
-podman exec kids-games-api node apps/api/dist/db/migrate.js
-podman exec kids-games-api node apps/api/dist/db/seed.js
+podman exec kids-games-api node server/dist/db/migrate.js
+podman exec kids-games-api node server/dist/db/seed.js
 ```
 
 ---
@@ -237,10 +237,10 @@ All commands run from the repo root.
 | `./scripts/dev-db.sh reset` | Stop container, wipe volume, restart (fresh DB) |
 
 **Migrations live in:**
-`apps/api/src/db/migrations/001_initial_schema.sql`
+`server/src/db/migrations/001_initial_schema.sql`
 
 **To add a new migration:**
-1. Create `apps/api/src/db/migrations/002_my_change.sql`
+1. Create `server/src/db/migrations/002_my_change.sql`
 2. Run `pnpm db:migrate` — node-pg-migrate applies it automatically
 
 **Directly inspect the database:**
@@ -349,7 +349,7 @@ pnpm test:integration
 # 79 tests: migration schema, seed data, auth endpoints, flashcard endpoints, repositories, points, games, internal health, allowlist blocking
 ```
 
-The wrapper uses `apps/api/.env` for non-DB settings, but it overrides `TEST_DATABASE_URL` to point at its owned isolated test container.
+The wrapper uses `server/.env` for non-DB settings, but it overrides `TEST_DATABASE_URL` to point at its owned isolated test container.
 
 ### End-to-end tests
 
@@ -377,7 +377,7 @@ pnpm --filter @kids-games/web dev &
 pnpm test:e2e
 ```
 
-The Playwright config (`apps/web/playwright.config.ts`) auto-starts the Vite dev server if not already running.
+The Playwright config (`frontend/web/playwright.config.ts`) auto-starts the Vite dev server if not already running.
 
 ### Full suite
 
@@ -413,14 +413,14 @@ podman build -f infra/podman/Dockerfile.api -t kids-games-api .
 podman build -f infra/podman/Dockerfile.web -t kids-games-web .
 ```
 
-The API build output lands in `apps/api/dist/`.
-The web build output (static HTML/CSS/JS) lands in `apps/web/dist/`.
+The API build output lands in `server/dist/`.
+The web build output (static HTML/CSS/JS) lands in `frontend/web/dist/`.
 
 ---
 
 ## Environment Variables
 
-**File:** `apps/api/.env` (copy from `apps/api/.env.example`)
+**File:** `server/.env` (copy from `server/.env.example`)
 
 ```env
 # Server
@@ -452,7 +452,7 @@ Notes:
 The web app talks to the API via `/api` prefix (proxied by Vite in dev, by Caddy in prod).
 No `.env` file needed for the web app in the default setup.
 
-If you need a custom API base URL, set `VITE_API_BASE` in `apps/web/.env.local`.
+If you need a custom API base URL, set `VITE_API_BASE` in `frontend/web/.env.local`.
 
 ---
 
@@ -460,7 +460,7 @@ If you need a custom API base URL, set `VITE_API_BASE` in `apps/web/.env.local`.
 
 ### Add a new vocabulary word to the seed deck
 
-1. Open `apps/api/src/db/seed-data/english-deck.json`
+1. Open `server/src/db/seed-data/english-deck.json`
 2. Add an entry:
    ```json
    { "term": "Tiger", "tags": ["animal"], "emoji": "🐯" }
@@ -470,18 +470,18 @@ If you need a custom API base URL, set `VITE_API_BASE` in `apps/web/.env.local`.
 
 ### Add a new API route
 
-1. Create or edit a file in `apps/api/src/routes/`
-2. Register it in `apps/api/src/app.ts`
+1. Create or edit a file in `server/src/routes/`
+2. Register it in `server/src/app.ts`
 3. Add shared types/schemas if needed in `packages/shared/src/`
-4. Write integration tests in `apps/api/src/tests/<name>.integration.test.ts`
+4. Write integration tests in `server/src/tests/<name>.integration.test.ts`
 5. Run `pnpm test:integration` to verify
 
 ### Add a new page to the web app
 
-1. Create a component in `apps/web/src/pages/`
-2. Add a route in `apps/web/src/App.tsx`
+1. Create a component in `frontend/web/src/pages/`
+2. Add a route in `frontend/web/src/App.tsx`
 3. Wrap with `<ProtectedRoute>` if login is required
-4. Write component tests in `apps/web/src/tests/`
+4. Write component tests in `frontend/web/src/tests/`
 5. Run `pnpm test:web`
 
 ### Reset the local dev environment completely
@@ -553,7 +553,7 @@ curl -X POST http://localhost:3000/auth/login \
 ```bash
 # Clear caches and reinstall
 pnpm store prune
-rm -rf node_modules apps/*/node_modules packages/*/node_modules
+rm -rf node_modules server/node_modules frontend/web/node_modules packages/*/node_modules
 pnpm install
 ```
 
@@ -584,8 +584,8 @@ The test DB doesn't exist or isn't running:
 # Make sure DB is running
 ./scripts/dev-db.sh start
 
-# Make sure TEST_DATABASE_URL is set in apps/api/.env
-cat apps/api/.env | grep TEST_DATABASE
+# Make sure TEST_DATABASE_URL is set in server/.env
+cat server/.env | grep TEST_DATABASE
 
 # Create the test DB if missing
 psql postgresql://postgres:postgres@localhost:5432/postgres \
@@ -593,11 +593,11 @@ psql postgresql://postgres:postgres@localhost:5432/postgres \
 
 # Migrate the test DB
 TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/kids_games_test \
-  node --env-file=/dev/null -r tsx/esm apps/api/src/db/migrate.ts
+  node --env-file=/dev/null -r tsx/esm server/src/db/migrate.ts
 
 # Seed the test DB
 TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/kids_games_test \
-  node --env-file=/dev/null -r tsx/esm apps/api/src/db/seed.ts
+  node --env-file=/dev/null -r tsx/esm server/src/db/seed.ts
 ```
 
 ### Web tests fail with "Cannot find module"
@@ -638,7 +638,7 @@ Cross-reference status of features at any time in [`IMPLEMENTATION_STATUS.md`](I
 
 **Preconditions:**
 - `pnpm install` completed
-- `apps/api/.env` exists (copied from `.env.example`)
+- `server/.env` exists (copied from `.env.example`)
 - Database is running: `./scripts/dev-db.sh start`
 
 **Steps:**
@@ -683,7 +683,7 @@ pnpm test:unit && pnpm test:web
 
 **Preconditions:**
 - Podman and podman-compose installed
-- `apps/api/.env` exists
+- `server/.env` exists
 - Container images built (or will be built on first `up`)
 
 **Steps:**
@@ -697,8 +697,8 @@ podman ps
 # Expected: kids-games-db, kids-games-api, kids-games-web, kids-games-caddy all shown
 
 # 3. Apply migrations and seed the database (first time only)
-podman exec kids-games-api node apps/api/dist/db/migrate.js
-podman exec kids-games-api node apps/api/dist/db/seed.js
+podman exec kids-games-api node server/dist/db/migrate.js
+podman exec kids-games-api node server/dist/db/seed.js
 
 # 4. Verify the stack is up
 ./infra/podman/smoke-test.sh
@@ -719,7 +719,7 @@ podman-compose -f infra/podman/compose.yml down
 
 **Failure hints:**
 - 502 Bad Gateway → API not healthy yet; wait 15 seconds, or check `podman-compose -f infra/podman/compose.yml logs api`
-- Build fails → check that `apps/api/.env` exists; run `pnpm install` first
+- Build fails → check that `server/.env` exists; run `pnpm install` first
 - Port 80 in use → stop conflicting service or change Caddy's port in `compose.yml`
 
 ---
@@ -753,7 +753,7 @@ pnpm test:e2e:stack
 | `GET /api/...` → 502 | API container not ready | Check `podman-compose logs api`; wait for health check |
 | Test times out waiting for element | App loaded but API returning errors | Check browser console in trace: `npx playwright show-trace` |
 
-**Note:** The stack E2E config lives at `apps/web/playwright.stack.config.ts`.
+**Note:** The stack E2E config lives at `frontend/web/playwright.stack.config.ts`.
 The base URL defaults to `http://localhost:8080`, and the stack command now targets the API through Caddy at `http://localhost:8080/api`.
 The stack Postgres service binds to host port `55434` so it does not collide with the local dev/test DB on `5432`.
 Override the web base URL with `BASE_URL_STACK=https://localhost pnpm test:e2e:stack`.
@@ -827,7 +827,7 @@ curl http://localhost:8080/api/health
 **Adding a new migration:**
 ```bash
 # 1. Create the file (increment the number)
-touch apps/api/src/db/migrations/002_my_change.sql
+touch server/src/db/migrations/002_my_change.sql
 # Edit and write your SQL
 
 # 2. Apply it
@@ -868,6 +868,6 @@ Quick lookup: error signature → exact remediation.
 | 502 Bad Gateway from Caddy | API container not healthy | `podman-compose -f infra/podman/compose.yml logs api` |
 | `podman: permission denied` | Podman not in rootless mode | `podman system migrate` |
 | `pnpm install` fails | Cache corruption | `pnpm store prune && rm -rf node_modules **/node_modules && pnpm install` |
-| `Cannot redefine property: onLine` in tests | Missing `configurable: true` in test setup | Fixed in `apps/web/src/test-setup.ts` — pull latest |
+| `Cannot redefine property: onLine` in tests | Missing `configurable: true` in test setup | Fixed in `frontend/web/src/test-setup.ts` — pull latest |
 | Stack E2E: `ERR_CONNECTION_REFUSED` | Stack not running | `podman-compose -f infra/podman/compose.yml up -d` then smoke test |
 | Stack backup: `stack does not appear to be running` | DB container not found | Start stack first, then `pnpm stack:backup` |

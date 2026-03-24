@@ -13,7 +13,7 @@ Updated: 2026-03-11 00:16 EET
 ## 2026 Modularity Rework Snapshot
 Current effective state:
 1. `P0`, `P2`, `P4`, `P5`, and the flashcards game-module slice of `P7` are implemented.
-2. `P1`, `P3`, `P6`, `P9`, and `P10` remain partial because the repo still runs in compatibility mode for the broader `server/` / `frontend/*` cutover and not every planned gate is complete.
+2. `P3`, `P6`, `P9`, and `P10` remain partial because not every planned gate and cleanup phase is complete yet.
 
 Implemented highlights:
 1. Backend allowlist registry and health endpoint.
@@ -37,7 +37,7 @@ Implemented highlights:
 
 ## Executive Summary
 
-The MVP remains usable and the automated suite is green, but the modularity rework is still in compatibility mode rather than fully at the end-state described by the master plan.
+The MVP remains usable and the automated suite is green, and the canonical runtime now lives under `server/` and `frontend/web/`, but later mobile/docs/cleanup phases are still open.
 
 | Dimension | Status |
 |-----------|--------|
@@ -59,35 +59,35 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 
 | Feature | Status | Evidence |
 |---------|--------|----------|
-| Register (`POST /auth/register`) | Implemented | `apps/api/src/routes/auth.ts`, integration tests pass |
-| Login (`POST /auth/login`) | Implemented | `apps/api/src/routes/auth.ts`, 9 auth unit tests |
-| Refresh token (`POST /auth/refresh`) | Implemented | `apps/api/src/services/auth.service.ts` |
+| Register (`POST /auth/register`) | Implemented | `server/src/routes/auth.ts`, integration tests pass |
+| Login (`POST /auth/login`) | Implemented | `server/src/routes/auth.ts`, 9 auth unit tests |
+| Refresh token (`POST /auth/refresh`) | Implemented | `server/src/services/auth.service.ts` |
 | Logout (`POST /auth/logout`) | Implemented | Deletes refresh token from DB |
-| JWT access tokens (15 min) | Implemented | `apps/api/src/plugins/auth.ts` |
-| Refresh tokens (7 days, rotated) | Implemented | `apps/api/src/repositories/token.repository.ts` |
-| Rate limiting on auth endpoints | Implemented | `apps/api/src/plugins/rateLimit.ts` (Valkey or in-memory) |
+| JWT access tokens (15 min) | Implemented | `server/src/plugins/auth.ts` |
+| Refresh tokens (7 days, rotated) | Implemented | `server/src/repositories/token.repository.ts` |
+| Rate limiting on auth endpoints | Implemented | `server/src/plugins/rateLimit.ts` (Valkey or in-memory) |
 | Account deletion | Deferred | No `DELETE /auth/me` endpoint; see gap #6 |
-| Web login UI | Implemented | `apps/web/src/pages/LoginPage.tsx` |
-| Web register UI | Implemented | `apps/web/src/pages/RegisterPage.tsx` |
-| Protected route wrapper | Implemented | `apps/web/src/components/ProtectedRoute.tsx` |
-| Auto token refresh in client | Implemented | `apps/web/src/services/api.ts` |
+| Web login UI | Implemented | `frontend/web/src/pages/LoginPage.tsx` |
+| Web register UI | Implemented | `frontend/web/src/pages/RegisterPage.tsx` |
+| Protected route wrapper | Implemented | `frontend/web/src/components/ProtectedRoute.tsx` |
+| Auto token refresh in client | Implemented | `frontend/web/src/services/api.ts` |
 
 ### Flashcards Gameplay
 
 | Feature | Status | Evidence |
 |---------|--------|----------|
-| List all decks (`GET /flashcards/decks`) | Implemented | `apps/api/src/routes/flashcards.ts` |
+| List all decks (`GET /flashcards/decks`) | Implemented | `server/src/routes/flashcards.ts` |
 | Get deck by ID | Implemented | `GET /flashcards/decks/:deckId` |
 | List cards in deck | Implemented | `GET /flashcards/decks/:deckId/cards` (all cards, no pagination) |
 | Card progress (known list) | Implemented | `GET /flashcards/decks/:deckId/progress` |
 | Mark card known/unknown | Implemented | `POST /flashcards/decks/:deckId/progress/known` |
 | Save card position | Implemented | `POST /flashcards/decks/:deckId/progress/position` |
 | Idempotency keys on writes | Implemented | `Idempotency-Key` header, 24h cache in `idempotency_keys` table |
-| Deck picker UI with progress | Implemented | `apps/web/src/pages/flashcards/DeckPickerPage.tsx` |
-| Flashcard game UI | Implemented | `apps/web/src/pages/flashcards/FlashcardGamePage.tsx` |
-| Card flip animation | Implemented | `apps/web/src/components/flashcards/FlashCard.tsx` |
+| Deck picker UI with progress | Implemented | `frontend/web/src/pages/flashcards/DeckPickerPage.tsx` |
+| Flashcard game UI | Implemented | `frontend/web/src/pages/flashcards/FlashcardGamePage.tsx` |
+| Card flip animation | Implemented | `frontend/web/src/components/flashcards/FlashCard.tsx` |
 | Known/unknown toggle | Implemented | `FlashCard.tsx` + progress service |
-| Progress bar | Implemented | `apps/web/src/components/flashcards/ProgressBar.tsx` |
+| Progress bar | Implemented | `frontend/web/src/components/flashcards/ProgressBar.tsx` |
 | Shuffle (Fisher-Yates) | Implemented | `FlashcardGamePage.tsx` |
 | Audio playback | Partial | `AudioButton` renders; disabled when `audioPath` is null; all seed cards have null audio |
 | Card images | Implemented (SVG) | Inline base64 SVG data URIs in `image_path` column (see gap #3) |
@@ -98,7 +98,7 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | Feature | Status | Evidence |
 |---------|--------|----------|
 | Points schema | Implemented | `user_points`, `user_game_points` tables in migration |
-| `GET /points` | Implemented | `apps/api/src/routes/points.ts` |
+| `GET /points` | Implemented | `server/src/routes/points.ts` |
 | `POST /points/add` | Partial | Requires delegated game-session token with game/user/scope checks, but the endpoint is still client-callable rather than server-authoritative |
 | Points award on game completion | Deferred | No server-side game completion event triggers |
 | Achievements/badges | Deferred | Not in scope for MVP |
@@ -108,9 +108,9 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 
 | Feature | Status | Evidence |
 |---------|--------|----------|
-| `GET /games` | Implemented | `apps/api/src/routes/games.ts` |
+| `GET /games` | Implemented | `server/src/routes/games.ts` |
 | `GET /games/:gameId` | Implemented | Returns 404 for unknown ID |
-| Game menu UI | Implemented | `apps/web/src/pages/MenuPage.tsx` |
+| Game menu UI | Implemented | `frontend/web/src/pages/MenuPage.tsx` |
 | Game plugin registry | Partial | Web shell uses a registry-driven route build, and backend now registers allowlisted enabled adapters through a stricter loader path, but the system is still limited to the current built-in adapter set rather than a fuller dynamic module ecosystem |
 | Second game (beyond flashcards) | Deferred | Placeholder in menu; implementation is future work |
 
@@ -118,7 +118,7 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 
 | Feature | Status | Evidence |
 |---------|--------|----------|
-| Auth endpoint rate limit (10/min) | Implemented | `apps/api/src/plugins/rateLimit.ts` |
+| Auth endpoint rate limit (10/min) | Implemented | `server/src/plugins/rateLimit.ts` |
 | Valkey backend | Implemented | Used when `VALKEY_URL` env is set |
 | In-memory fallback | Implemented | Used when `VALKEY_URL` is absent (localhost-only) |
 | Per-route limits (non-auth) | Deferred | Only auth endpoints limited in MVP |
@@ -161,7 +161,7 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | HTTPS (localhost) | Optional | `ignoreHTTPSErrors: true` in playwright stack config |
 | Rootless containers | Implemented | Podman rootless via `infra/podman/compose.yml` |
 | Frozen lockfile in CI | Implemented | `pnpm install --frozen-lockfile` in `.github/workflows/ci.yml` |
-| Offline progress queueing | Implemented | `apps/web/src/services/offlineQueue.ts` |
+| Offline progress queueing | Implemented | `frontend/web/src/services/offlineQueue.ts` |
 | Idempotent writes | Implemented | `Idempotency-Key` header + `idempotency_keys` DB table |
 | DB backup/restore | Implemented | `infra/podman/scripts/backup.sh`, `restore.sh`, `pnpm stack:backup/restore` |
 | Account deletion (store compliance) | Deferred | Required for Apple/Google store; not needed for web-only localhost |
@@ -184,10 +184,10 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | **Total automated** | | **198** | | | |
 
 **Config files:**
-- Dev E2E: `apps/web/playwright.config.ts`
-- Stack E2E: `apps/web/playwright.stack.config.ts`
-- Web component: `apps/web/vitest.config.ts`
-- API unit/integration: `apps/api/vitest.config.ts` / `apps/api/vitest.integration.config.ts`
+- Dev E2E: `frontend/web/playwright.config.ts`
+- Stack E2E: `frontend/web/playwright.stack.config.ts`
+- Web component: `frontend/web/vitest.config.ts`
+- API unit/integration: `server/vitest.unit.config.ts` / `server/vitest.integration.config.ts`
 
 ---
 
@@ -203,7 +203,7 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | 6 | No account deletion | Store compliance risk (Apple/Google) | Medium (if going to store) | Add `DELETE /auth/me` with CASCADE |
 | 7 | `sessions` table is unused | Dead schema weight | Very Low | Implement when multiplayer planned; table does no harm |
 | 8 | Mobile app is a stub | No mobile experience | N/A for localhost | Implement React Native / Expo app as separate effort |
-| 9 | Broader `server/` and `frontend/*` topology migration remains in compatibility mode | Root architecture docs can be overread as complete | Medium | Continue cutover or explicitly treat current state as long-lived compatibility mode |
+| 9 | Some docs and cleanup tasks still assume compatibility-era wording even though the canonical runtime now lives under `server/` and `frontend/*` | Future work can be misprioritized or explained inconsistently | Medium | Finish the remaining doc sweep and cleanup phases against the new canonical runtime roots |
 | 10 | No observability beyond health endpoint | Can't diagnose production issues | Medium (if going to production) | Add Pino log forwarding, prom-client metrics, Grafana |
 | 11 | Stack E2E not in CI | Deployment-only regressions not automatically caught | Low | Add optional CI job triggered on release branch |
 
@@ -216,7 +216,7 @@ Ordered by product value and risk reduction.
 ### Milestone 1 — Audio support (Low risk, medium value)
 
 - Source Creative Commons audio clips for the 20 seed vocabulary words
-- Store as static files in `apps/api/public/audio/` or an S3-compatible bucket
+- Store as static files in `server/public/audio/` or an S3-compatible bucket
 - Update `english-deck.json` with audio paths
 - Re-seed: `pnpm db:reset`
 - Verify AudioButton plays audio in the flashcard UI
@@ -230,7 +230,7 @@ Ordered by product value and risk reduction.
 
 ### Milestone 3 — Account deletion (Medium risk, store compliance)
 
-- Add `DELETE /auth/me` route in `apps/api/src/routes/auth.ts`
+- Add `DELETE /auth/me` route in `server/src/routes/auth.ts`
 - Repository: `DELETE FROM users WHERE id = $1` (CASCADE handles all related data)
 - Add confirmation dialog in web UI settings page
 - Integration test: verify all related rows deleted
@@ -276,7 +276,7 @@ Completed in this session:
 8. The graceful-shutdown cleanup issue was resolved by adding explicit `SIGINT`/`SIGTERM` handling in the API runtime.
 
 Pending after this session:
-1. Broader modularity execution remains in compatibility mode for parts of the target architecture; see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
+1. Broader modularity execution still has open follow-up in `P3`, `P6`, `P9`, and `P10`; see [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
 2. Architecture boundary policy remains active but pending final topology completion; see [`ARCHITECTURE_BOUNDARY_POLICY_PENDING.md`](../../docs/ARCHITECTURE_BOUNDARY_POLICY_PENDING.md).
 3. Test cold-start/self-owned orchestration still needs follow-up; see [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](../ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
 4. AI-optimized documentation/rules/check workflow and mandatory cheap local verification rules remain pending; see [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](../ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).

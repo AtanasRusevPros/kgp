@@ -1,7 +1,9 @@
 packages:
   - apps/*
+  - frontend/web
   - games/*/backend-adapter
   - packages/*
+  - server
 
 onlyBuiltDependencies:
   - esbuild

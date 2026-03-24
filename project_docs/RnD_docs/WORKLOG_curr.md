@@ -262,3 +262,25 @@ Execution recommendation:
 1. Stop treating `P3` as the immediate active phase.
 2. Move the roadmap focus to `P1` runtime cutover planning/execution.
 3. Reopen `P3` only for small hardening if later topology or new-game work exposes an actual gap.
+
+## 2026-03-24 23:44 EET
+
+Summary:
+- Completed `P1` by moving the canonical backend package from `apps/api` to `server/` and the canonical web package from `apps/web` to `frontend/web/`.
+- Updated root workspace configuration, `dev.sh`, CI, Podman image/runtime paths, boundary checks, and the live docs/tracker so they point at the new runtime roots.
+- Added a compatibility fallback in `dev.sh` for an existing legacy `apps/api/.env`, while making `server/.env` the canonical local env file.
+- Hardened API runtime startup for stack mode so transient database/bootstrap errors are retried during fresh container bring-up.
+- Reordered stack bootstrap/verification so fresh-stack migrations and seed run after DB readiness and before the HTTP smoke gate.
+
+Verification:
+- `pnpm boundary:check` -> passed
+- `pnpm games:conformance` -> passed
+- `pnpm build` -> passed
+- `./dev.sh test:full` -> passed
+- `./dev.sh stack:verify` -> passed
+
+Review result:
+- The initial path cutover exposed two real issues:
+  1. moved package-local workspace links required a root `pnpm install` refresh
+  2. fresh-stack bootstrap needed explicit DB-readiness ordering plus startup retry handling
+- Both issues were fixed in the same `P1` slice and reverified before closeout.

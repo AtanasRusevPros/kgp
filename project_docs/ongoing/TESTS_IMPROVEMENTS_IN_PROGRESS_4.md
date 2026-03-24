@@ -17,7 +17,7 @@ Reach a test workflow where any suite can be started from a cold machine state, 
 ## What remains
 1. Align CI with the same owned orchestration model where appropriate, or document clearly why it intentionally remains separate.
 2. Decide whether stack-mode e2e should stay a distinct path or be partially unified with the local orchestration model.
-3. Reduce remaining local dependence on `apps/api/.env` for non-DB config if full zero-setup cold-start behavior is still a goal.
+3. Reduce remaining local dependence on a manually prepared `server/.env` for non-DB config if full zero-setup cold-start behavior is still a goal.
 4. Consider whether optional debug retention for the managed test DB container should remain an escape hatch or become a documented workflow.
 5. Decide whether the broader AI-optimized documentation and cheap local verification workflow should stay in this tracker or move to a separate follow-up document.
 
@@ -55,7 +55,7 @@ Progress update:
 What remains after this slice:
 1. CI still uses its own GitHub Actions Postgres service flow rather than the local self-owned orchestration path.
 2. The stack-mode e2e path remains separate from the local isolated test DB flow.
-3. Local DB-backed scripts still assume `apps/api/.env` exists for non-DB settings, so "cold machine" is improved substantially for DB lifecycle ownership but not yet fully zero-setup.
+3. Local DB-backed scripts still assume `server/.env` exists for non-DB settings, so "cold machine" is improved substantially for DB lifecycle ownership but not yet fully zero-setup.
 4. Additional follow-up could add optional debug retention for the managed test DB container beyond the `KG_KEEP_TEST_DB=1` escape hatch.
 
 ## 2026-03-24 07:38 EET
@@ -70,5 +70,5 @@ Status refinement:
 3. Still open before this document can be considered fully done:
    - align CI with the same owned orchestration model where appropriate, or document why it intentionally remains separate
    - decide whether stack-mode e2e should stay a distinct path or be partially unified with the local orchestration model
-   - reduce remaining local dependence on `apps/api/.env` for non-DB config if full zero-setup cold-start behavior is still a goal
+   - reduce remaining local dependence on a manually prepared `server/.env` for non-DB config if full zero-setup cold-start behavior is still a goal
    - complete or explicitly split out the broader AI-optimized documentation and cheap local verification workflow section if it should not block closure of the DB-orchestration task

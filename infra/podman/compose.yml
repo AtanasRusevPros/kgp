@@ -29,7 +29,7 @@ services:
       dockerfile: infra/podman/Dockerfile.api
     container_name: kids-games-api
     env_file:
-      - ../../apps/api/.env
+      - ../../server/.env
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/kids_games_dev
       NODE_ENV: production

@@ -9,7 +9,7 @@ Single-server deployment via Podman rootless containers, localhost-first.
 The platform is now on a phased modularity rework path:
 1. Closed allowlist model for games (`ALLOWED_GAME_IDS`).
 2. Extended game metadata contracts from `/games`.
-3. Registry-driven web game routing (`apps/web/src/games/registry.tsx`).
+3. Registry-driven web game routing (`frontend/web/src/games/registry.tsx`).
 4. Delegated game session token flow for privileged routes (`POST /auth/game-session`).
 5. Game/module conformance and boundary checks in quality gates (`pnpm boundary:check`, `pnpm games:conformance`).
 
@@ -148,8 +148,8 @@ cd <repo-name>
 pnpm install
 
 # 3. Copy the API environment file
-cp apps/api/.env.example apps/api/.env
-# Edit apps/api/.env if you need non-default values
+cp server/.env.example server/.env
+# Edit server/.env if you need non-default values
 
 # 4. Start the database (Podman, rootless)
 ./scripts/dev-db.sh start
@@ -270,7 +270,7 @@ podman build -f infra/podman/Dockerfile.web -t kids-games-web .
 
 ## Environment Variables
 
-**File:** `apps/api/.env` (copy from `apps/api/.env.example`)
+**File:** `server/.env` (copy from `server/.env.example`)
 
 ```env
 PORT=3000

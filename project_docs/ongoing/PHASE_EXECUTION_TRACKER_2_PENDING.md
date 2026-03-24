@@ -7,14 +7,13 @@ Tracking source:
 - Iteration runbook: [`GAME_MODULARITY_ITERATION_PLAN_SHORT.md`](GAME_MODULARITY_ITERATION_PLAN_SHORT.md)
 
 ## Current interpretation
-This tracker remains pending because the execution batch materially advanced the modularity plan, but the repository is still in compatibility mode for parts of the broader target architecture.
+This tracker remains pending because the modularity plan is materially advanced, but later-phase mobile, docs, orchestration, and cleanup work is still open.
 
 ## What remains
-1. Broader `server/` and `frontend/*` topology migration is still not the primary runtime shape.
-2. The core allowlist-driven backend adapter loader is in place, but broader future adapter expansion and final end-state cleanup are still open.
-3. Mobile readiness is still scaffold-level.
-4. Full cold-start/self-owned test orchestration is still in progress and is now tracked in [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
-5. AI-optimized documentation/rules/check workflow is still pending and is also tracked in [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
+1. The core allowlist-driven backend adapter loader is in place, but broader future adapter expansion and final end-state cleanup are still open.
+2. Mobile readiness is still scaffold-level.
+3. Full cold-start/self-owned test orchestration is still in progress and is now tracked in [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
+4. AI-optimized documentation/rules/check workflow is still pending and is also tracked in [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
 
 ## Status legend
 - `todo`
@@ -26,7 +25,7 @@ This tracker remains pending because the execution batch materially advanced the
 | Phase | Status | Owner | Last update | Evidence |
 |---|---|---|---|---|
 | P0 Guard rails | done | Codex | 2026-03-09 | Boundary policy doc, boundary script, CI wiring, baseline commands executed |
-| P1 Topology migration | in_progress | Codex | 2026-03-10 | Target topology scaffolded, but runtime still primarily lives under `apps/*` compatibility paths |
+| P1 Topology migration | done | Codex | 2026-03-24 | Canonical runtime roots now live under `server/` and `frontend/web/`; root tooling, CI, Podman, and live docs point at the new package locations |
 | P2 Contracts/metadata | done | Codex | 2026-03-09 | Game metadata model extended end-to-end (DB/shared/API/tests) |
 | P3 Allowlist/adapter loader | in_progress | Codex | 2026-03-24 | Allowlist registry and health route are live, and app startup now routes through an allowlist-driven backend adapter loader; broader dynamic discovery/future adapter expansion is still open |
 | P4 Dual identity/BFF | done | Codex | 2026-03-09 | Delegated game session tokens + scoped enforcement for points flow |
@@ -34,7 +33,7 @@ This tracker remains pending because the execution batch materially advanced the
 | P6 Mobile readiness | in_progress | Codex | 2026-03-10 | Directory conformance gate exists, but mobile shell/module contract work is still scaffold-level |
 | P7 Flashcards full migration | done | Codex | 2026-03-10 | Web manifest is live and flashcards backend adapter now loads through a dedicated workspace package rooted under `games/flashcards/backend-adapter` |
 | P8 Full test sweep | done | Codex | 2026-03-24 | Full local suite and stack e2e are green; backend allowlist/loader coverage, web blocked-route coverage, and stack-aware e2e verification are all in place |
-| P9 Full docs sweep | in_progress | Codex | 2026-03-10 | Core docs updated, but repo state is still compatibility mode rather than fully-final architecture |
+| P9 Full docs sweep | in_progress | Codex | 2026-03-24 | Core docs are updated for the canonical `server/` and `frontend/web/` roots, but the final doc sweep and long-tail consistency cleanup are still open |
 | P10 Cleanup | in_progress | Codex | 2026-03-10 | Canonical dev commands normalized, but compatibility paths and broader topology cleanup remain |
 
 ## P0 checklist
@@ -67,18 +66,22 @@ This tracker remains pending because the execution batch materially advanced the
    - `phase:p1:verify`
 3. Phase gate run:
    - `pnpm phase:p1:verify` -> passed.
+4. Final cutover completed:
+   - tracked backend package moved from `apps/api` into `server/`
+   - tracked web package moved from `apps/web` into `frontend/web/`
+   - root workspace config, `dev.sh`, CI, Podman, and live docs updated to use the new canonical roots
 
 ## P2 evidence (executed)
 1. DB migration added and applied:
-   - `apps/api/src/db/migrations/002_game_metadata_expansion.sql`
+   - `server/src/db/migrations/002_game_metadata_expansion.sql`
 2. Shared contracts updated:
    - `packages/shared/src/types.ts`
    - `packages/shared/src/schemas.ts`
 3. Backend mapping/repo/seed updated:
-   - `apps/api/src/repositories/game.repository.ts`
-   - `apps/api/src/mappers.ts`
-   - `apps/api/src/db/seed.ts`
-   - `apps/api/src/db/seed-data/english-deck.json`
+   - `server/src/repositories/game.repository.ts`
+   - `server/src/mappers.ts`
+   - `server/src/db/seed.ts`
+   - `server/src/db/seed-data/english-deck.json`
 4. API and web behavior updated:
    - `/games` integration tests expanded
    - menu routing now uses `game.routeBase`
@@ -87,37 +90,37 @@ This tracker remains pending because the execution batch materially advanced the
 
 ## P3 evidence (executed)
 1. Allowlist config introduced:
-   - `apps/api/src/config.ts` (`allowedGameIds`).
+   - `server/src/config.ts` (`allowedGameIds`).
 2. Registry module added:
-   - `apps/api/src/modules/game-registry.ts`.
+   - `server/src/modules/game-registry.ts`.
 3. Allowlist enforcement applied:
-   - `apps/api/src/routes/games.ts` now uses allowlisted enabled games only.
-   - `apps/api/src/routes/points.ts` rejects non-allowlisted/non-enabled game IDs.
+   - `server/src/routes/games.ts` now uses allowlisted enabled games only.
+   - `server/src/routes/points.ts` rejects non-allowlisted/non-enabled game IDs.
 4. Internal diagnostics endpoint added:
-   - `GET /internal/games/health` in `apps/api/src/routes/internal.ts`.
+   - `GET /internal/games/health` in `server/src/routes/internal.ts`.
 5. App route wiring updated:
-   - `apps/api/src/app.ts`.
+   - `server/src/app.ts`.
 6. New/updated tests:
-   - `apps/api/src/tests/internal.integration.test.ts` (new).
-   - `apps/api/src/tests/points.integration.test.ts` (allowlist rejection case).
+   - `server/src/tests/internal.integration.test.ts` (new).
+   - `server/src/tests/points.integration.test.ts` (allowlist rejection case).
 7. Verification run:
    - `pnpm build && pnpm test:unit && pnpm test:integration && pnpm test:web` -> passed.
 8. Follow-up loader slice:
-   - `apps/api/src/modules/game-adapter-loader.ts` added to resolve/register allowlisted enabled backend adapters and fail fast on missing/duplicate adapter configuration.
-   - `apps/api/src/app.ts` now registers backend adapters through the loader rather than hardcoding flashcards route wiring at the app level.
-   - `apps/api/src/modules/game-registry.ts` health output now reports loaded/missing/duplicate adapter IDs.
+   - `server/src/modules/game-adapter-loader.ts` added to resolve/register allowlisted enabled backend adapters and fail fast on missing/duplicate adapter configuration.
+   - `server/src/app.ts` now registers backend adapters through the loader rather than hardcoding flashcards route wiring at the app level.
+   - `server/src/modules/game-registry.ts` health output now reports loaded/missing/duplicate adapter IDs.
 9. Verification run for loader slice:
    - `pnpm test:unit && ./dev.sh test:int && pnpm --filter @kids-games/api typecheck` -> passed.
 
 ## P4 evidence (initial slice executed)
 1. Integration-client datastore added:
-   - `apps/api/src/db/migrations/003_integration_clients.sql`
+   - `server/src/db/migrations/003_integration_clients.sql`
 2. Integration-client access layer added:
-   - `apps/api/src/repositories/integration-client.repository.ts`
+   - `server/src/repositories/integration-client.repository.ts`
 3. App client verification module added:
-   - `apps/api/src/modules/app-client-auth.ts`
+   - `server/src/modules/app-client-auth.ts`
 4. Seed updated with default app client for flashcards:
-   - `apps/api/src/db/seed.ts`
+   - `server/src/db/seed.ts`
 5. Initial privileged route hardening slice added direct app-client credential checks before the delegated game-session flow replaced that mechanism.
 6. Tests updated for the initial slice before the delegated-token cutover.
 7. Verification run:
@@ -127,27 +130,27 @@ This tracker remains pending because the execution batch materially advanced the
 1. Shared contract added:
    - `GameSessionSchema` in `packages/shared/src/schemas.ts`.
 2. Delegated token module added:
-   - `apps/api/src/modules/game-session.ts`.
+   - `server/src/modules/game-session.ts`.
 3. Auth endpoint added:
-   - `POST /auth/game-session` in `apps/api/src/routes/auth.ts` (requires user auth + app client identity).
+   - `POST /auth/game-session` in `server/src/routes/auth.ts` (requires user auth + app client identity).
 4. Privileged points flow updated:
    - `POST /points/add` now validates `x-game-session-token` claims (`typ`, `aud`, scope, user/game match).
    - delegated scope issuance now rejects scopes outside the integration client's allowlist and defaults to the game's declared required scopes.
 5. JWT typing expanded:
-   - `apps/api/src/types.ts`.
+   - `server/src/types.ts`.
 6. Tests updated:
-   - `apps/api/src/tests/auth.integration.test.ts` (game-session issuance cases).
-   - `apps/api/src/tests/points.integration.test.ts` (session token enforcement cases).
+   - `server/src/tests/auth.integration.test.ts` (game-session issuance cases).
+   - `server/src/tests/points.integration.test.ts` (session token enforcement cases).
 7. Verification run:
    - `pnpm build && pnpm test:unit && pnpm test:integration && pnpm test:web` -> passed.
 
 ## P5 evidence (executed)
 1. Registry-driven web routes introduced:
-   - `apps/web/src/games/registry.tsx`.
+   - `frontend/web/src/games/registry.tsx`.
 2. Hardcoded flashcards routes removed from app shell:
-   - `apps/web/src/App.tsx` now uses `buildGameRoutes()`.
+   - `frontend/web/src/App.tsx` now uses `buildGameRoutes()`.
 3. New tests:
-   - `apps/web/src/tests/gameRegistry.test.tsx`.
+   - `frontend/web/src/tests/gameRegistry.test.tsx`.
 4. Verification run:
    - `pnpm build && pnpm test:web && pnpm test:unit && pnpm test:integration` -> passed.
 
@@ -166,13 +169,13 @@ This tracker remains pending because the execution batch materially advanced the
    - `games/flashcards/backend-adapter/package.json`
    - `games/flashcards/backend-adapter/src/index.ts`
 2. Flashcards backend route now delegates through the workspace package:
-   - `apps/api/src/routes/flashcards.ts`
+   - `server/src/routes/flashcards.ts`
 3. Compatibility copy removed:
-   - deleted `apps/api/src/games/flashcards/backend-adapter.ts`
+   - deleted `server/src/games/flashcards/backend-adapter.ts`
 4. Web game manifest added:
    - `games/flashcards/web/src/module.ts`.
 5. Web registry now consumes game manifest:
-   - `apps/web/src/games/registry.tsx`.
+   - `frontend/web/src/games/registry.tsx`.
 6. Verification run:
    - `pnpm build && pnpm test:unit && pnpm test:integration && pnpm test:web` -> passed.
 
@@ -182,36 +185,36 @@ This tracker remains pending because the execution batch materially advanced the
 2. Dev harness recursion fixed:
    - `dev.sh` now calls `pnpm test:e2e:direct`.
 3. E2E test stability fix:
-   - `apps/web/e2e/flashcards.spec.ts` stable deck selector.
+   - `frontend/web/e2e/flashcards.spec.ts` stable deck selector.
 4. Full quality gate result:
    - `pnpm test:full` -> passed.
 5. Follow-up loader coverage slice:
-   - `apps/api/src/tests/game-adapter-loader.test.ts` adds unit coverage for adapter resolution, duplicate detection, missing-adapter failure, and successful registration.
-   - `apps/api/src/tests/internal.integration.test.ts` now asserts adapter health reporting for the allowlisted flashcards adapter.
+   - `server/src/tests/game-adapter-loader.test.ts` adds unit coverage for adapter resolution, duplicate detection, missing-adapter failure, and successful registration.
+   - `server/src/tests/internal.integration.test.ts` now asserts adapter health reporting for the allowlisted flashcards adapter.
 6. Verification run for loader coverage slice:
    - `pnpm test:unit && ./dev.sh test:int` -> passed.
 7. Second loader coverage slice:
-   - `apps/api/src/tests/game-adapter-loader.test.ts` now also covers multi-game load-plan ordering/filtering, combined duplicate-plus-missing plan reporting, duplicate-adapter registration failure, and adapter registration failure propagation.
+   - `server/src/tests/game-adapter-loader.test.ts` now also covers multi-game load-plan ordering/filtering, combined duplicate-plus-missing plan reporting, duplicate-adapter registration failure, and adapter registration failure propagation.
 8. Verification run for second loader coverage slice:
    - `pnpm test:unit && ./dev.sh test:int` -> passed.
 9. Third loader/runtime coverage slice:
-   - `apps/api/src/tests/app-loader-startup.test.ts` now covers successful allowlisted adapter registration during app startup and propagation of startup-time adapter registration failures.
-   - `apps/api/src/tests/internal.integration.test.ts` now asserts the exact allowlisted flashcards health payload returned by `/internal/games/health`.
+   - `server/src/tests/app-loader-startup.test.ts` now covers successful allowlisted adapter registration during app startup and propagation of startup-time adapter registration failures.
+   - `server/src/tests/internal.integration.test.ts` now asserts the exact allowlisted flashcards health payload returned by `/internal/games/health`.
 10. Verification run for third loader/runtime coverage slice:
    - `pnpm test:unit` -> passed (41 total tests, including 30 API unit tests).
    - `./dev.sh test:int` -> passed (77 integration tests).
 11. Fourth loader/runtime coverage slice:
-   - `apps/api/src/tests/allowlist.integration.test.ts` now proves seeded-but-unallowlisted games are blocked from `/games` and `/games/:gameId`.
-   - `apps/api/src/tests/allowlist.integration.test.ts` also proves `/internal/games/health` reports missing allowlisted IDs deterministically when config includes a non-existent game.
+   - `server/src/tests/allowlist.integration.test.ts` now proves seeded-but-unallowlisted games are blocked from `/games` and `/games/:gameId`.
+   - `server/src/tests/allowlist.integration.test.ts` also proves `/internal/games/health` reports missing allowlisted IDs deterministically when config includes a non-existent game.
 12. Verification run for fourth loader/runtime coverage slice:
    - `pnpm test:unit` -> passed (41 total tests, including 30 API unit tests).
    - `./dev.sh test:int` -> passed (79 integration tests).
 13. Web blocked-route coverage slice:
-   - `apps/web/src/pages/GameUnavailablePage.tsx` adds a dedicated unsupported-game page for web fallback handling.
-   - `apps/web/src/tests/AppRoutes.test.tsx` proves unsupported game routes are blocked in the web router.
-   - `apps/web/e2e/flashcards.spec.ts` now covers unsupported-game route blocking in both dev and stack browser flows.
+   - `frontend/web/src/pages/GameUnavailablePage.tsx` adds a dedicated unsupported-game page for web fallback handling.
+   - `frontend/web/src/tests/AppRoutes.test.tsx` proves unsupported game routes are blocked in the web router.
+   - `frontend/web/e2e/flashcards.spec.ts` now covers unsupported-game route blocking in both dev and stack browser flows.
 14. Stack verification hardening:
-   - `apps/web/package.json` stack e2e command now targets the API through Caddy at `http://localhost:8080/api`.
+   - `frontend/web/package.json` stack e2e command now targets the API through Caddy at `http://localhost:8080/api`.
    - `infra/podman/compose.yml` now binds stack Postgres to host port `55434` so stack verification can coexist with the local dev/test DB.
    - `infra/podman/Dockerfile.web` now asserts the blocked-route bundle exists during the image build and copies the built assets into a clean nginx document root.
 15. Final phase gate verification:
@@ -259,7 +262,7 @@ Progress update:
 Remaining follow-up for this tracker item:
 1. CI still uses a separate service-container setup rather than the local shell-managed orchestration path.
 2. Stack e2e remains a distinct verification path.
-3. The broader modularity phases (`P1`, `P3`, `P6`, `P9`, `P10`) are still open exactly as previously noted.
+3. The broader modularity phases (`P3`, `P6`, `P9`, `P10`) are still open exactly as previously noted.
 
 ## 2026-03-24 23:28 EET
 
@@ -272,7 +275,15 @@ P3 remaining-work assessment:
 2. The remaining `P3` work is now narrower than the original phase definition:
    - keep the loader contract stable as new games are added
    - expand from the built-in adapter set only when a second real backend adapter exists
-   - fold the final adapter path into the later `P1` topology cutover and `P10` cleanup so no compatibility-era assumptions remain
+   - fold the final adapter path into the later `P10` cleanup so no compatibility-era assumptions remain
 3. Execution recommendation:
    - treat `P3` as functionally strong enough to stop being the immediate focus
-   - move the roadmap priority to `P1`, with only small `P3` hardening if later work exposes gaps
+   - move the roadmap priority past `P1`, with only small `P3` hardening if later work exposes gaps
+
+## 2026-03-24 23:40 EET
+
+P1 completion update:
+1. The backend package now lives under `server/`, and the web shell package now lives under `frontend/web/`.
+2. Root workspace configuration, `dev.sh`, CI, Podman build/runtime paths, and boundary checks now treat those locations as canonical.
+3. The old `apps/api` and `apps/web` runtime ownership is no longer the primary execution shape.
+4. Remaining related work belongs to later cleanup/doc phases rather than to `P1` itself.

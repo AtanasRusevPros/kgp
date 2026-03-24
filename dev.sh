@@ -27,9 +27,21 @@ ensure_internal_package_artifacts() {
 }
 
 require_env() {
-  if [[ ! -f "$PROJ/apps/api/.env" ]]; then
-    die "apps/api/.env not found. Run:  ./dev.sh init"
+  get_server_env_file >/dev/null || die "server/.env not found. Run: ./dev.sh init"
+}
+
+get_server_env_file() {
+  if [[ -f "$PROJ/server/.env" ]]; then
+    echo "$PROJ/server/.env"
+    return 0
   fi
+
+  if [[ -f "$PROJ/apps/api/.env" ]]; then
+    echo "$PROJ/apps/api/.env"
+    return 0
+  fi
+
+  return 1
 }
 
 port_in_use() {
@@ -104,7 +116,8 @@ get_test_database_url() {
     return 0
   fi
 
-  local env_file="$PROJ/apps/api/.env"
+  local env_file
+  env_file="$(get_server_env_file || true)"
   if [[ -f "$env_file" ]]; then
     test_db_url="$(grep -E '^TEST_DATABASE_URL=' "$env_file" | tail -n1 | cut -d '=' -f2- || true)"
   fi
@@ -115,7 +128,7 @@ get_test_database_url() {
   test_db_url="${test_db_url#\'}"
 
   if [[ -z "$test_db_url" ]]; then
-    die "TEST_DATABASE_URL is missing. Add it to apps/api/.env"
+    die "TEST_DATABASE_URL is missing. Add it to server/.env"
   fi
 
   echo "$test_db_url"
@@ -130,14 +143,14 @@ prepare_test_db() {
   test_db_url="$(get_test_database_url)"
 
   info "Applying migrations to test database..."
-  if ! (cd "$PROJ/apps/api" && DATABASE_URL="$test_db_url" pnpm db:migrate); then
+  if ! (cd "$PROJ/server" && DATABASE_URL="$test_db_url" pnpm db:migrate); then
     die "Could not apply test DB migrations.
 Managed test DB URL: ${test_db_url}
 Retry: ./dev.sh test:int"
   fi
 
   info "Seeding test database..."
-  if ! (cd "$PROJ/apps/api" && DATABASE_URL="$test_db_url" pnpm db:seed); then
+  if ! (cd "$PROJ/server" && DATABASE_URL="$test_db_url" pnpm db:seed); then
     die "Could not seed test DB.
 Managed test DB URL: ${test_db_url}
 Retry: ./dev.sh test:int"
@@ -159,6 +172,18 @@ wait_for_http_ok() {
   return 1
 }
 
+wait_for_stack_db_ready() {
+  local attempts="${1:-30}"
+  while (( attempts > 0 )); do
+    if podman exec kids-games-db pg_isready -U postgres >/dev/null 2>&1; then
+      return 0
+    fi
+    attempts=$((attempts - 1))
+    sleep 2
+  done
+  return 1
+}
+
 start_local_api_for_e2e() {
   local test_db_url="$1"
   local api_log="$2"
@@ -173,7 +198,7 @@ start_local_api_for_e2e() {
 
   info "Starting API for e2e on http://localhost:${api_port}..."
   (
-    cd "$PROJ/apps/api" && \
+    cd "$PROJ/server" && \
     PORT="$api_port" NODE_ENV=test DATABASE_URL="$test_db_url" \
       pnpm exec tsx --env-file=.env src/index.ts
   ) >"$api_log" 2>&1 &
@@ -218,12 +243,15 @@ cmd_init() {
   info "Installing dependencies..."
   (cd "$PROJ" && pnpm install)
 
-  info "Copying .env.example → apps/api/.env (skipped if already exists)..."
-  if [[ ! -f "$PROJ/apps/api/.env" ]]; then
-    cp "$PROJ/apps/api/.env.example" "$PROJ/apps/api/.env"
-    ok ".env created — review apps/api/.env and adjust secrets if needed"
+  info "Preparing server/.env (prefers existing server/.env, then legacy apps/api/.env, otherwise copies .env.example)..."
+  if [[ -f "$PROJ/server/.env" ]]; then
+    ok "server/.env already exists, skipping"
+  elif [[ -f "$PROJ/apps/api/.env" ]]; then
+    cp "$PROJ/apps/api/.env" "$PROJ/server/.env"
+    ok "Copied legacy apps/api/.env to server/.env"
   else
-    ok ".env already exists, skipping"
+    cp "$PROJ/server/.env.example" "$PROJ/server/.env"
+    ok ".env created — review server/.env and adjust secrets if needed"
   fi
 
   info "Starting database container..."
@@ -402,7 +430,7 @@ cmd_db_wipe() {
 
 cmd_stack_init() {
   require_env
-  info "First-time container stack setup: build -> up -> wait -> migrate -> seed..."
+  info "First-time container stack setup: build -> up -> migrate -> seed -> wait..."
 
   info "Building container images..."
   (cd "$PROJ" && podman build -f infra/podman/Dockerfile.api -t kids-games-api .)
@@ -412,14 +440,17 @@ cmd_stack_init() {
   stop_dev_db_if_running
   compose up -d
 
-  info "Waiting for stack to become healthy..."
-  (cd "$PROJ" && ./infra/podman/smoke-test.sh)
+  info "Waiting for stack database to accept connections..."
+  wait_for_stack_db_ready || die "Stack Postgres did not become ready in time."
 
   info "Applying database migrations inside API container..."
-  podman exec kids-games-api node apps/api/dist/db/migrate.js
+  podman exec kids-games-api node server/dist/db/migrate.js
 
   info "Seeding database inside API container..."
-  podman exec kids-games-api node apps/api/dist/db/seed.js
+  podman exec kids-games-api node server/dist/db/seed.js
+
+  info "Waiting for stack to become healthy..."
+  (cd "$PROJ" && ./infra/podman/smoke-test.sh)
 
   ok "Stack init complete. Open http://localhost:8080"
 }
@@ -473,13 +504,13 @@ cmd_stack_logs() {
 
 cmd_stack_seed() {
   info "Seeding database inside running API container..."
-  podman exec kids-games-api node apps/api/dist/db/seed.js
+  podman exec kids-games-api node server/dist/db/seed.js
   ok "Seed complete."
 }
 
 cmd_stack_migrate() {
   info "Applying database migrations inside running API container..."
-  podman exec kids-games-api node apps/api/dist/db/migrate.js
+  podman exec kids-games-api node server/dist/db/migrate.js
   ok "Migrations complete."
 }
 
@@ -527,10 +558,12 @@ cmd_status() {
     || true
   echo
   echo "=== .env file ==="
-  if [[ -f "$PROJ/apps/api/.env" ]]; then
-    ok "apps/api/.env exists"
+  if [[ -f "$PROJ/server/.env" ]]; then
+    ok "server/.env exists"
+  elif [[ -f "$PROJ/apps/api/.env" ]]; then
+    ok "legacy apps/api/.env exists (server/.env fallback available)"
   else
-    echo "✗ apps/api/.env MISSING — run ./dev.sh init"
+    echo "✗ server/.env MISSING — run ./dev.sh init"
   fi
 }
 

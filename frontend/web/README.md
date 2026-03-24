@@ -7,6 +7,6 @@ This directory is the target canonical home for the platform web shell.
 - Game discovery and launch host
 - Shared web UX around authentication/session
 
-## Current status (compatibility mode)
-Runtime remains in `apps/web` during migration.
-`frontend/web` is introduced as the destination for phased cutover.
+## Current status
+`frontend/web` is now the canonical platform web-shell runtime root.
+It owns the SPA shell, Playwright/Vitest web test configs, and shared platform-level web UX.
