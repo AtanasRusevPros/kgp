@@ -13,7 +13,7 @@ Updated: 2026-03-11 00:16 EET
 ## 2026 Modularity Rework Snapshot
 Current effective state:
 1. `P0`, `P2`, `P4`, `P5`, and the flashcards game-module slice of `P7` are implemented.
-2. `P1`, `P3`, `P6`, `P8`, `P9`, and `P10` remain partial because the repo still runs in compatibility mode for the broader `server/` / `frontend/*` cutover and not every planned gate is complete.
+2. `P1`, `P3`, `P6`, `P9`, and `P10` remain partial because the repo still runs in compatibility mode for the broader `server/` / `frontend/*` cutover and not every planned gate is complete.
 
 Implemented highlights:
 1. Backend allowlist registry and health endpoint.

@@ -11,7 +11,7 @@ This tracker remains pending because the execution batch materially advanced the
 
 ## What remains
 1. Broader `server/` and `frontend/*` topology migration is still not the primary runtime shape.
-2. Adapter loading remains partially static rather than fully loader-driven.
+2. The core allowlist-driven backend adapter loader is in place, but broader future adapter expansion and final end-state cleanup are still open.
 3. Mobile readiness is still scaffold-level.
 4. Full cold-start/self-owned test orchestration is still in progress and is now tracked in [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
 5. AI-optimized documentation/rules/check workflow is still pending and is also tracked in [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
@@ -259,4 +259,20 @@ Progress update:
 Remaining follow-up for this tracker item:
 1. CI still uses a separate service-container setup rather than the local shell-managed orchestration path.
 2. Stack e2e remains a distinct verification path.
-3. The broader modularity phases (`P1`, `P3`, `P6`, `P8`, `P9`, `P10`) are still open exactly as previously noted.
+3. The broader modularity phases (`P1`, `P3`, `P6`, `P9`, `P10`) are still open exactly as previously noted.
+
+## 2026-03-24 23:28 EET
+
+P3 remaining-work assessment:
+1. The core `P3` acceptance criteria are now materially satisfied in the current backend runtime:
+   - allowlisted enabled games are the only games loaded and exposed
+   - startup registers backend adapters through the allowlist-driven loader
+   - missing or duplicate adapters fail fast
+   - `/internal/games/health` reports adapter status deterministically
+2. The remaining `P3` work is now narrower than the original phase definition:
+   - keep the loader contract stable as new games are added
+   - expand from the built-in adapter set only when a second real backend adapter exists
+   - fold the final adapter path into the later `P1` topology cutover and `P10` cleanup so no compatibility-era assumptions remain
+3. Execution recommendation:
+   - treat `P3` as functionally strong enough to stop being the immediate focus
+   - move the roadmap priority to `P1`, with only small `P3` hardening if later work exposes gaps

@@ -242,3 +242,23 @@ Summary:
   - `./dev.sh test:full` -> passed
   - `pnpm test:e2e:stack` -> passed (`3` stack e2e tests)
 - Status: `P8` can now be treated as complete; the next remaining roadmap focus shifts back to `P3` analysis/future hardening and the later `P1` cutover.
+
+## 2026-03-24 23:28 EET
+
+Summary:
+- Reassessed the remaining `P3` work against the current backend runtime after the completed `P8` gate.
+- Confirmed that the core `P3` goal is now materially achieved:
+  - app startup registers backend routes through the allowlist-driven adapter loader
+  - missing or duplicate adapters fail fast
+  - allowlisted/unallowlisted runtime behavior is covered
+  - `/internal/games/health` reports adapter state deterministically
+- Narrowed the true remaining `P3` work to future-facing hardening rather than another immediate feature slice:
+  - keep the adapter-loader contract stable as new games are introduced
+  - broaden beyond the built-in adapter set only when a second real backend adapter exists
+  - finish the final end-state cleanup as part of the later `P1` and `P10` work
+- Updated status docs so `P8` is no longer listed as partial and the tracker now reflects the smaller real remainder for `P3`.
+
+Execution recommendation:
+1. Stop treating `P3` as the immediate active phase.
+2. Move the roadmap focus to `P1` runtime cutover planning/execution.
+3. Reopen `P3` only for small hardening if later topology or new-game work exposes an actual gap.
