@@ -53,7 +53,7 @@ This tracker remains pending because the execution batch materially advanced the
 7. `pnpm db:migrate && pnpm db:seed` -> dev DB prepared.
 8. `DATABASE_URL=...kids_games_test pnpm --filter @kids-games/api exec tsx src/db/migrate.ts` -> test DB migrated.
 9. `DATABASE_URL=...kids_games_test pnpm --filter @kids-games/api exec tsx src/db/seed.ts` -> test DB seeded.
-10. `pnpm test:integration` -> passed (65 tests).
+10. `pnpm test:integration` -> passed (65 tests at the time).
 
 ## P1 evidence (executed)
 1. Topology scaffolds created:
@@ -189,6 +189,10 @@ This tracker remains pending because the execution batch materially advanced the
    - `apps/api/src/tests/game-adapter-loader.test.ts` adds unit coverage for adapter resolution, duplicate detection, missing-adapter failure, and successful registration.
    - `apps/api/src/tests/internal.integration.test.ts` now asserts adapter health reporting for the allowlisted flashcards adapter.
 6. Verification run for loader coverage slice:
+   - `pnpm test:unit && ./dev.sh test:int` -> passed.
+7. Second loader coverage slice:
+   - `apps/api/src/tests/game-adapter-loader.test.ts` now also covers multi-game load-plan ordering/filtering, combined duplicate-plus-missing plan reporting, duplicate-adapter registration failure, and adapter registration failure propagation.
+8. Verification run for second loader coverage slice:
    - `pnpm test:unit && ./dev.sh test:int` -> passed.
 
 ## P9 evidence (executed)

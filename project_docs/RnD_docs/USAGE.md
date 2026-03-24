@@ -297,7 +297,7 @@ It builds only:
 
 ```bash
 pnpm test:unit
-# 30 tests total currently (shared + sdk + api-unit suites)
+# 39 tests total currently (shared + sdk + api-unit suites)
 # No DB required — pure logic only
 ```
 

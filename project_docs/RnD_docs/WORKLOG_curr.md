@@ -146,3 +146,35 @@ Summary:
 - Fixed `project_docs/ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md` so its `Current state` and `What remains` sections now match the actual completed local orchestration slice instead of contradicting the later progress updates.
 - Fixed `project_docs/RnD_docs/ARCHITECTURE.md` so the integration-test count in the CI architecture diagram matches the currently verified suite size.
 - Reconfirmed the changed backend path through unit/integration verification, API typecheck, and a direct API startup smoke check against an isolated review Postgres container.
+
+## 2026-03-24 20:54 EET
+
+Status:
+- Starting the next bounded `P8` slice autonomously.
+- Immediate focus:
+  1. add missing failure-path coverage for the backend adapter loader
+  2. add broader multi-game loader-plan coverage without widening into `P1`
+  3. update tracker/worklog evidence after verification
+
+## 2026-03-24 20:55 EET
+
+Summary:
+- Completed the next bounded `P8` slice for backend adapter-loader coverage.
+- Expanded `apps/api/src/tests/game-adapter-loader.test.ts` to cover:
+  - multi-game load-plan ordering/filtering
+  - combined duplicate-plus-missing plan reporting
+  - duplicate-adapter registration failure
+  - adapter registration failure propagation
+- Reverified the bounded backend surface after the new coverage with:
+  - `pnpm test:unit`
+  - `./dev.sh test:int`
+
+Remaining follow-up:
+- `P8` still needs broader invalid-startup and expanded multi-game/runtime-path coverage if we want to go beyond the current test-only adapter-plan proofs.
+
+## 2026-03-24 21:11 EET
+
+Summary:
+- Reviewed the latest uncommitted `P8` follow-up slice across documentation, test coverage, and the affected runtime surface.
+- Synced stale test-count references in the docs, clarified one historical tracker line so it reads correctly as prior evidence, and kept the current status docs aligned with the latest verified totals.
+- Preparing the final narrow verification and commit for this loader-coverage and docs-sync mini-slice.

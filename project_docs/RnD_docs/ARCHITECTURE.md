@@ -674,8 +674,8 @@ flowchart TD
 
     subgraph Parallel["Jobs run in parallel"]
         Quality["quality<br/>pnpm prebuild:internal<br/>pnpm typecheck<br/>pnpm lint"]
-        UnitTests["unit-tests<br/>pnpm prebuild:internal<br/>pnpm test:unit<br/>(24 tests)"]
-        WebTests["web-tests<br/>pnpm test:web<br/>(69 tests)"]
+        UnitTests["unit-tests<br/>pnpm prebuild:internal<br/>pnpm test:unit<br/>(39 tests)"]
+        WebTests["web-tests<br/>pnpm test:web<br/>(71 tests)"]
         Build["build<br/>pnpm build"]
     end
 
@@ -713,13 +713,13 @@ All jobs use:
         │  E2E     │  Playwright — 2 tests (full browser flow)
         │  (slow)  │  Requires API + web runtime (or `./dev.sh test:e2e`)
         ├──────────┤
-        │  Web     │  vitest + jsdom + @testing-library — 69 tests
+        │  Web     │  vitest + jsdom + @testing-library — 71 tests
         │ Component│  All API calls mocked with vi.mock
         ├──────────┤
-        │Integration│ vitest + real PostgreSQL — 65 tests
+        │Integration│ vitest + real PostgreSQL — 77 tests
         │  (API)   │  Isolated test database (kids_games_test)
         ├──────────┤
-        │   Unit   │  vitest — 24 tests
+        │   Unit   │  vitest — 39 tests
         │  (fast)  │  No DB, no network, pure logic
         └──────────┘
 ```
