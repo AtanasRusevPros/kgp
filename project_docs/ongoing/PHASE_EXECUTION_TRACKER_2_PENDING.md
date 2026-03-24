@@ -33,7 +33,7 @@ This tracker remains pending because the execution batch materially advanced the
 | P5 Web dynamic routing | done | Codex | 2026-03-09 | App routes now built from web game registry |
 | P6 Mobile readiness | in_progress | Codex | 2026-03-10 | Directory conformance gate exists, but mobile shell/module contract work is still scaffold-level |
 | P7 Flashcards full migration | done | Codex | 2026-03-10 | Web manifest is live and flashcards backend adapter now loads through a dedicated workspace package rooted under `games/flashcards/backend-adapter` |
-| P8 Full test sweep | in_progress | Codex | 2026-03-24 | Expanded auth/points matrix plus adapter-loader validation, startup-path unit coverage, internal health assertions, and backend blocked-allowlist coverage are in place; broader multi-game/web blocked-launch coverage still partial |
+| P8 Full test sweep | done | Codex | 2026-03-24 | Full local suite and stack e2e are green; backend allowlist/loader coverage, web blocked-route coverage, and stack-aware e2e verification are all in place |
 | P9 Full docs sweep | in_progress | Codex | 2026-03-10 | Core docs updated, but repo state is still compatibility mode rather than fully-final architecture |
 | P10 Cleanup | in_progress | Codex | 2026-03-10 | Canonical dev commands normalized, but compatibility paths and broader topology cleanup remain |
 
@@ -206,6 +206,17 @@ This tracker remains pending because the execution batch materially advanced the
 12. Verification run for fourth loader/runtime coverage slice:
    - `pnpm test:unit` -> passed (41 total tests, including 30 API unit tests).
    - `./dev.sh test:int` -> passed (79 integration tests).
+13. Web blocked-route coverage slice:
+   - `apps/web/src/pages/GameUnavailablePage.tsx` adds a dedicated unsupported-game page for web fallback handling.
+   - `apps/web/src/tests/AppRoutes.test.tsx` proves unsupported game routes are blocked in the web router.
+   - `apps/web/e2e/flashcards.spec.ts` now covers unsupported-game route blocking in both dev and stack browser flows.
+14. Stack verification hardening:
+   - `apps/web/package.json` stack e2e command now targets the API through Caddy at `http://localhost:8080/api`.
+   - `infra/podman/compose.yml` now binds stack Postgres to host port `55434` so stack verification can coexist with the local dev/test DB.
+   - `infra/podman/Dockerfile.web` now asserts the blocked-route bundle exists during the image build and copies the built assets into a clean nginx document root.
+15. Final phase gate verification:
+   - `./dev.sh test:full` -> passed.
+   - `pnpm test:e2e:stack` -> passed (3 stack e2e tests).
 
 ## P9 evidence (executed)
 1. Updated core docs:

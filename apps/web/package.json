@@ -12,7 +12,7 @@
     "test": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vitest.config.ts",
     "test:e2e": "playwright test",
-    "test:e2e:stack": "playwright test --config playwright.stack.config.ts"
+    "test:e2e:stack": "E2E_API_URL=${E2E_API_URL:-http://localhost:8080/api} playwright test --config playwright.stack.config.ts"
   },
   "dependencies": {
     "@kids-games/shared": "workspace:*",

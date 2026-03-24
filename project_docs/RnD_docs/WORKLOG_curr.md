@@ -221,3 +221,24 @@ Summary:
 - Review result:
   - backend `P3/P8` coverage is materially stronger now
   - the most meaningful remaining `P8` work has shifted to broader web blocked-launch behavior and stack/CI gating rather than another immediate backend loader test
+
+## 2026-03-24 23:00 EET
+
+Roadmap summary:
+- Next best step remains the unfinished part of `P8`: add broader web-side blocked-launch coverage and stronger stack/CI gating so the modularity and allowlist rules are proven end to end, not only in backend tests.
+- After that, do any remaining small `P3` hardening only if new tests expose gaps in the backend adapter-loader contract; the core loader itself is already in a solid in-progress state.
+- Then start `P1`, the real runtime cutover from compatibility-mode structure to the intended `server/` and `frontend/*` runtime shape, which will make the architecture cleaner and remove ambiguity about the canonical execution paths.
+- After `P1`, complete `P6` only when mobile becomes a real project priority; its value is to make the architecture genuinely mobile-ready instead of scaffold-only.
+- Once the runtime shape is stable, finish `P9` so the docs fully describe the final reality rather than transitional compatibility-mode caveats.
+- Last, finish `P10` cleanup by removing compatibility shims, deprecated paths, and temporary aliases so the repo ends in a cleaner canonical state.
+
+## 2026-03-24 23:25 EET
+
+Summary:
+- Completed the remaining `P8` work for web blocked-route coverage and the stack-backed verification gate.
+- Added a dedicated unsupported-game page plus router coverage in the web shell, and extended the shared Playwright suite so unsupported game routes are explicitly blocked in browser verification.
+- Hardened the stack verification path so stack e2e uses the API through Caddy and the stack DB binds to host port `55434`, avoiding collisions with the local dev/test DB on `5432`.
+- Final `P8` verification on the completed tree:
+  - `./dev.sh test:full` -> passed
+  - `pnpm test:e2e:stack` -> passed (`3` stack e2e tests)
+- Status: `P8` can now be treated as complete; the next remaining roadmap focus shifts back to `P3` analysis/future hardening and the later `P1` cutover.

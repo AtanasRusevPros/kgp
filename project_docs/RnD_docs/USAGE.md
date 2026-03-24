@@ -305,7 +305,7 @@ pnpm test:unit
 
 ```bash
 pnpm test:web
-# 71 tests across 11 test files
+# 72 tests across 12 test files
 # Uses vitest + jsdom + @testing-library/react
 # No server required — all API calls are mocked
 ```
@@ -741,7 +741,7 @@ podman-compose -f infra/podman/compose.yml down
 
 # 2. Stack E2E — runs Playwright tests against http://localhost:8080 (Caddy)
 pnpm test:e2e:stack
-# Expected: 2 E2E tests pass (register → login → flashcards flow)
+# Expected: 3 E2E tests pass (register → login → flashcards flow, plus blocked unsupported-game route)
 ```
 
 **Interpreting common E2E failures against stack:**
@@ -754,7 +754,9 @@ pnpm test:e2e:stack
 | Test times out waiting for element | App loaded but API returning errors | Check browser console in trace: `npx playwright show-trace` |
 
 **Note:** The stack E2E config lives at `apps/web/playwright.stack.config.ts`.
-The base URL defaults to `http://localhost:8080`. Override with `BASE_URL_STACK=https://localhost pnpm test:e2e:stack`.
+The base URL defaults to `http://localhost:8080`, and the stack command now targets the API through Caddy at `http://localhost:8080/api`.
+The stack Postgres service binds to host port `55434` so it does not collide with the local dev/test DB on `5432`.
+Override the web base URL with `BASE_URL_STACK=https://localhost pnpm test:e2e:stack`.
 
 ---
 

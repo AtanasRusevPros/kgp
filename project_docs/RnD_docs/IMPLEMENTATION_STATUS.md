@@ -45,7 +45,7 @@ The MVP remains usable and the automated suite is green, but the modularity rewo
 | Auth (register/login/refresh/logout) | Complete |
 | Podman container stack | Complete |
 | CI pipeline (GitHub Actions) | Complete |
-| Test suite | 195 tests passing (unit + integration + web + E2E) |
+| Test suite | 198 tests passing (unit + integration + web + E2E) |
 | Ops tooling (backup/restore, stack E2E) | Complete (added post-MVP) |
 | Documentation | Implemented, with compatibility-mode caveats documented |
 
@@ -177,11 +177,11 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | Shared schemas | vitest | 10 | No | `unit-tests` | Zod schema validation |
 | Game SDK | vitest | 1 | No | `unit-tests` | Type export check |
 | API unit | vitest | 30 | No | `unit-tests` | Auth service logic, health route, mappers, server lifecycle, adapter-loader validation, app startup adapter registration |
-| Web components | vitest + jsdom | 71 | No | `web-tests` | All pages, services, hooks |
+| Web components | vitest + jsdom | 72 | No | `web-tests` | All pages, services, hooks, unsupported-game route blocking |
 | API integration | vitest + pg | 79 | Yes (test DB) | `integration-tests` | All routes, repos, schema, seed, points, internal health, allowlist blocking |
-| E2E (dev mode) | Playwright | 2 | Yes (test DB + API runtime) | `e2e` (manual) | Use `./dev.sh test:e2e` to create an isolated test DB, start API, and run via Vite dev server |
-| E2E (stack mode) | Playwright | 2 | Yes (full stack) | Manual (`pnpm test:e2e:stack`) | Same suite against Podman+Caddy stack |
-| **Total automated** | | **195** | | | |
+| E2E (dev mode) | Playwright | 3 | Yes (test DB + API runtime) | `e2e` (manual) | Use `./dev.sh test:e2e` to create an isolated test DB, start API, and run via Vite dev server |
+| E2E (stack mode) | Playwright | 3 | Yes (full stack) | Manual (`pnpm test:e2e:stack`) | Same suite against Podman+Caddy stack via Caddy `/api` proxy |
+| **Total automated** | | **198** | | | |
 
 **Config files:**
 - Dev E2E: `apps/web/playwright.config.ts`

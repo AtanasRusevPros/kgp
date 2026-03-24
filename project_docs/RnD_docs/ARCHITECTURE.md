@@ -675,7 +675,7 @@ flowchart TD
     subgraph Parallel["Jobs run in parallel"]
         Quality["quality<br/>pnpm prebuild:internal<br/>pnpm typecheck<br/>pnpm lint"]
         UnitTests["unit-tests<br/>pnpm prebuild:internal<br/>pnpm test:unit<br/>(41 tests)"]
-        WebTests["web-tests<br/>pnpm test:web<br/>(71 tests)"]
+        WebTests["web-tests<br/>pnpm test:web<br/>(72 tests)"]
         Build["build<br/>pnpm build"]
     end
 
@@ -713,7 +713,7 @@ All jobs use:
         │  E2E     │  Playwright — 2 tests (full browser flow)
         │  (slow)  │  Requires API + web runtime (or `./dev.sh test:e2e`)
         ├──────────┤
-        │  Web     │  vitest + jsdom + @testing-library — 71 tests
+        │  Web     │  vitest + jsdom + @testing-library — 72 tests
         │ Component│  All API calls mocked with vi.mock
         ├──────────┤
         │Integration│ vitest + real PostgreSQL — 79 tests

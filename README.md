@@ -244,6 +244,7 @@ Open **http://localhost:8080** (Caddy serves on port 8080).
 
 Prefer `./dev.sh test:int`, `./dev.sh test:e2e`, and `./dev.sh test:full` for local/server runs because they own DB-backed test setup directly. `test:int` and `test:e2e` create isolated Postgres test containers, and `test:full` reuses one prepared isolated test DB across its DB-backed steps before cleaning it up.
 They now also prebuild the internal workspace packages that intentionally export built artifacts for runtime/container use, so clean local runs and clean CI checkouts resolve internal package imports deterministically.
+For stack validation, the Podman stack Postgres service now binds to host port `55434` so it can coexist with the local dev/test DB on `5432`.
 
 `pnpm prebuild:internal` is the canonical narrow preflight for this. It builds only:
 - `@kids-games/shared`

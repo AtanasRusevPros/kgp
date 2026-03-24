@@ -12,7 +12,21 @@ const TEST_EMAIL = `e2e-${Date.now()}@e2e-test.local`;
 const TEST_EMAIL_NEW = `e2e-new-${Date.now()}@e2e-test.local`;
 const TEST_PASSWORD = 'E2ePass123!';
 const TEST_NAME = 'E2E User';
-const API_URL = process.env['E2E_API_URL'] ?? 'http://localhost:3000';
+
+function getApiUrl(): string {
+  if (process.env['E2E_API_URL']) {
+    return process.env['E2E_API_URL'];
+  }
+
+  const stackBaseUrl = process.env['BASE_URL_STACK'];
+  if (stackBaseUrl) {
+    return new URL('/api', stackBaseUrl).toString().replace(/\/$/, '');
+  }
+
+  return 'http://localhost:3000';
+}
+
+const API_URL = getApiUrl();
 
 test.describe('Flashcards e2e flow', () => {
   test.beforeAll(async ({ request }) => {
@@ -72,5 +86,30 @@ test.describe('Flashcards e2e flow', () => {
     const progressText = await progressCounter.textContent();
     const [known] = (progressText ?? '0/0').split('/');
     expect(parseInt(known ?? '0')).toBeGreaterThanOrEqual(1);
+  });
+
+  test('blocks unsupported game routes', async ({ page }) => {
+    await page.goto('/login');
+    await page.getByLabel(/email/i).fill(TEST_EMAIL);
+    await page.getByLabel(/password/i).fill(TEST_PASSWORD);
+    await page.getByRole('button', { name: /sign in/i }).click();
+    await expect(page).toHaveURL('/');
+
+    await page.goto('/spelling-bee');
+
+    const friendlyFallback = page.getByText('This game is not available.');
+    const router404 = page.getByRole('heading', { name: '404 Not Found' });
+
+    await expect(friendlyFallback.or(router404)).toBeVisible();
+
+    if (await friendlyFallback.isVisible()) {
+      await expect(
+        page.getByText('The route you opened is not currently approved or supported in this build.'),
+      ).toBeVisible();
+      await expect(page.getByRole('link', { name: /return to library/i })).toBeVisible();
+      return;
+    }
+
+    await expect(page.getByRole('heading', { name: 'Unexpected Application Error!' })).toBeVisible();
   });
 });
