@@ -288,7 +288,7 @@ Review result:
 ## 2026-03-25 00:30 EET
 
 Summary:
-- Added a dedicated pending tracker for independent-agent add-game readiness: `project_docs/ongoing/ADDITIONAL_GAME_AGENT_READINESS_PENDING.md`.
+- Added a dedicated pending tracker for independent-agent add-game readiness: `project_docs/ongoing/ADDITIONAL_GAME_AGENT_READINESS_DONE.md` (originally created as a pending tracker before completion).
 - Finished the remaining `P9` docs sweep against the canonical runtime by aligning active usage/status/tracker language with `server/` and `frontend/web/`, and by removing the last compatibility-era wording from current-facing docs.
 - Finished the active `P10` cleanup slice by removing transitional root dev command wrappers from `package.json`, making `./dev.sh` require `server/.env` directly, and stopping the active workflow from depending on the legacy `apps/api/.env` fallback.
 
@@ -308,7 +308,7 @@ Verification:
 Summary:
 - Completed the add-game agent-readiness task by consolidating all active additional-game guidance into one canonical document: `docs/add-game-guide.md`.
 - Reduced the previous split add-game docs (`docs/add-game-checklist.md`, `docs/game-module-spec.md`, `docs/backend-allowlist-security.md`) to compatibility pointer pages so they no longer act as competing sources of truth.
-- Updated active project docs to point to the canonical guide, and converted `project_docs/ongoing/ADDITIONAL_GAME_AGENT_READINESS_PENDING.md` into a short completion record that redirects to the new canonical spec.
+- Updated active project docs to point to the canonical guide, and converted `project_docs/ongoing/ADDITIONAL_GAME_AGENT_READINESS_DONE.md` into a short completion record that redirects to the new canonical spec.
 
 Verification:
 - Before changes:
