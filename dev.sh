@@ -229,7 +229,7 @@ wait_for_http_ok() {
 }
 
 wait_for_stack_db_ready() {
-  local attempts="${1:-30}"
+  local attempts=30
   while (( attempts > 0 )); do
     if podman exec kids-games-db pg_isready -U postgres >/dev/null 2>&1; then
       return 0
