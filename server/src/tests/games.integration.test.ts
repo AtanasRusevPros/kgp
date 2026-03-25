@@ -92,6 +92,31 @@ describe('GET /games/:gameId', () => {
     });
   });
 
+  it('returns tic-tac-toe as a local web-only game', async () => {
+    const res = await app.inject({ method: 'GET', url: '/games/tic-tac-toe' });
+    expect(res.statusCode).toBe(200);
+    const game = res.json<{
+      id: string;
+      routeBase: string;
+      capabilities: string[];
+      authPolicy: {
+        requiresUserAuth: boolean;
+        requiresAppIdentity: boolean;
+        requiredScopes: string[];
+        tokenAudience: string;
+      };
+    }>();
+    expect(game.id).toBe('tic-tac-toe');
+    expect(game.routeBase).toBe('/tic-tac-toe');
+    expect(game.capabilities).toEqual(['local-play']);
+    expect(game.authPolicy).toEqual({
+      requiresUserAuth: true,
+      requiresAppIdentity: false,
+      requiredScopes: [],
+      tokenAudience: 'kids-games-api',
+    });
+  });
+
   it('returns 404 for unknown game', async () => {
     const res = await app.inject({ method: 'GET', url: '/games/unknown-game' });
     expect(res.statusCode).toBe(404);

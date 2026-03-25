@@ -5,7 +5,7 @@
   "scripts": {
     "boundary:check": "./scripts/check-boundaries.sh",
     "games:conformance": "./scripts/check-game-structure.sh",
-    "prebuild:internal": "pnpm --filter @kids-games/shared build && pnpm --filter @kids-games/game-sdk build && pnpm --filter @kids-games/flashcards-backend-adapter build",
+    "prebuild:internal": "pnpm --filter @kids-games/shared build && pnpm --filter @kids-games/game-sdk build && pnpm --filter @kids-games/flashcards-backend-adapter build && pnpm --filter @kids-games/tic-tac-toe-backend-adapter build",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",

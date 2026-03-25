@@ -48,6 +48,26 @@ const MOCK_GAMES = [
     entryWeb: '/flashcards',
     entryMobile: null,
   },
+  {
+    id: 'tic-tac-toe',
+    title: 'Tic-Tac-Toe',
+    description: 'Play a quick browser-local match.',
+    iconEmoji: '⭕',
+    status: 'enabled',
+    routeBase: '/tic-tac-toe',
+    integrationMode: 'local',
+    clientTargets: ['web'],
+    capabilities: ['local-play'],
+    apiVersion: 'v1',
+    authPolicy: {
+      requiresUserAuth: true,
+      requiresAppIdentity: false,
+      requiredScopes: [],
+      tokenAudience: 'kids-games-api',
+    },
+    entryWeb: '/tic-tac-toe',
+    entryMobile: null,
+  },
 ];
 
 describe('MenuPage', () => {
@@ -67,6 +87,8 @@ describe('MenuPage', () => {
     await waitFor(() => expect(screen.getByText('Flash Cards')).toBeTruthy());
     expect(screen.getByText('Learn words')).toBeTruthy();
     expect(screen.getByText('🃏')).toBeTruthy();
+    expect(screen.getByText('Tic-Tac-Toe')).toBeTruthy();
+    expect(screen.getByText('Play a quick browser-local match.')).toBeTruthy();
   });
 
   it('navigates to flashcards on game click', async () => {
@@ -75,6 +97,14 @@ describe('MenuPage', () => {
     await waitFor(() => screen.getByText('Flash Cards'));
     await userEvent.click(screen.getByText('Flash Cards'));
     expect(mockNavigate).toHaveBeenCalledWith('/flashcards');
+  });
+
+  it('navigates to tic-tac-toe on game click', async () => {
+    vi.mocked(apiFetch).mockResolvedValue(MOCK_GAMES);
+    render(<MemoryRouter><MenuPage /></MemoryRouter>);
+    await waitFor(() => screen.getByText('Tic-Tac-Toe'));
+    await userEvent.click(screen.getByText('Tic-Tac-Toe'));
+    expect(mockNavigate).toHaveBeenCalledWith('/tic-tac-toe');
   });
 
   it('shows error message when API fails', async () => {

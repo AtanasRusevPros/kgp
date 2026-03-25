@@ -21,6 +21,7 @@
     "@fastify/jwt": "^8.0.1",
     "@fastify/rate-limit": "^9.1.0",
     "@kids-games/flashcards-backend-adapter": "workspace:*",
+    "@kids-games/tic-tac-toe-backend-adapter": "workspace:*",
     "@kids-games/shared": "workspace:*",
     "bcryptjs": "^3.0.3",
     "fastify": "^4.28.1",

@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 
+const DEFAULT_ALLOWED_GAME_IDS = 'flashcards,tic-tac-toe';
+
 async function createIsolatedAppWithAllowlist(allowedGameIds: string): Promise<FastifyInstance> {
   const originalAllowedGameIds = process.env['ALLOWED_GAME_IDS'];
   process.env['ALLOWED_GAME_IDS'] = allowedGameIds;
@@ -26,7 +28,7 @@ async function createIsolatedAppWithAllowlist(allowedGameIds: string): Promise<F
 
 afterEach(() => {
   vi.resetModules();
-  process.env['ALLOWED_GAME_IDS'] = 'flashcards';
+  process.env['ALLOWED_GAME_IDS'] = DEFAULT_ALLOWED_GAME_IDS;
 });
 
 describe('allowlist-controlled runtime blocking', () => {

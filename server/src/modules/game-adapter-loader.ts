@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { flashcardsBackendAdapter } from '../routes/flashcards.js';
+import { ticTacToeBackendAdapter } from '../routes/ticTacToe.js';
 
 export interface AllowlistedEnabledGame {
   id: string;
@@ -18,7 +19,10 @@ export interface ResolvedAdapterLoadPlan {
   missingAdapterGameIds: string[];
 }
 
-const DEFAULT_BACKEND_GAME_ADAPTERS: BackendGameAdapter[] = [flashcardsBackendAdapter];
+const DEFAULT_BACKEND_GAME_ADAPTERS: BackendGameAdapter[] = [
+  flashcardsBackendAdapter,
+  ticTacToeBackendAdapter,
+];
 
 export function resolveBackendAdapterLoadPlan(
   games: AllowlistedEnabledGame[],

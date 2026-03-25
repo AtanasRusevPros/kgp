@@ -8,6 +8,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import type { PoolClient } from 'pg';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -61,6 +62,71 @@ interface SeedData {
   cards: SeedCard[];
 }
 
+interface SeedGameRecord {
+  id: string;
+  title: string;
+  description: string;
+  iconEmoji: string;
+  status: string;
+  routeBase: string;
+  integrationMode: 'local' | 'external';
+  clientTargets: string[];
+  capabilities: string[];
+  apiVersion: string;
+  requiresUserAuth: boolean;
+  requiresAppIdentity: boolean;
+  requiredScopes: string[];
+  tokenAudience: string;
+  entryWeb: string | null;
+  entryMobile: string | null;
+}
+
+async function upsertGame(client: PoolClient, game: SeedGameRecord) {
+  await client.query(
+    `INSERT INTO games (
+       id, title, description, icon_emoji, status,
+       route_base, integration_mode, client_targets, capabilities, api_version,
+       requires_user_auth, requires_app_identity, required_scopes, token_audience,
+       entry_web, entry_mobile
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+     ON CONFLICT (id) DO UPDATE SET
+       title=$2,
+       description=$3,
+       icon_emoji=$4,
+       status=$5,
+       route_base=$6,
+       integration_mode=$7,
+       client_targets=$8,
+       capabilities=$9,
+       api_version=$10,
+       requires_user_auth=$11,
+       requires_app_identity=$12,
+       required_scopes=$13,
+       token_audience=$14,
+       entry_web=$15,
+       entry_mobile=$16`,
+    [
+      game.id,
+      game.title,
+      game.description,
+      game.iconEmoji,
+      game.status,
+      game.routeBase,
+      game.integrationMode,
+      game.clientTargets,
+      game.capabilities,
+      game.apiVersion,
+      game.requiresUserAuth,
+      game.requiresAppIdentity,
+      game.requiredScopes,
+      game.tokenAudience,
+      game.entryWeb,
+      game.entryMobile,
+    ],
+  );
+}
+
 async function seed() {
   const client = await pool.connect();
   try {
@@ -82,50 +148,45 @@ async function seed() {
     const entryWeb = data.game.entryWeb ?? routeBase;
     const entryMobile = data.game.entryMobile ?? null;
 
-    await client.query(
-      `INSERT INTO games (
-         id, title, description, icon_emoji, status,
-         route_base, integration_mode, client_targets, capabilities, api_version,
-         requires_user_auth, requires_app_identity, required_scopes, token_audience,
-         entry_web, entry_mobile
-       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-       ON CONFLICT (id) DO UPDATE SET
-         title=$2,
-         description=$3,
-         icon_emoji=$4,
-         status=$5,
-         route_base=$6,
-         integration_mode=$7,
-         client_targets=$8,
-         capabilities=$9,
-         api_version=$10,
-         requires_user_auth=$11,
-         requires_app_identity=$12,
-         required_scopes=$13,
-         token_audience=$14,
-         entry_web=$15,
-         entry_mobile=$16`,
-      [
-        data.game.id,
-        data.game.title,
-        data.game.description,
-        data.game.iconEmoji,
-        data.game.status,
-        routeBase,
-        integrationMode,
-        clientTargets,
-        capabilities,
-        apiVersion,
-        requiresUserAuth,
-        requiresAppIdentity,
-        requiredScopes,
-        tokenAudience,
-        entryWeb,
-        entryMobile,
-      ],
-    );
+    await upsertGame(client, {
+      id: data.game.id,
+      title: data.game.title,
+      description: data.game.description,
+      iconEmoji: data.game.iconEmoji,
+      status: data.game.status,
+      routeBase,
+      integrationMode,
+      clientTargets,
+      capabilities,
+      apiVersion,
+      requiresUserAuth,
+      requiresAppIdentity,
+      requiredScopes,
+      tokenAudience,
+      entryWeb,
+      entryMobile,
+    });
     console.log(`✓ Upserted game: ${data.game.id}`);
+
+    await upsertGame(client, {
+      id: 'tic-tac-toe',
+      title: 'Tic-Tac-Toe',
+      description: 'A simple local two-player strategy game played directly in the browser.',
+      iconEmoji: '⭕',
+      status: 'enabled',
+      routeBase: '/tic-tac-toe',
+      integrationMode: 'local',
+      clientTargets: ['web'],
+      capabilities: ['local-play'],
+      apiVersion: 'v1',
+      requiresUserAuth: true,
+      requiresAppIdentity: false,
+      requiredScopes: [],
+      tokenAudience: 'kids-games-api',
+      entryWeb: '/tic-tac-toe',
+      entryMobile: null,
+    });
+    console.log('✓ Upserted game: tic-tac-toe');
 
     const defaultClientId = 'flashcards-web-dev';
     const defaultClientSecret =

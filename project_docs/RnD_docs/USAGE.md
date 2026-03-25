@@ -86,14 +86,14 @@ Database (local dev container)
   db:wipe             Drop all tables, re-migrate, re-seed (destructive)
 
 Container stack (Podman full stack — http://localhost:8080)
-  stack:init          First-time: build images + up + wait + migrate + seed
-  stack:build         Build container images only (api + web)
+  stack:init          First-time: compose rebuild + DB up + migrate + seed + full stack up
+  stack:build         Build compose-managed images only (api + web)
   stack:up            Start stack (uses existing images)
   stack:rebuild       Rebuild images and restart stack  (after code changes)
   stack:restart       Restart stack without rebuilding  (after config changes)
-  stack:down          Stop and remove stack containers
-  stack:migrate       Apply DB migrations inside the running API container
-  stack:seed          Seed DB inside the running API container
+  stack:down          Stop stack and force-clean stack-owned leftovers
+  stack:migrate       Apply DB migrations through a one-off API job
+  stack:seed          Seed DB through a one-off API job
   stack:logs [svc]    Follow logs — all services or one (e.g. api, web, db, caddy)
   stack:smoke         Run smoke test (waits for health, checks web + API)
   stack:verify        Rebuild stack, smoke, migrate, seed, restart, smoke again, then tear down
@@ -212,13 +212,15 @@ podman-compose -f infra/podman/compose.yml down
 
 Open **http://localhost:8080** (Caddy proxies everything).
 
-Use `./dev.sh stack:verify` after changing container builds, workspace package wiring, reverse-proxy config, or stack startup behavior. It starts from a clean Podman volume state, rebuilds the stack, prints compose status, verifies HTTP reachability through Caddy, runs the in-container migration and seed paths, restarts the stack without rebuilding, verifies reachability again, and tears the stack down afterward.
+Use `./dev.sh stack:verify` after changing container builds, workspace package wiring, reverse-proxy config, or stack startup behavior. It starts from a clean Podman volume state, rebuilds the stack, prints compose status, verifies HTTP reachability through Caddy, runs the one-off API migration and seed paths, restarts the stack without rebuilding, verifies reachability again, and tears the stack down afterward.
 
-**First-time container run — seed the DB inside the container:**
+`./dev.sh stack:down` now includes a defensive cleanup pass for stack-owned containers and stale Podman `rootlessport` helpers on the stack ports (`55434`, `8080`, `8443`) when Podman leaves them behind after a partial shutdown.
+
+**First-time container run — migrate and seed through one-off API jobs:**
 ```bash
-# After containers are up and healthy:
-podman exec kids-games-api node server/dist/db/migrate.js
-podman exec kids-games-api node server/dist/db/seed.js
+# After the DB container is up:
+podman-compose -f infra/podman/compose.yml run --rm api node server/dist/db/migrate.js
+podman-compose -f infra/podman/compose.yml run --rm api node server/dist/db/seed.js
 ```
 
 ---
@@ -409,9 +411,8 @@ pnpm build
 pnpm --filter @kids-games/api build
 pnpm --filter @kids-games/web build
 
-# Build container images
-podman build -f infra/podman/Dockerfile.api -t kids-games-api .
-podman build -f infra/podman/Dockerfile.web -t kids-games-web .
+# Build compose-managed container images
+podman-compose -f infra/podman/compose.yml build
 ```
 
 The API build output lands in `server/dist/`.
@@ -437,7 +438,7 @@ JWT_SECRET=change-me-in-production-jwt-secret-min-32-chars
 REFRESH_SECRET=change-me-in-production-refresh-secret-min-32-chars
 
 # Closed-game allowlist / seeded integration client
-ALLOWED_GAME_IDS=flashcards
+ALLOWED_GAME_IDS=flashcards,tic-tac-toe
 FLASHCARDS_CLIENT_SECRET=flashcards-dev-secret
 
 # Valkey / Redis (optional — in-memory fallback used if absent)
@@ -685,7 +686,7 @@ pnpm test:unit && pnpm test:web
 **Preconditions:**
 - Podman and podman-compose installed
 - `server/.env` exists
-- Container images built (or will be built on first `up`)
+- Compose services built (or will be built on first `up`)
 
 **Steps:**
 

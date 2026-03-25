@@ -35,6 +35,77 @@ port_in_use() {
   ss -tlnH 2>/dev/null | awk '{print $4}' | grep -Eq "(^|:)$port$"
 }
 
+stack_container_exists() {
+  local name="$1"
+  podman container exists "$name" 2>/dev/null
+}
+
+find_rootlessport_pid_for_port() {
+  local port="$1"
+  ss -ltnp 2>/dev/null | awk -v port=":$port" '
+    index($4, port) {
+      if (match($0, /pid=[0-9]+/)) {
+        value = substr($0, RSTART + 4, RLENGTH - 4)
+        print value
+      }
+    }
+  ' | head -n1
+}
+
+kill_stale_stack_port_helper() {
+  local port="$1"
+  local owner_container="$2"
+  local pid=""
+  local command=""
+
+  if stack_container_exists "$owner_container"; then
+    return 0
+  fi
+
+  pid="$(find_rootlessport_pid_for_port "$port")"
+  if [[ -z "$pid" ]]; then
+    return 0
+  fi
+
+  command="$(ps -p "$pid" -o comm= 2>/dev/null | tr -d '[:space:]')"
+  if [[ "$command" != "rootlessport" ]]; then
+    return 0
+  fi
+
+  info "Cleaning stale rootlessport helper on port ${port} (PID ${pid})..."
+  kill "$pid" 2>/dev/null || true
+  sleep 1
+
+  if port_in_use "$port"; then
+    kill -9 "$pid" 2>/dev/null || true
+    sleep 1
+  fi
+}
+
+cleanup_stale_stack_port_helpers() {
+  kill_stale_stack_port_helper 55434 kids-games-db
+  kill_stale_stack_port_helper 8080 kids-games-caddy
+  kill_stale_stack_port_helper 8443 kids-games-caddy
+}
+
+force_remove_stack_containers() {
+  local stack_names=(
+    kids-games-caddy
+    kids-games-web
+    kids-games-api
+    kids-games-db
+  )
+  local name
+
+  for name in "${stack_names[@]}"; do
+    podman stop "$name" >/dev/null 2>&1 || true
+  done
+
+  for name in "${stack_names[@]}"; do
+    podman rm -f "$name" >/dev/null 2>&1 || true
+  done
+}
+
 pick_test_db_port() {
   local port
   for port in $(seq 55432 55462); do
@@ -210,6 +281,11 @@ Then run:
 
 compose() {
   (cd "$PROJ" && podman-compose -f "$COMPOSE_FILE" "$@")
+}
+
+compose_api_job() {
+  local command=("$@")
+  compose run --rm api "${command[@]}"
 }
 
 stop_dev_db_if_running() {
@@ -412,24 +488,25 @@ cmd_db_wipe() {
 
 cmd_stack_init() {
   require_env
-  info "First-time container stack setup: build -> up -> migrate -> seed -> wait..."
+  info "First-time container stack setup: compose rebuild -> db up -> migrate -> seed -> full stack up -> wait..."
 
-  info "Building container images..."
-  (cd "$PROJ" && podman build -f infra/podman/Dockerfile.api -t kids-games-api .)
-  (cd "$PROJ" && podman build -f infra/podman/Dockerfile.web -t kids-games-web .)
+  cleanup_stale_stack_port_helpers
 
-  info "Starting stack..."
+  info "Starting stack database first..."
   stop_dev_db_if_running
-  compose up -d
+  compose up -d --build db
 
   info "Waiting for stack database to accept connections..."
   wait_for_stack_db_ready || die "Stack Postgres did not become ready in time."
 
-  info "Applying database migrations inside API container..."
-  podman exec kids-games-api node server/dist/db/migrate.js
+  info "Applying database migrations through a one-off API job..."
+  compose_api_job node server/dist/db/migrate.js
 
-  info "Seeding database inside API container..."
-  podman exec kids-games-api node server/dist/db/seed.js
+  info "Seeding database through a one-off API job..."
+  compose_api_job node server/dist/db/seed.js
+
+  info "Starting remaining stack services..."
+  compose up -d api web caddy
 
   info "Waiting for stack to become healthy..."
   (cd "$PROJ" && ./infra/podman/smoke-test.sh)
@@ -438,10 +515,9 @@ cmd_stack_init() {
 }
 
 cmd_stack_build() {
-  info "Building container images (api + web)..."
-  (cd "$PROJ" && podman build -f infra/podman/Dockerfile.api -t kids-games-api .)
-  (cd "$PROJ" && podman build -f infra/podman/Dockerfile.web -t kids-games-web .)
-  ok "Images built: kids-games-api, kids-games-web"
+  info "Building compose-managed container images (api + web)..."
+  compose build
+  ok "Compose-managed images built."
 }
 
 cmd_stack_up() {
@@ -455,6 +531,7 @@ cmd_stack_up() {
 cmd_stack_rebuild() {
   require_env
   info "Rebuilding images and restarting stack..."
+  cleanup_stale_stack_port_helpers
   stop_dev_db_if_running
   compose up -d --build
   ok "Stack rebuilt and running. Open http://localhost:8080"
@@ -465,6 +542,8 @@ cmd_stack_restart() {
   info "Restarting stack (down + up, no rebuild)..."
   stop_dev_db_if_running
   compose down
+  force_remove_stack_containers
+  cleanup_stale_stack_port_helpers
   compose up -d
   ok "Stack restarted. Open http://localhost:8080"
 }
@@ -472,6 +551,8 @@ cmd_stack_restart() {
 cmd_stack_down() {
   info "Stopping Podman stack..."
   compose down
+  force_remove_stack_containers
+  cleanup_stale_stack_port_helpers
   ok "Stack down."
 }
 
@@ -485,14 +566,14 @@ cmd_stack_logs() {
 }
 
 cmd_stack_seed() {
-  info "Seeding database inside running API container..."
-  podman exec kids-games-api node server/dist/db/seed.js
+  info "Seeding database through a one-off API job..."
+  compose_api_job node server/dist/db/seed.js
   ok "Seed complete."
 }
 
 cmd_stack_migrate() {
-  info "Applying database migrations inside running API container..."
-  podman exec kids-games-api node server/dist/db/migrate.js
+  info "Applying database migrations through a one-off API job..."
+  compose_api_job node server/dist/db/migrate.js
   ok "Migrations complete."
 }
 

@@ -1,6 +1,6 @@
 # Kids Games Platform
 
-Free/open-source kids games platform MVP. Initial game: Flash Cards.
+Free/open-source kids games platform MVP. Current games: Flash Cards and Tic-Tac-Toe.
 Single-server deployment via Podman rootless containers, localhost-first.
 
 > Full developer guide: [`USAGE.md`](project_docs/RnD_docs/USAGE.md)
@@ -88,14 +88,14 @@ Database (local dev container)
   db:wipe             Drop all tables, re-migrate, re-seed (destructive)
 
 Container stack (Podman full stack — http://localhost:8080)
-  stack:init          First-time: build images + up + wait + migrate + seed
-  stack:build         Build container images only (api + web)
+  stack:init          First-time: compose rebuild + DB up + migrate + seed + full stack up
+  stack:build         Build compose-managed images only (api + web)
   stack:up            Start stack (uses existing images)
   stack:rebuild       Rebuild images and restart stack  (after code changes)
   stack:restart       Restart stack without rebuilding  (after config changes)
-  stack:down          Stop and remove stack containers
-  stack:migrate       Apply DB migrations inside the running API container
-  stack:seed          Seed DB inside the running API container
+  stack:down          Stop stack and force-clean stack-owned leftovers
+  stack:migrate       Apply DB migrations through a one-off API job
+  stack:seed          Seed DB through a one-off API job
   stack:logs [svc]    Follow logs — all services or one (e.g. api, web, db, caddy)
   stack:smoke         Run smoke test (waits for health, checks web + API)
   stack:verify        Rebuild stack, smoke, migrate, seed, restart, smoke again, then tear down
@@ -200,7 +200,7 @@ Open **http://localhost:5173** in your browser.
 Runs the full stack (DB + API + Web + Caddy reverse proxy) as rootless containers.
 
 ```bash
-# First-time: build images, start, and seed in one step
+# First-time: rebuild the compose services, start, and seed in one step
 ./dev.sh stack:init
 
 # Subsequent starts (images already built)
@@ -215,7 +215,9 @@ Runs the full stack (DB + API + Web + Caddy reverse proxy) as rootless container
 
 Open **http://localhost:8080** (Caddy serves on port 8080).
 
-`stack:verify` is the recommended basic container validation path after container-related changes. It starts from a clean Podman volume state, rebuilds the stack, checks compose status, verifies HTTP reachability, runs the in-container migration and seed paths, restarts the stack without rebuilding, verifies HTTP reachability again, and tears the stack down when finished.
+`stack:verify` is the recommended basic container validation path after container-related changes. It starts from a clean Podman volume state, rebuilds the stack, checks compose status, verifies HTTP reachability, runs the one-off API migration and seed paths, restarts the stack without rebuilding, verifies HTTP reachability again, and tears the stack down when finished.
+
+`stack:down` now also performs a defensive cleanup pass for stack-owned containers and stale Podman `rootlessport` helpers on the stack ports (`55434`, `8080`, `8443`) when Podman leaves them behind after a partial shutdown.
 
 ---
 
@@ -264,9 +266,8 @@ See [USAGE.md → Running Tests](project_docs/RnD_docs/USAGE.md#running-tests) f
 # Build all packages
 pnpm build
 
-# Build container images
-podman build -f infra/podman/Dockerfile.api -t kids-games-api .
-podman build -f infra/podman/Dockerfile.web -t kids-games-web .
+# Build compose-managed container images
+podman-compose -f infra/podman/compose.yml build
 ```
 
 ---
@@ -286,7 +287,7 @@ JWT_SECRET=change-me-in-production-jwt-secret-min-32-chars
 REFRESH_SECRET=change-me-in-production-refresh-secret-min-32-chars
 
 # Closed-game allowlist / seeded integration client
-ALLOWED_GAME_IDS=flashcards
+ALLOWED_GAME_IDS=flashcards,tic-tac-toe
 FLASHCARDS_CLIENT_SECRET=flashcards-dev-secret
 
 # Valkey / Redis (optional — in-memory fallback used if absent)

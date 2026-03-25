@@ -2,12 +2,15 @@ import type { RouteObject } from 'react-router-dom';
 import type { WebGameModule } from './types.js';
 import { buildRoutesFromModules } from './types.js';
 import { flashcardsWebManifest } from '../../../../games/flashcards/web/src/module.js';
+import { ticTacToeWebManifest } from '../../../../games/tic-tac-toe/web/src/module.js';
 import { DeckPickerPage } from '../pages/flashcards/DeckPickerPage.js';
 import { FlashcardGamePage } from '../pages/flashcards/FlashcardGamePage.js';
+import { TicTacToePage } from '../pages/ticTacToe/TicTacToePage.js';
 
 const routeElementById = {
   'flashcards.deck-picker': <DeckPickerPage />,
   'flashcards.game': <FlashcardGamePage />,
+  'tic-tac-toe.board': <TicTacToePage />,
 } as const;
 
 const flashcardsWebModule: WebGameModule = {
@@ -21,8 +24,20 @@ const flashcardsWebModule: WebGameModule = {
   })),
 };
 
+const ticTacToeWebModule: WebGameModule = {
+  id: ticTacToeWebManifest.id,
+  routeBase: ticTacToeWebManifest.routeBase,
+  routes: ticTacToeWebManifest.routes.map((route) => ({
+    path: route.path,
+    routeId: route.routeId,
+    element: routeElementById[route.routeId],
+    requiresAuth: route.requiresAuth,
+  })),
+};
+
 export const webGameRegistry: WebGameModule[] = [
   flashcardsWebModule,
+  ticTacToeWebModule,
 ];
 
 export function buildGameRoutes(): RouteObject[] {

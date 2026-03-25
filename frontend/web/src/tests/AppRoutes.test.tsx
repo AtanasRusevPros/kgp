@@ -8,6 +8,20 @@ vi.mock('../services/auth.service.js', () => ({
 }));
 
 describe('app routes', () => {
+  it('renders tic-tac-toe through the protected app route tree', async () => {
+    const router = createMemoryRouter(appRoutes, {
+      initialEntries: ['/tic-tac-toe'],
+    });
+
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByRole('heading', { name: 'Tic-Tac-Toe' })).toBeInTheDocument();
+    expect(
+      screen.getByText('A lightweight second game to validate the modular platform with no backend gameplay state.'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Current player: X')).toBeInTheDocument();
+  });
+
   it('shows the blocked-game fallback for unsupported routes', async () => {
     const router = createMemoryRouter(appRoutes, {
       initialEntries: ['/spelling-bee'],

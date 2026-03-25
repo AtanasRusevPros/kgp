@@ -110,6 +110,12 @@ importers:
         specifier: ^5.5.4
         version: 5.9.3
 
+  games/tic-tac-toe/backend-adapter:
+    devDependencies:
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.3
+
   packages/game-sdk:
     dependencies:
       '@kids-games/shared':
@@ -159,6 +165,9 @@ importers:
       '@kids-games/shared':
         specifier: workspace:*
         version: link:../packages/shared
+      '@kids-games/tic-tac-toe-backend-adapter':
+        specifier: workspace:*
+        version: link:../games/tic-tac-toe/backend-adapter
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3

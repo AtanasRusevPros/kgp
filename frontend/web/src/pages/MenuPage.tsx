@@ -22,7 +22,7 @@ export function MenuPage() {
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-800">Game Library</h1>
-          <p className="text-slate-500 mt-1">Choose a game to start learning!</p>
+          <p className="text-slate-500 mt-1">Choose a game to play!</p>
         </div>
 
         {loading && (

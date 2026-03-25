@@ -30,6 +30,14 @@ describe('Seed data validation', () => {
     expect(result.rows[0]!.status).toBe('enabled');
   });
 
+  it('tic-tac-toe game exists and is enabled', async () => {
+    const result = await pool.query<{ id: string; status: string }>(
+      "SELECT id, status FROM games WHERE id = 'tic-tac-toe'",
+    );
+    expect(result.rows).toHaveLength(1);
+    expect(result.rows[0]!.status).toBe('enabled');
+  });
+
   it('at least one English deck exists', async () => {
     const result = await pool.query<{ cnt: string }>(
       "SELECT COUNT(*) AS cnt FROM decks WHERE language_code = 'en'",

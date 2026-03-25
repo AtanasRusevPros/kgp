@@ -15,7 +15,7 @@ export const config = {
   refreshExpiresInMs: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
   valKeyUrl: process.env['VALKEY_URL'],
   corsOrigins: ['http://localhost:5173', 'http://localhost', 'https://localhost'],
-  allowedGameIds: parseCsvList(process.env['ALLOWED_GAME_IDS'] ?? 'flashcards'),
+  allowedGameIds: parseCsvList(process.env['ALLOWED_GAME_IDS'] ?? 'flashcards,tic-tac-toe'),
 } as const;
 
 export const testConfig = {

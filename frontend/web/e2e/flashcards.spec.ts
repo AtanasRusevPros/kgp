@@ -112,4 +112,23 @@ test.describe('Flashcards e2e flow', () => {
 
     await expect(page.getByRole('heading', { name: 'Unexpected Application Error!' })).toBeVisible();
   });
+
+  test('login and play the first tic-tac-toe move through the live route', async ({ page }) => {
+    await page.goto('/login');
+    await page.getByLabel(/email/i).fill(TEST_EMAIL);
+    await page.getByLabel(/password/i).fill(TEST_PASSWORD);
+    await page.getByRole('button', { name: /sign in/i }).click();
+    await expect(page).toHaveURL('/');
+
+    await page.goto('/tic-tac-toe');
+    await expect(page).toHaveURL('/tic-tac-toe');
+    await expect(page.getByRole('heading', { name: 'Tic-Tac-Toe' })).toBeVisible();
+    await expect(page.getByText('Current player: X')).toBeVisible();
+
+    const firstCell = page.getByRole('button', { name: 'Cell 1' });
+    await firstCell.click();
+
+    await expect(firstCell).toContainText('X');
+    await expect(page.getByText('Current player: O')).toBeVisible();
+  });
 });

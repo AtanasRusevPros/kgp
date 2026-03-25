@@ -320,3 +320,36 @@ Verification:
   - `pnpm boundary:check`
   - `pnpm build`
   -> all passed
+
+## 2026-03-25 23:05 EET
+
+Summary:
+- Added `tic-tac-toe` as the second game, implemented as a simple auth-protected web-only game with browser-local board state and no backend gameplay persistence.
+- Added the full game module scaffold under `games/tic-tac-toe/`, including web manifest/UI, mobile/contracts placeholders, and a minimal backend-adapter package so the current allowlist-driven loader remains satisfied.
+- Updated seed/config/runtime wiring so `tic-tac-toe` is enabled, allowlisted by default, exposed via `/games`, loaded in the backend adapter health path, and reachable through the web game registry and menu.
+
+Verification:
+- Before changes:
+  - `pnpm test:web` -> passed
+  - `pnpm games:conformance` -> passed
+- After changes:
+  - `pnpm test:web`
+  - `pnpm test:unit`
+  - `./dev.sh test:int`
+- `pnpm games:conformance`
+- `pnpm build`
+  -> all passed
+
+## 2026-03-25 23:47 EET
+
+Summary:
+- Fixed the container stack build path after confirming `./dev.sh stack:init` could show stale game menus even when direct dev mode already exposed `tic-tac-toe`.
+- Identified the root cause: `stack:init` and `stack:build` used separate manual `podman build` image tags while the running stack came from `podman-compose` service builds, allowing compose to reuse older service images.
+- Updated `dev.sh`, `README.md`, and `USAGE.md` so stack build/init now use compose-managed rebuilds consistently.
+
+## 2026-03-26 00:11 EET
+
+Summary:
+- Hardened the stack cleanup flow after repeated Podman rootless networking glitches left stale `rootlessport` helpers and partially removed stack containers behind.
+- Updated `./dev.sh stack:down` to force-remove stack-owned containers and clean stale `rootlessport` helpers on the stack ports (`55434`, `8080`, `8443`) when their corresponding stack containers no longer exist.
+- Updated `stack:init` and `stack:rebuild` to run the same stale-helper cleanup before starting services, so repeated stack runs can recover from partial Podman teardown failures more reliably.
