@@ -36,6 +36,13 @@ Make safe, minimal, well-verified changes with as little context as necessary.
 13. In the main Codex-user thread, do not stage files until the user explicitly asks. Ignore this rule for agents explicitly tasked to prepare a commit.
 14. When the user explicitly asks for a plan-first workflow, stop after planning, list open questions, and do not execute until those questions are resolved.
 15. Prefer renames over delete-and-recreate when moving or retitling files so history stays readable.
+16. Main thread ambiguity handling: when an ambiguity can materially change scope, architecture, test plan, risk, or rollout, ask the user for clarification before proceeding, especially during planning.
+17. Delegated/sub-agent ambiguity handling: do not require explicit user clarification by default; proceed autonomously with reasonable assumptions and report those assumptions clearly in handoff.
+18. For low-impact ambiguity, prefer reasonable assumptions and continue execution.
+
+### Collaboration Preference (timestamped)
+
+Added: 2026-03-29 23:00 EET
 
 ## Code Conventions
 

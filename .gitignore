@@ -10,3 +10,7 @@ test-results/
 *.tsbuildinfo
 infra/podman/backups/
 infra/podman/backups/
+TicTacToeFigmaUpgrade/
+Tic-Tac-Toe Design Upgrade.zip
+Tic-Tac-Toe Design Upgrade.zip:MSOAVINFO
+Tic-Tac-Toe Design Upgrade.zip:Zone.Identifier
