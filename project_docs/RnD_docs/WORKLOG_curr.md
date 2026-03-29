@@ -383,3 +383,57 @@ Verification:
   - GitHub Actions `pnpm/action-setup@v4` failed with "Multiple versions of pnpm specified" because workflow config requested pnpm 9 while `package.json` pinned pnpm 10.33.0
 - After changes:
   - `.github/workflows/ci.yml` no longer declares a second pnpm version alongside the root `packageManager` pin
+
+## 2026-03-29 22:53 EEST
+
+Summary:
+- Reworked the Tic-Tac-Toe page into a Figma-inspired motion UI while preserving the existing KGP shell and route contracts.
+- Added browser-local gameplay polish: animated X/O marks, score cards, reset flow, win/draw state panels, and reduced-motion-aware confetti behavior.
+- Added the approved web dependencies needed for the redesign: `motion`, `canvas-confetti`, and `lucide-react`.
+- Updated the status and worklog docs to reflect the redesigned tic-tac-toe UX and the refreshed web test counts.
+
+Verification:
+- Baseline before edits:
+  - `pnpm test:web` -> passed
+- After edits:
+  - `pnpm test:web` -> passed, 78 web tests
+  - `pnpm typecheck` -> passed across all workspace packages
+
+## 2026-03-29 23:06 EEST
+
+Summary:
+- Added a persistent in-game Effects toggle so confetti, hover feedback, entrance motion, and win pulses can be switched on or off directly from the Tic-Tac-Toe screen.
+- Kept reduced-motion preference respected underneath the toggle, so accessibility settings still suppress motion when needed.
+- Generalized the motion gating so the toggle now controls the full effect set instead of only confetti.
+
+Verification:
+- Before edits:
+  - `pnpm test:web` -> passed, 78 web tests
+- After edits:
+  - `pnpm --filter @kids-games/web typecheck` -> passed
+  - `pnpm test:web` -> passed, 79 web tests
+
+## 2026-03-29 23:09 EEST
+
+Summary:
+- Increased the confetti celebration into a multi-burst sequence with a higher z-index so it is much easier to see against the game background.
+- Kept the effect toggle and reduced-motion gating intact while making the winner celebration more visually obvious.
+
+Verification:
+- After edits:
+  - `pnpm test:web` -> passed, 79 web tests
+  - `pnpm typecheck` -> passed across all workspace packages
+
+## 2026-03-29 23:21 EEST
+
+Summary:
+- Changed Tic-Tac-Toe celebratory effects so the user-facing Effects toggle now overrides reduced-motion and allows confetti/motion when enabled.
+- Updated the confetti test coverage to match the new override behavior instead of the old reduced-motion suppression rule.
+- Synced the implementation status notes to reflect that reduced-motion no longer blocks celebratory effects when the toggle is on.
+
+Verification:
+- Before edits:
+  - `pnpm test:web` -> passed, 79 web tests
+- After edits:
+  - `pnpm test:web` -> passed, 79 web tests
+  - `pnpm typecheck` -> passed across all workspace packages

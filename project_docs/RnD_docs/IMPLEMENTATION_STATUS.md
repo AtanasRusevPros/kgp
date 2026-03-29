@@ -8,7 +8,7 @@ Every entry is evidence-backed with file paths, script names, or endpoint refere
 > **Modularity execution tracker:** [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
 > **In-progress test-orchestration follow-up:** [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](../ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
 
-Updated: 2026-03-25 00:30 EET
+Updated: 2026-03-29 23:06 EEST
 
 ## 2026 Modularity Rework Snapshot
 Current effective state:
@@ -21,6 +21,8 @@ Implemented highlights:
 3. Delegated game-session token issuance now enforces scope subset checks against the integration client and the game's declared required scopes for points writes.
 4. Registry-driven game routing in web shell.
 5. Game module structure and architecture boundary checks wired into CI, including target topology roots.
+6. Tic-tac-toe now uses a Figma-inspired responsive motion UI with animated marks, local scorekeeping, and confetti celebration while preserving browser-local gameplay.
+7. Tic-tac-toe now also includes a user-facing effects toggle that overrides reduced-motion for celebratory effects when enabled, so motion, hover feedback, and confetti can be turned on or off without leaving the game.
 
 ---
 
@@ -145,7 +147,7 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | Feature | Status | Evidence |
 |---------|--------|----------|
 | Flashcards | Implemented | Full API + UI |
-| Tic-Tac-Toe | Implemented | Web-only local-state second game integrated through seed metadata, allowlist exposure, web manifest, and minimal backend adapter |
+| Tic-Tac-Toe | Implemented | Web-only local-state second game integrated through seed metadata, allowlist exposure, web manifest, minimal backend adapter, and a Figma-inspired motion UI with local scorekeeping |
 | Any other game | Deferred | Architecture supports more games beyond the current two |
 
 ---
@@ -178,11 +180,11 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | Shared schemas | vitest | 10 | No | `unit-tests` | Zod schema validation |
 | Game SDK | vitest | 1 | No | `unit-tests` | Type export check |
 | API unit | vitest | 30 | No | `unit-tests` | Auth service logic, health route, mappers, server lifecycle, adapter-loader validation, app startup adapter registration |
-| Web components | vitest + jsdom | 75 | No | `web-tests` | All pages, services, hooks, unsupported-game route blocking, tic-tac-toe gameplay UI |
+| Web components | vitest + jsdom | 79 | No | `web-tests` | All pages, services, hooks, unsupported-game route blocking, tic-tac-toe gameplay UI |
 | API integration | vitest + pg | 81 | Yes (test DB) | `integration-tests` | All routes, repos, schema, seed, points, internal health, allowlist blocking, second-game metadata exposure |
 | E2E (dev mode) | Playwright | 3 | Yes (test DB + API runtime) | `e2e` (manual) | Use `./dev.sh test:e2e` to create an isolated test DB, start API, and run via Vite dev server |
 | E2E (stack mode) | Playwright | 3 | Yes (full stack) | Manual (`pnpm test:e2e:stack`) | Same suite against Podman+Caddy stack via Caddy `/api` proxy |
-| **Total automated** | | **203** | | | |
+| **Total automated** | | **207** | | | |
 
 **Config files:**
 - Dev E2E: `frontend/web/playwright.config.ts`

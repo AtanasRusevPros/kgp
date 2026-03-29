@@ -17,9 +17,11 @@ describe('app routes', () => {
 
     expect(await screen.findByRole('heading', { name: 'Tic-Tac-Toe' })).toBeInTheDocument();
     expect(
-      screen.getByText('A lightweight second game to validate the modular platform with no backend gameplay state.'),
+      screen.getByText(
+        'A KGP-compliant, Figma-inspired game board with animated marks, responsive glass panels, and reduced-motion-aware celebration effects.',
+      ),
     ).toBeInTheDocument();
-    expect(screen.getByText('Current player: X')).toBeInTheDocument();
+    expect(await screen.findByText("Player X's Turn")).toBeInTheDocument();
   });
 
   it('shows the blocked-game fallback for unsupported routes', async () => {
