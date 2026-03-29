@@ -16,7 +16,100 @@ ok()   { echo "✓ $*"; }
 info() { echo "→ $*"; }
 die()  { echo "✗ $*" >&2; exit 1; }
 
+get_major_version() {
+  local raw="${1#v}"
+  echo "${raw%%.*}"
+}
+
+ensure_supported_node_runtime() {
+  command -v node >/dev/null 2>&1 || die "Node.js is not installed. Install Node.js 20.x or later (24.x+ recommended)."
+
+  local node_version node_major
+  node_version="$(node --version 2>/dev/null || true)"
+  node_major="$(get_major_version "$node_version")"
+
+  [[ "$node_major" =~ ^[0-9]+$ ]] || die "Could not determine Node.js version from '${node_version}'."
+
+  if (( node_major < 20 )); then
+    die "Unsupported Node.js version ${node_version} at $(command -v node).
+Install Node.js 20.x or later (24.x+ recommended), then retry."
+  fi
+
+  if (( node_major < 24 )) && [[ "${KG_NODE_RECOMMENDATION_SHOWN:-0}" != "1" ]]; then
+    info "Detected Node.js ${node_version}. This repo supports Node.js 20.x+, but Node.js 24.x or later is recommended."
+    export KG_NODE_RECOMMENDATION_SHOWN=1
+  fi
+}
+
+ensure_supported_pnpm_runtime() {
+  command -v pnpm >/dev/null 2>&1 || die "pnpm is not installed. Enable Corepack or install pnpm 9.x or later."
+
+  local pnpm_version pnpm_major
+  pnpm_version="$(pnpm --version 2>/dev/null || true)"
+  pnpm_major="$(get_major_version "$pnpm_version")"
+
+  [[ "$pnpm_major" =~ ^[0-9]+$ ]] || die "Could not determine pnpm version from '${pnpm_version}'."
+
+  if (( pnpm_major < 9 )); then
+    die "Unsupported pnpm version ${pnpm_version} at $(command -v pnpm).
+Install pnpm 9.x or later. The repo currently pins pnpm 10.x via packageManager."
+  fi
+}
+
+check_init_prerequisites() {
+  local failures=()
+  local node_version node_major pnpm_version pnpm_major
+
+  command -v git >/dev/null 2>&1 || failures+=("Missing 'git'. Ubuntu: sudo apt install git")
+  command -v curl >/dev/null 2>&1 || failures+=("Missing 'curl'. Ubuntu: sudo apt install curl")
+
+  if command -v node >/dev/null 2>&1; then
+    node_version="$(node --version 2>/dev/null || true)"
+    node_major="$(get_major_version "$node_version")"
+    if [[ ! "$node_major" =~ ^[0-9]+$ ]]; then
+      failures+=("Could not determine Node.js version from '${node_version}'.")
+    elif (( node_major < 20 )); then
+      failures+=("Node.js ${node_version} found at $(command -v node), but this repo requires at least Node.js 20.x. Node.js 24.x or later is recommended.")
+    elif (( node_major < 24 )); then
+      info "Detected Node.js ${node_version}. Supported, but Node.js 24.x or later is recommended."
+    fi
+  else
+    failures+=("Missing 'node'. Install Node.js 20.x or later (24.x+ recommended).")
+  fi
+
+  if command -v pnpm >/dev/null 2>&1; then
+    pnpm_version="$(pnpm --version 2>/dev/null || true)"
+    pnpm_major="$(get_major_version "$pnpm_version")"
+    if [[ ! "$pnpm_major" =~ ^[0-9]+$ ]]; then
+      failures+=("Could not determine pnpm version from '${pnpm_version}'.")
+    elif (( pnpm_major < 9 )); then
+      failures+=("pnpm ${pnpm_version} found at $(command -v pnpm), but this repo requires pnpm 9.x or later. The repo currently pins pnpm 10.x.")
+    fi
+  else
+    failures+=("Missing 'pnpm'. Run 'corepack enable pnpm' after installing Node.js.")
+  fi
+
+  command -v podman >/dev/null 2>&1 || failures+=("Missing 'podman'. Ubuntu: sudo apt install podman")
+  command -v python3 >/dev/null 2>&1 || failures+=("Missing 'python3'. Ubuntu: sudo apt install python3")
+  command -v pip3 >/dev/null 2>&1 || failures+=("Missing 'pip3'. Ubuntu: sudo apt install python3-pip")
+
+  if ! command -v podman-compose >/dev/null 2>&1; then
+    failures+=("Missing 'podman-compose'. Install it with 'pip install podman-compose' or 'pip install --user podman-compose'.")
+  fi
+
+  if (( ${#failures[@]} > 0 )); then
+    printf '✗ Init prerequisite check failed. Install or fix the following before rerunning ./dev.sh init:\n' >&2
+    printf '  - %s\n' "${failures[@]}" >&2
+    exit 1
+  fi
+
+  ok "Init prerequisite check passed."
+}
+
 ensure_internal_package_artifacts() {
+  ensure_supported_node_runtime
+  ensure_supported_pnpm_runtime
+
   if [[ "${KG_INTERNAL_PACKAGES_READY:-}" == "1" ]]; then
     return 0
   fi
@@ -301,8 +394,12 @@ stop_dev_db_if_running() {
 # ── targets ──────────────────────────────────────────────────────────────────
 
 cmd_init() {
+  check_init_prerequisites
+
   info "Installing dependencies..."
   (cd "$PROJ" && pnpm install)
+
+  ensure_internal_package_artifacts
 
   info "Preparing server/.env (skipped if it already exists)..."
   if [[ -f "$PROJ/server/.env" ]]; then
@@ -334,11 +431,17 @@ cmd_build() {
 
 cmd_server() {
   require_env
+  ensure_supported_node_runtime
+  ensure_supported_pnpm_runtime
+  ensure_internal_package_artifacts
   info "Starting API dev server (http://localhost:3000)..."
   (cd "$PROJ" && pnpm --filter @kids-games/api dev)
 }
 
 cmd_web() {
+  ensure_supported_node_runtime
+  ensure_supported_pnpm_runtime
+  ensure_internal_package_artifacts
   info "Starting web dev client (http://localhost:5173)..."
   (cd "$PROJ" && pnpm --filter @kids-games/web dev)
 }

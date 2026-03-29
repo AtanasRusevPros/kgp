@@ -353,3 +353,21 @@ Summary:
 - Hardened the stack cleanup flow after repeated Podman rootless networking glitches left stale `rootlessport` helpers and partially removed stack containers behind.
 - Updated `./dev.sh stack:down` to force-remove stack-owned containers and clean stale `rootlessport` helpers on the stack ports (`55434`, `8080`, `8443`) when their corresponding stack containers no longer exist.
 - Updated `stack:init` and `stack:rebuild` to run the same stale-helper cleanup before starting services, so repeated stack runs can recover from partial Podman teardown failures more reliably.
+
+## 2026-03-29 22:35 EEST
+
+Summary:
+- Improved first-time local setup so `./dev.sh init` now checks required prerequisites up front, reports missing tools with installation guidance, and prebuilds internal workspace artifacts before the database setup flow.
+- Hardened `./dev.sh server` and `./dev.sh web` by validating supported Node.js and pnpm versions before startup and by ensuring the required internal package build artifacts exist on cold checkouts.
+- Updated `README.md` and `project_docs/RnD_docs/USAGE.md` to document the Ubuntu dependency list more explicitly, require at least Node.js 20.x, and recommend Node.js 24.x or later for local development.
+- Aligned root `package.json` metadata with the documented setup expectations by requiring Node.js 20.x+ and pnpm 9.x+ in `engines` while keeping the repo-pinned `packageManager` entry for pnpm 10.33.0.
+
+Verification:
+- Before changes:
+  - `bash -n dev.sh` -> passed
+  - `./dev.sh init` -> failed late with unsupported system Node 18 during migration runtime
+  - `./dev.sh server` -> failed on missing internal package build artifacts from a cold checkout
+- After changes:
+  - `bash -n dev.sh` -> passed
+  - `./dev.sh init` -> now fails early with a clear prerequisite message when run under unsupported Node 18 in this environment
+  - `./dev.sh server` -> now fails early with a clear unsupported Node message when run under unsupported Node 18 in this environment

@@ -114,19 +114,38 @@ The sections below document the same operations in full detail, with direct `pnp
 
 ## Prerequisites
 
+Ubuntu 24.04 package checklist for this project (reviewed 2026-03-29):
+
+- Required for all development: `git`, `curl`, Node.js 20.x or later, `pnpm`
+- Required for the repo's standard local DB and stack workflows: `podman`, `python3-pip`, `podman-compose`
+- Optional for local database access outside containers: PostgreSQL 16.x client/server tools
+- Optional for browser e2e tests: Playwright Chromium runtime via `pnpm --filter @kids-games/web exec playwright install --with-deps chromium`
+
 | Tool | Minimum version | Notes |
 |------|----------------|-------|
-| Node.js | 20.x | LTS recommended |
-| pnpm | 9.x | `npm install -g pnpm@9` |
+| Node.js | 20.x | 24.x or later recommended for local development |
+| pnpm | 9.x | Corepack recommended; repo currently pins `pnpm@10.33.0` |
 | PostgreSQL | 16.x | Or use Podman (no local install needed) |
 | Podman | 4.x | Only for container-based stack |
 | podman-compose | 1.x | `pip install podman-compose` |
+
+Typical Ubuntu 24.04 install:
+
+```bash
+sudo apt update
+sudo apt install -y git curl podman python3-pip
+pip install podman-compose
+```
+
+Then install Node.js 20 or later and enable pnpm with Corepack. Node.js 24.x or later is recommended.
 
 > **No PostgreSQL locally?** Use Option B (Podman) which spins up the DB in a container, or run just the DB container with `scripts/dev-db.sh`.
 
 ---
 
 ## First-time Setup
+
+`./dev.sh init` first checks the required local prerequisites and reports what is missing. If the check passes, it runs: `pnpm install` → `pnpm prebuild:internal` → copies `.env.example` → starts the DB container → migrates → seeds. Setup flow updated 2026-03-29.
 
 ```bash
 # 1. Clone and enter the repo
@@ -136,21 +155,24 @@ cd <repo-name>
 # 2. Install all dependencies (all workspaces)
 pnpm install
 
-# 3. Copy the API environment file
+# 3. Build internal workspace packages required by the dev servers
+pnpm prebuild:internal
+
+# 4. Copy the API environment file
 cp server/.env.example server/.env
 # Edit server/.env if you need non-default values
 
-# 4. Start the database (Podman, rootless)
+# 5. Start the database (Podman, rootless)
 ./scripts/dev-db.sh start
 
-# 5. Run migrations to create all tables
+# 6. Run migrations to create all tables
 pnpm db:migrate
 
-# 6. Seed the database with the flashcard deck
+# 7. Seed the database with the flashcard deck
 pnpm db:seed
 ```
 
-After step 6 the database has:
+After step 7 the database has:
 - 1 game record (`flashcards`)
 - 1 English deck ("English Basics")
 - 20 vocabulary cards with embedded SVG images
