@@ -10,23 +10,91 @@ Reference: `docs/add-game-guide.md`
 Implement a new browser-local game module, `snake-classic`, inspired by old Nokia Snake with modern visuals and motion.
 The game must integrate with KGP platform routing and standards while keeping context and scope tight.
 
-## Locked Product Decisions
+## Decision Lock Update (timestamped)
+
+Updated: 2026-03-29 23:35 EET
+
+All remaining implementation ambiguities were resolved in an interactive planning pass.
+The decisions below are authoritative for v1 and should be treated as final unless explicitly revised.
+
+## Locked Product Decisions (Final)
+
+### Identity and routing
 
 1. Game ID: `snake-classic`
-2. Route auth: required (`requiresAuth: true`)
-3. Game type: browser-local, no backend gameplay state in v1
-4. Board model: logical `50x50`
-5. Renderer: canvas board renderer, DOM overlays for HUD/controls
-6. Mouse control: hold-to-follow cursor while button pressed
-7. Touch control: swipe input + hold-follow fallback behavior in v1
-8. Collision rules: classic Nokia (wall or self-collision = game over)
-9. Apple/scoring: one apple at a time, random empty-cell spawn, `+1` score per apple
-10. Speed model: selectable difficulty (`slow`, `normal`, `fast`) + progressive speedup during run
-11. Session persistence: persist high score and last selected settings in browser local storage
-12. Visual direction: mostly modern effects with light retro references
-13. Motion accessibility: reduced-motion-aware transitions/effects and toned-down or disabled confetti/effect intensity
-14. View mode: adaptive presentation (desktop shows broader board area, mobile uses stronger camera-follow/zoom)
-15. Points integration: points-ready architecture only (no live platform points awarding in v1)
+2. Web manifest values:
+   - `id: 'snake-classic'`
+   - `routeBase: '/snake-classic'`
+   - route entry `path: '/snake-classic'`
+   - route entry `routeId: 'snake-classic.board'`
+   - route entry `requiresAuth: true`
+
+### Scope and architecture
+
+1. Game type: browser-local, no backend gameplay state in v1.
+2. Points integration: points-ready only; no live points writes in v1.
+3. Add one frontend no-op seam for future integration:
+   - `emitRunSummary({ score, applesEaten, durationMs, difficulty, endedBy })`
+   - call only on game over
+   - default implementation performs no backend calls
+
+### Dependency boundary
+
+1. Allowed new dependencies for snake v1:
+   - `motion`
+   - `lucide-react`
+2. Explicitly not allowed for this feature:
+   - `canvas-confetti`
+   - large UI framework imports from the Figma export stack (radix/shadcn/MUI/Tailwind-v4 migration)
+
+### Engine, controls, and rules
+
+1. Board model: logical `50x50`.
+2. Initial state:
+   - snake length `4`
+   - heading `right`
+   - start position centered on board
+3. Collision rules: classic Nokia behavior (wall/self collision = immediate game over).
+4. Apple/scoring:
+   - exactly one apple active
+   - apple spawns only on random empty cell not occupied by snake
+   - score increments by `+1` per eaten apple
+5. Difficulty tick rates:
+   - `slow: 180ms`
+   - `normal: 140ms`
+   - `fast: 110ms`
+6. Progressive speedup:
+   - every `5 apples`, reduce tick interval by `5ms`
+   - hard minimum tick interval: `70ms`
+7. Mouse hold-to-follow behavior (active only while pointer button is pressed):
+   - compute vector from snake head to cursor (`dx`, `dy`)
+   - choose movement axis by larger absolute delta (`|dx|` vs `|dy|`)
+   - if equal, preserve current axis preference
+   - enforce anti-reverse rule (never directly reverse into self)
+8. Additional controls:
+   - desktop keyboard fallback (arrow/WASD)
+   - mobile swipe controls (with anti-reverse rule)
+
+### View and accessibility
+
+1. Visual direction: mostly modern with light retro references.
+2. Reduced motion:
+   - respect system reduced-motion preference
+   - tone down/remove high-intensity animation when reduced motion is active
+3. Adaptive camera/view:
+   - desktop: full board visible (`50x50`)
+   - mobile/tablet: zoomed viewport (`22x22` logical cells) centered on snake head
+   - camera smoothing factor: `0.18` linear interpolation
+   - clamp camera to world bounds
+
+### Persistence schema
+
+1. High score key: `kgp.snakeClassic.highScore`
+2. Settings key: `kgp.snakeClassic.settings.v1`
+3. Settings payload shape:
+   - `difficulty: 'slow' | 'normal' | 'fast'`
+   - `reducedMotionOverride: 'system' | 'on' | 'off'`
+   - `lastControlHint: 'mouse' | 'keyboard' | 'touch'`
 
 ## Phase Plan and Acceptance Criteria
 
@@ -34,101 +102,132 @@ The game must integrate with KGP platform routing and standards while keeping co
 
 Tasks:
 1. Create `games/snake-classic/` with required structure (`contracts`, `web`, `mobile`, `backend-adapter`, `README.md`).
-2. Add web manifest in `games/snake-classic/web/src/module.ts`.
-3. Register route in `frontend/web/src/games/registry.tsx`.
+2. Add manifest in `games/snake-classic/web/src/module.ts` using locked route values.
+3. Register route in `frontend/web/src/games/registry.tsx` and map `snake-classic.board` to snake page element.
 4. Add minimal backend adapter entry required by current loader model.
 5. Add DB metadata/seed + allowlist integration where required by platform path.
 
 Acceptance criteria:
-1. Route is reachable under a stable snake route base.
-2. Manifest ID/route base/route IDs match game ID conventions.
-3. Game appears correctly in platform game exposure path when enabled/allowlisted.
+1. Route is reachable at `/snake-classic` and protected by auth.
+2. Manifest and registry IDs are consistent with `snake-classic`.
+3. Game appears in platform exposure path when enabled/allowlisted.
 4. No conformance/boundary break is introduced.
 
 ### P1 — Core Engine (50x50 Logic)
 
 Tasks:
-1. Implement deterministic game loop tick model.
-2. Implement snake state updates, direction queueing, and legal-turn rules.
-3. Implement collision detection for wall and self.
-4. Implement apple spawn constrained to empty cells.
-5. Implement score increment and game-over state.
+1. Implement deterministic tick loop and state transitions.
+2. Implement movement queue + anti-reverse logic.
+3. Implement collision handling and game-over transitions.
+4. Implement single-apple spawn on empty cells and score increment.
+5. Implement difficulty ticks + progressive speedup with floor.
 
 Acceptance criteria:
-1. Engine behavior is deterministic for the same input sequence.
-2. Wall/self collisions end run immediately.
-3. Apple never spawns inside snake body.
-4. Score increments exactly once per eaten apple.
+1. Engine behavior is deterministic for identical input sequences.
+2. Tick rates and speedup exactly match locked constants.
+3. Collision, spawn, and score behaviors match locked rules.
 
 ### P2 — Input Systems (Desktop + Mobile)
 
 Tasks:
-1. Desktop keyboard fallback (arrow/WASD) plus hold-to-follow mouse control.
-2. Mouse-follow logic chooses valid next direction toward cursor intent without illegal reverse into self.
-3. Mobile swipe controls with safe direction constraints.
-4. Input arbitration rules when multiple input types occur in the same interval.
+1. Desktop keyboard controls plus hold-to-follow mouse mode.
+2. Implement axis-selection/tie-break logic for follow mode.
+3. Implement mobile swipe controls.
+4. Define arbitration order when multiple inputs are present in one interval.
 
 Acceptance criteria:
-1. Hold-to-follow works only while pointer is actively pressed.
-2. Releasing pointer reverts to last valid direction continuity.
-3. Swipe input is responsive and consistent on mobile viewport.
-4. No illegal reverse direction transition occurs.
+1. Follow mode is active only while pointer is pressed.
+2. Cursor-follow chooses direction per locked axis/tie-break rules.
+3. All controls obey anti-reverse constraints.
 
 ### P3 — Rendering, Animation, and Accessibility
 
 Tasks:
-1. Render board/snake/apple on canvas with modern visual effects.
-2. Add animation cues for movement, apple consumption, and game-over transitions.
-3. Add reduced-motion handling for user preference.
-4. Ensure adaptive viewport/camera behavior for 50x50 board.
+1. Render board/snake/apple on canvas.
+2. Add modern visual polish (movement/game-over/consumption effects) within dependency boundary.
+3. Implement adaptive desktop/mobile view behavior and camera smoothing.
+4. Implement reduced-motion handling and override setting.
 
 Acceptance criteria:
-1. Animations are smooth at playable tick rates on standard desktop browsers.
-2. Reduced-motion mode removes or tones down high-intensity effects.
-3. Board remains legible and playable on desktop and mobile.
-4. Visual state always matches engine state.
+1. Visual output matches engine state at all times.
+2. Desktop and mobile view modes behave per locked camera rules.
+3. Reduced-motion behavior is verifiably toned down.
 
 ### P4 — HUD, Difficulty, Persistence
 
 Tasks:
-1. Add score, high score, and difficulty selector UI.
-2. Persist high score + last difficulty/settings in local storage.
-3. Add reset/new game controls and game-over summary UI.
+1. Add HUD for score/high score/difficulty/current state.
+2. Persist high score and settings using locked keys/payload.
+3. Add reset/new game flow and game-over summary.
+4. Track and set `lastControlHint` based on latest meaningful control type.
 
 Acceptance criteria:
-1. High score survives refresh.
-2. Last settings restore on next load.
-3. Reset/new game starts clean state without stale artifacts.
+1. High score and settings persist across refresh.
+2. Difficulty restores from persisted value.
+3. Reset flow clears run-state and starts cleanly.
 
 ### P5 — Platform Compliance and Integration
 
 Tasks:
-1. Ensure protected route behavior and shell compatibility.
-2. Validate compatibility with current game registry and route build process.
-3. Keep points-ready structure (clear future insertion point) without enabling points writes.
+1. Ensure protected-route and KGP shell compatibility.
+2. Keep points-ready seam isolated and no-op in v1.
+3. Validate integration against add-game guide requirements.
 
 Acceptance criteria:
-1. Auth protection remains consistent with platform game routes.
-2. No API/contract drift is introduced for existing games.
-3. Game integration follows add-game guide constraints.
+1. Route remains auth-protected and stable.
+2. No existing API/contracts are altered unintentionally.
+3. No backend gameplay state or points writes are introduced.
 
 ### P6 — Verification, Tests, and Docs Sync
 
 Tasks:
-1. Add/extend unit and web tests for engine, input, and UI state transitions.
-2. Add routed integration/e2e coverage for real user path.
-3. Update required docs after implementation.
+1. Add/extend tests across unit/web/routing/e2e layers.
+2. Re-run required verification commands.
+3. Update required documentation after implementation.
 
 Acceptance criteria:
-1. Required test suites pass.
-2. New game route is validated through at least one end-to-end routed scenario.
-3. Docs reflect actual implemented behavior and verification scope.
+1. Minimum test contract is satisfied and passing.
+2. Docs reflect actual behavior and verification outcomes.
+
+## Minimum Test Contract (Required)
+
+### Engine unit tests
+
+1. movement tick update
+2. anti-reverse direction rule
+3. wall collision game-over
+4. self-collision game-over
+5. apple spawn excludes snake cells
+6. score increment on apple
+7. speedup cadence and minimum tick floor
+
+### Web/component tests
+
+1. start/restart flow
+2. difficulty selection + persistence restore
+3. high-score persistence
+4. reduced-motion behavior
+5. mouse hold-follow control transition
+6. swipe control transition
+
+### Routing/integration tests
+
+1. snake route exists in registry wiring
+2. snake route is auth-protected
+
+### E2E (minimum one routed flow)
+
+1. login
+2. navigate to `/snake-classic`
+3. play and consume at least one apple
+4. trigger game-over
+5. restart game
 
 ## Verification Matrix (for implementation task)
 
 Before edits (baseline):
-1. Run the narrowest meaningful baseline for affected area (`pnpm test:web` minimum).
-2. Note pre-existing failures before making changes.
+1. Run narrow baseline for affected area (`pnpm test:web` minimum).
+2. Record pre-existing failures before code edits.
 
 After edits (required):
 1. Re-run baseline command.
@@ -151,5 +250,5 @@ After edits (required):
 ## Execution Notes
 
 1. Keep context minimal per task (ownership file + nearest tests + immediate integration points).
-2. Avoid large dependency expansion; prefer focused additions only when justified by rendering/input needs.
+2. Avoid dependency expansion beyond allowed list.
 3. Keep route/ID/allowlist consistency strict across all integration points.
