@@ -371,3 +371,15 @@ Verification:
   - `bash -n dev.sh` -> passed
   - `./dev.sh init` -> now fails early with a clear prerequisite message when run under unsupported Node 18 in this environment
   - `./dev.sh server` -> now fails early with a clear unsupported Node message when run under unsupported Node 18 in this environment
+
+## 2026-03-29 22:48 EEST
+
+Summary:
+- Fixed GitHub Actions pnpm setup after the root `package.json` started pinning `pnpm@10.33.0` via `packageManager`.
+- Removed the duplicate hard-coded `version: 9` input from each `pnpm/action-setup@v4` step in `.github/workflows/ci.yml` so CI now uses the repo-declared pnpm version as the single source of truth.
+
+Verification:
+- Before changes:
+  - GitHub Actions `pnpm/action-setup@v4` failed with "Multiple versions of pnpm specified" because workflow config requested pnpm 9 while `package.json` pinned pnpm 10.33.0
+- After changes:
+  - `.github/workflows/ci.yml` no longer declares a second pnpm version alongside the root `packageManager` pin
