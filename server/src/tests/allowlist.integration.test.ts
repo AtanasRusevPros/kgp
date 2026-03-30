@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 
-const DEFAULT_ALLOWED_GAME_IDS = 'flashcards,tic-tac-toe';
+const DEFAULT_ALLOWED_GAME_IDS = 'flashcards,tic-tac-toe,snake-classic';
 
 async function createIsolatedAppWithAllowlist(allowedGameIds: string): Promise<FastifyInstance> {
   const originalAllowedGameIds = process.env['ALLOWED_GAME_IDS'];

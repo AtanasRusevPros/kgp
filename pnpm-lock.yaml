@@ -125,6 +125,12 @@ importers:
         specifier: ^5.5.4
         version: 5.9.3
 
+  games/snake-classic/backend-adapter:
+    devDependencies:
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.3
+
   packages/game-sdk:
     dependencies:
       '@kids-games/shared':
@@ -171,6 +177,9 @@ importers:
       '@kids-games/flashcards-backend-adapter':
         specifier: workspace:*
         version: link:../games/flashcards/backend-adapter
+      '@kids-games/snake-classic-backend-adapter':
+        specifier: workspace:*
+        version: link:../games/snake-classic/backend-adapter
       '@kids-games/shared':
         specifier: workspace:*
         version: link:../packages/shared

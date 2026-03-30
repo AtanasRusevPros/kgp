@@ -173,7 +173,7 @@ pnpm db:seed
 ```
 
 After step 7 the database has:
-- 1 game record (`flashcards`)
+- 3 game records (`flashcards`, `tic-tac-toe`, `snake-classic`)
 - 1 English deck ("English Basics")
 - 20 vocabulary cards with embedded SVG images
 
@@ -460,7 +460,7 @@ JWT_SECRET=change-me-in-production-jwt-secret-min-32-chars
 REFRESH_SECRET=change-me-in-production-refresh-secret-min-32-chars
 
 # Closed-game allowlist / seeded integration client
-ALLOWED_GAME_IDS=flashcards,tic-tac-toe
+ALLOWED_GAME_IDS=flashcards,tic-tac-toe,snake-classic
 FLASHCARDS_CLIENT_SECRET=flashcards-dev-secret
 
 # Valkey / Redis (optional — in-memory fallback used if absent)

@@ -2,12 +2,36 @@ import { render, screen } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { appRoutes } from '../App.js';
 
+const { mockIsLoggedIn } = vi.hoisted(() => ({
+  mockIsLoggedIn: vi.fn(() => true),
+}));
+
 vi.mock('../services/auth.service.js', () => ({
-  isLoggedIn: vi.fn(() => true),
+  isLoggedIn: mockIsLoggedIn,
   logout: vi.fn(),
 }));
 
 describe('app routes', () => {
+  beforeEach(() => {
+    mockIsLoggedIn.mockReturnValue(true);
+  });
+
+  it('renders snake-classic through the protected app route tree', async () => {
+    const router = createMemoryRouter(appRoutes, {
+      initialEntries: ['/snake-classic'],
+    });
+
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByRole('heading', { name: 'Snake Classic' })).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'A 50x50 Nokia-inspired snake board with adaptive camera behavior, hold-to-follow mouse guidance, keyboard and swipe controls, and reduced-motion-aware presentation.',
+      ),
+    ).toBeInTheDocument();
+    expect(await screen.findByRole('application', { name: 'Snake Classic board' })).toBeInTheDocument();
+  });
+
   it('renders tic-tac-toe through the protected app route tree', async () => {
     const router = createMemoryRouter(appRoutes, {
       initialEntries: ['/tic-tac-toe'],

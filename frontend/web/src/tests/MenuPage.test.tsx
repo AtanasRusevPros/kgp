@@ -49,6 +49,26 @@ const MOCK_GAMES = [
     entryMobile: null,
   },
   {
+    id: 'snake-classic',
+    title: 'Snake Classic',
+    description: 'Guide a modern snake run with keyboard, mouse, or touch controls.',
+    iconEmoji: '🐍',
+    status: 'enabled',
+    routeBase: '/snake-classic',
+    integrationMode: 'local',
+    clientTargets: ['web'],
+    capabilities: ['local-play', 'high-score'],
+    apiVersion: 'v1',
+    authPolicy: {
+      requiresUserAuth: true,
+      requiresAppIdentity: false,
+      requiredScopes: [],
+      tokenAudience: 'kids-games-api',
+    },
+    entryWeb: '/snake-classic',
+    entryMobile: null,
+  },
+  {
     id: 'tic-tac-toe',
     title: 'Tic-Tac-Toe',
     description: 'Play a quick browser-local match.',
@@ -87,6 +107,8 @@ describe('MenuPage', () => {
     await waitFor(() => expect(screen.getByText('Flash Cards')).toBeTruthy());
     expect(screen.getByText('Learn words')).toBeTruthy();
     expect(screen.getByText('🃏')).toBeTruthy();
+    expect(screen.getByText('Snake Classic')).toBeTruthy();
+    expect(screen.getByText('Guide a modern snake run with keyboard, mouse, or touch controls.')).toBeTruthy();
     expect(screen.getByText('Tic-Tac-Toe')).toBeTruthy();
     expect(screen.getByText('Play a quick browser-local match.')).toBeTruthy();
   });
@@ -105,6 +127,14 @@ describe('MenuPage', () => {
     await waitFor(() => screen.getByText('Tic-Tac-Toe'));
     await userEvent.click(screen.getByText('Tic-Tac-Toe'));
     expect(mockNavigate).toHaveBeenCalledWith('/tic-tac-toe');
+  });
+
+  it('navigates to snake-classic on game click', async () => {
+    vi.mocked(apiFetch).mockResolvedValue(MOCK_GAMES);
+    render(<MemoryRouter><MenuPage /></MemoryRouter>);
+    await waitFor(() => screen.getByText('Snake Classic'));
+    await userEvent.click(screen.getByText('Snake Classic'));
+    expect(mockNavigate).toHaveBeenCalledWith('/snake-classic');
   });
 
   it('shows error message when API fails', async () => {

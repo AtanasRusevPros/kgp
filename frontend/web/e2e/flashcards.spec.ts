@@ -7,41 +7,99 @@
  * Skip in CI by not including this suite (CI runs unit/integration only).
  */
 import { test, expect } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
-const TEST_EMAIL = `e2e-${Date.now()}@e2e-test.local`;
-const TEST_EMAIL_NEW = `e2e-new-${Date.now()}@e2e-test.local`;
 const TEST_PASSWORD = 'E2ePass123!';
 const TEST_NAME = 'E2E User';
 
-function getApiUrl(): string {
-  if (process.env['E2E_API_URL']) {
-    return process.env['E2E_API_URL'];
-  }
-
-  const stackBaseUrl = process.env['BASE_URL_STACK'];
-  if (stackBaseUrl) {
-    return new URL('/api', stackBaseUrl).toString().replace(/\/$/, '');
-  }
-
-  return 'http://localhost:3000';
+async function registerAndLoginViaUi(
+  page: Page,
+  email: string,
+): Promise<void> {
+  await page.goto('/register');
+  await page.getByLabel(/email/i).fill(email);
+  await page.getByLabel(/password/i).fill(TEST_PASSWORD);
+  await page.getByLabel(/your name/i).fill(TEST_NAME);
+  await page.getByRole('button', { name: /create account/i }).click();
+  await expect(page).toHaveURL('/');
 }
 
-const API_URL = getApiUrl();
+async function readSnakeBoardState(board: Locator) {
+  return await board.evaluate((node) => ({
+    score: Number(node.getAttribute('data-score') ?? '0'),
+    status: node.getAttribute('data-status') ?? 'running',
+    direction: node.getAttribute('data-direction') ?? 'right',
+    headX: Number(node.getAttribute('data-head-x') ?? '-1'),
+    headY: Number(node.getAttribute('data-head-y') ?? '-1'),
+    appleX: Number(node.getAttribute('data-apple-x') ?? '-1'),
+    appleY: Number(node.getAttribute('data-apple-y') ?? '-1'),
+  }));
+}
+
+function toArrowKey(direction: string): 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight' {
+  switch (direction) {
+    case 'up':
+      return 'ArrowUp';
+    case 'down':
+      return 'ArrowDown';
+    case 'left':
+      return 'ArrowLeft';
+    default:
+      return 'ArrowRight';
+  }
+}
+
+function isOppositeDirection(
+  current: string,
+  next: 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight',
+): boolean {
+  return (
+    (current === 'up' && next === 'ArrowDown')
+    || (current === 'down' && next === 'ArrowUp')
+    || (current === 'left' && next === 'ArrowRight')
+    || (current === 'right' && next === 'ArrowLeft')
+  );
+}
+
+function chooseSnakeKey(state: {
+  direction: string;
+  headX: number;
+  headY: number;
+  appleX: number;
+  appleY: number;
+}): 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight' {
+  const horizontal =
+    state.appleX === state.headX
+      ? null
+      : state.appleX > state.headX
+        ? 'ArrowRight'
+        : 'ArrowLeft';
+  const vertical =
+    state.appleY === state.headY
+      ? null
+      : state.appleY > state.headY
+        ? 'ArrowDown'
+        : 'ArrowUp';
+
+  if (horizontal && !isOppositeDirection(state.direction, horizontal)) {
+    return horizontal;
+  }
+
+  if (vertical && !isOppositeDirection(state.direction, vertical)) {
+    return vertical;
+  }
+
+  return state.direction === 'left' || state.direction === 'right'
+    ? 'ArrowUp'
+    : 'ArrowLeft';
+}
 
 test.describe('Flashcards e2e flow', () => {
-  test.beforeAll(async ({ request }) => {
-    // Register a fresh user via the API directly
-    const res = await request.post(`${API_URL}/auth/register`, {
-      data: { email: TEST_EMAIL, password: TEST_PASSWORD, displayName: TEST_NAME },
-    });
-    if (!res.ok()) {
-      throw new Error(`Setup failed: could not register test user (${res.status()})`);
-    }
-  });
-
   test('register and login flow', async ({ page }) => {
+    const testEmail = `e2e-register-${Date.now()}@e2e-test.local`;
+
     await page.goto('/register');
-    await page.getByLabel(/email/i).fill(TEST_EMAIL_NEW);
+    await page.getByLabel(/email/i).fill(testEmail);
     await page.getByLabel(/password/i).fill(TEST_PASSWORD);
     await page.getByLabel(/your name/i).fill(TEST_NAME);
     await page.getByRole('button', { name: /create account/i }).click();
@@ -51,12 +109,8 @@ test.describe('Flashcards e2e flow', () => {
   });
 
   test('login, open deck, browse cards, mark known, verify progress persists', async ({ page }) => {
-    // 1. Login
-    await page.goto('/login');
-    await page.getByLabel(/email/i).fill(TEST_EMAIL);
-    await page.getByLabel(/password/i).fill(TEST_PASSWORD);
-    await page.getByRole('button', { name: /sign in/i }).click();
-    await expect(page).toHaveURL('/');
+    const testEmail = `e2e-flashcards-${Date.now()}@e2e-test.local`;
+    await registerAndLoginViaUi(page, testEmail);
 
     // 2. Navigate to flashcards
     await page.getByText('Flash Cards').click();
@@ -89,11 +143,8 @@ test.describe('Flashcards e2e flow', () => {
   });
 
   test('blocks unsupported game routes', async ({ page }) => {
-    await page.goto('/login');
-    await page.getByLabel(/email/i).fill(TEST_EMAIL);
-    await page.getByLabel(/password/i).fill(TEST_PASSWORD);
-    await page.getByRole('button', { name: /sign in/i }).click();
-    await expect(page).toHaveURL('/');
+    const testEmail = `e2e-blocked-${Date.now()}@e2e-test.local`;
+    await registerAndLoginViaUi(page, testEmail);
 
     await page.goto('/spelling-bee');
 
@@ -114,21 +165,60 @@ test.describe('Flashcards e2e flow', () => {
   });
 
   test('login and play the first tic-tac-toe move through the live route', async ({ page }) => {
-    await page.goto('/login');
-    await page.getByLabel(/email/i).fill(TEST_EMAIL);
-    await page.getByLabel(/password/i).fill(TEST_PASSWORD);
-    await page.getByRole('button', { name: /sign in/i }).click();
-    await expect(page).toHaveURL('/');
+    const testEmail = `e2e-ttt-${Date.now()}@e2e-test.local`;
+    await registerAndLoginViaUi(page, testEmail);
 
     await page.goto('/tic-tac-toe');
     await expect(page).toHaveURL('/tic-tac-toe');
     await expect(page.getByRole('heading', { name: 'Tic-Tac-Toe' })).toBeVisible();
-    await expect(page.getByText('Current player: X')).toBeVisible();
+    await expect(page.getByText("Player X's Turn")).toBeVisible();
 
     const firstCell = page.getByRole('button', { name: 'Cell 1' });
     await firstCell.click();
 
     await expect(firstCell).toContainText('X');
-    await expect(page.getByText('Current player: O')).toBeVisible();
+    await expect(page.getByText("Player O's Turn")).toBeVisible();
+  });
+
+  test('login, play snake-classic through the live route, and restart after game over', async ({ page }) => {
+    const testEmail = `e2e-snake-${Date.now()}@e2e-test.local`;
+    await registerAndLoginViaUi(page, testEmail);
+
+    await page.goto('/snake-classic');
+    await expect(page).toHaveURL('/snake-classic');
+    await expect(page.getByRole('heading', { name: 'Snake Classic' })).toBeVisible();
+
+    const board = page.getByRole('application', { name: 'Snake Classic board' });
+    await expect(board).toBeVisible();
+    let snakeState = await readSnakeBoardState(board);
+    for (let step = 0; step < 80 && snakeState.score < 1 && snakeState.status === 'running'; step += 1) {
+      await page.keyboard.press(chooseSnakeKey(snakeState));
+      await page.waitForTimeout(180);
+      snakeState = await readSnakeBoardState(board);
+    }
+
+    expect(snakeState.score).toBe(1);
+
+    await page.keyboard.press(toArrowKey(snakeState.direction));
+
+    await expect
+      .poll(async () => (await readSnakeBoardState(board)).status, {
+        timeout: 8_000,
+        intervals: [100, 120, 140, 160],
+      })
+      .toBe('game-over');
+
+    await page.getByRole('button', { name: 'New run' }).click();
+
+    await expect
+      .poll(async () => (await readSnakeBoardState(board)).status, {
+        timeout: 2_000,
+      })
+      .toBe('running');
+    await expect
+      .poll(async () => (await readSnakeBoardState(board)).score, {
+        timeout: 2_000,
+      })
+      .toBe(0);
   });
 });

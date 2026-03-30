@@ -8,7 +8,7 @@ Every entry is evidence-backed with file paths, script names, or endpoint refere
 > **Modularity execution tracker:** [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
 > **In-progress test-orchestration follow-up:** [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](../ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
 
-Updated: 2026-03-29 23:06 EEST
+Updated: 2026-03-30 12:02 EEST
 
 ## 2026 Modularity Rework Snapshot
 Current effective state:
@@ -23,6 +23,7 @@ Implemented highlights:
 5. Game module structure and architecture boundary checks wired into CI, including target topology roots.
 6. Tic-tac-toe now uses a Figma-inspired responsive motion UI with animated marks, local scorekeeping, and confetti celebration while preserving browser-local gameplay.
 7. Tic-tac-toe now also includes a user-facing effects toggle that overrides reduced-motion for celebratory effects when enabled, so motion, hover feedback, and confetti can be turned on or off without leaving the game.
+8. Snake Classic is now implemented as a third browser-local game with a 50x50 canvas board, keyboard + hold-follow mouse + swipe controls, adaptive camera behavior, persistent high score/settings, and routed/e2e verification through the current KGP game registry model.
 
 ---
 
@@ -39,7 +40,7 @@ Implemented highlights:
 
 ## Executive Summary
 
-The MVP remains usable and the automated suite is green, and the canonical runtime now lives under `server/` and `frontend/web/`; the main remaining platform work is future-game guidance, mobile readiness, and the remaining test-orchestration follow-up.
+The MVP remains usable and the automated suite is green, and the canonical runtime now lives under `server/` and `frontend/web/`; the platform now exposes three shipped games (`flashcards`, `tic-tac-toe`, and `snake-classic`) while the main remaining platform work stays focused on future-game guidance, mobile readiness, and the remaining test-orchestration follow-up.
 
 | Dimension | Status |
 |-----------|--------|
@@ -47,7 +48,7 @@ The MVP remains usable and the automated suite is green, and the canonical runti
 | Auth (register/login/refresh/logout) | Complete |
 | Podman container stack | Complete |
 | CI pipeline (GitHub Actions) | Complete |
-| Test suite | 203 tests passing (unit + integration + web + E2E) |
+| Test suite | 228 tests passing (unit + integration + web + E2E) |
 | Ops tooling (backup/restore, stack E2E) | Complete (added post-MVP) |
 | Documentation | Implemented, with canonical `server/` and `frontend/*` runtime docs aligned |
 
@@ -113,8 +114,8 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | `GET /games` | Implemented | `server/src/routes/games.ts` |
 | `GET /games/:gameId` | Implemented | Returns 404 for unknown ID |
 | Game menu UI | Implemented | `frontend/web/src/pages/MenuPage.tsx` |
-| Game plugin registry | Partial | Web shell uses a registry-driven route build, and backend now registers allowlisted enabled adapters through a stricter loader path, but the system is still limited to the current built-in adapter set rather than a fuller dynamic module ecosystem |
-| Second game (beyond flashcards) | Deferred | Placeholder in menu; implementation is future work |
+| Game plugin registry | Partial | Web shell uses a registry-driven route build, and backend now registers allowlisted enabled adapters through a stricter loader path for flashcards, tic-tac-toe, and snake-classic, but the system is still limited to the current built-in adapter set rather than a fuller dynamic module ecosystem |
+| Additional browser-local games | Implemented | `tic-tac-toe` and `snake-classic` are both seeded, allowlisted, registered in the web shell, and covered by routed tests |
 
 ### Rate Limiting
 
@@ -148,7 +149,8 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 |---------|--------|----------|
 | Flashcards | Implemented | Full API + UI |
 | Tic-Tac-Toe | Implemented | Web-only local-state second game integrated through seed metadata, allowlist exposure, web manifest, minimal backend adapter, and a Figma-inspired motion UI with local scorekeeping |
-| Any other game | Deferred | Architecture supports more games beyond the current two |
+| Snake Classic | Implemented | Web-only local-state third game integrated through seed metadata, allowlist exposure, web manifest, minimal backend adapter, adaptive canvas rendering, persistent settings/high score, and routed e2e coverage |
+| Any other game | Deferred | Architecture supports more games beyond the current three |
 
 ---
 
@@ -180,11 +182,11 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | Shared schemas | vitest | 10 | No | `unit-tests` | Zod schema validation |
 | Game SDK | vitest | 1 | No | `unit-tests` | Type export check |
 | API unit | vitest | 30 | No | `unit-tests` | Auth service logic, health route, mappers, server lifecycle, adapter-loader validation, app startup adapter registration |
-| Web components | vitest + jsdom | 79 | No | `web-tests` | All pages, services, hooks, unsupported-game route blocking, tic-tac-toe gameplay UI |
-| API integration | vitest + pg | 81 | Yes (test DB) | `integration-tests` | All routes, repos, schema, seed, points, internal health, allowlist blocking, second-game metadata exposure |
-| E2E (dev mode) | Playwright | 3 | Yes (test DB + API runtime) | `e2e` (manual) | Use `./dev.sh test:e2e` to create an isolated test DB, start API, and run via Vite dev server |
-| E2E (stack mode) | Playwright | 3 | Yes (full stack) | Manual (`pnpm test:e2e:stack`) | Same suite against Podman+Caddy stack via Caddy `/api` proxy |
-| **Total automated** | | **207** | | | |
+| Web components | vitest + jsdom | 94 | No | `web-tests` | All pages, services, hooks, unsupported-game route blocking, tic-tac-toe gameplay UI, snake engine/page/route wiring |
+| API integration | vitest + pg | 83 | Yes (test DB) | `integration-tests` | All routes, repos, schema, seed, points, internal health, allowlist blocking, and snake metadata/allowlist exposure |
+| E2E (dev mode) | Playwright | 5 | Yes (test DB + API runtime) | `e2e` (manual) | Use `./dev.sh test:e2e` to create an isolated test DB, start API, and run flashcards, blocked-route, tic-tac-toe, and snake-classic browser flows via Vite dev server |
+| E2E (stack mode) | Playwright | 5 | Yes (full stack) | Manual (`pnpm test:e2e:stack`) | Same suite against Podman+Caddy stack via Caddy `/api` proxy |
+| **Total automated** | | **228** | | | |
 
 **Config files:**
 - Dev E2E: `frontend/web/playwright.config.ts`

@@ -1,6 +1,6 @@
-# Snake Classic Implementation Plan (Pending)
+# Snake Classic Implementation Plan (Completed)
 
-Status: PENDING  
+Status: COMPLETED  
 Created: 2026-03-29 23:20 EET  
 Owner: Autonomous agents + maintainers  
 Reference: `docs/add-game-guide.md`
@@ -9,6 +9,16 @@ Reference: `docs/add-game-guide.md`
 
 Implement a new browser-local game module, `snake-classic`, inspired by old Nokia Snake with modern visuals and motion.
 The game must integrate with KGP platform routing and standards while keeping context and scope tight.
+
+## Completion Update (timestamped)
+
+Updated: 2026-03-30 12:02 EEST
+
+Implemented outcome:
+1. `snake-classic` is now seeded, allowlisted, adapter-backed, and registered in the protected web game registry.
+2. The live web route now ships a 50x50 adaptive canvas board with keyboard, hold-follow mouse, and swipe/touch guidance.
+3. Persistent settings/high-score storage, reduced-motion handling, and the points-ready no-op seam are implemented.
+4. Verification completed with passing typecheck, web, integration, boundary, conformance, and routed e2e checks.
 
 ## Decision Lock Update (timestamped)
 

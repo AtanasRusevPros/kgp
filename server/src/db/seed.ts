@@ -188,6 +188,26 @@ async function seed() {
     });
     console.log('✓ Upserted game: tic-tac-toe');
 
+    await upsertGame(client, {
+      id: 'snake-classic',
+      title: 'Snake Classic',
+      description: 'A modernized Nokia-inspired snake run with adaptive camera controls and persistent high score tracking.',
+      iconEmoji: '🐍',
+      status: 'enabled',
+      routeBase: '/snake-classic',
+      integrationMode: 'local',
+      clientTargets: ['web'],
+      capabilities: ['local-play', 'high-score'],
+      apiVersion: 'v1',
+      requiresUserAuth: true,
+      requiresAppIdentity: false,
+      requiredScopes: [],
+      tokenAudience: 'kids-games-api',
+      entryWeb: '/snake-classic',
+      entryMobile: null,
+    });
+    console.log('✓ Upserted game: snake-classic');
+
     const defaultClientId = 'flashcards-web-dev';
     const defaultClientSecret =
       process.env['FLASHCARDS_CLIENT_SECRET'] ?? 'flashcards-dev-secret';

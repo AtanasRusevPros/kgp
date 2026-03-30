@@ -1,19 +1,31 @@
 /**
  * Integration tests for /games routes.
  */
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createApp } from '../app.js';
-import { testConfig } from '../config.js';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 
 let app: FastifyInstance;
+const DEFAULT_ALLOWED_GAME_IDS = 'flashcards,tic-tac-toe,snake-classic';
+const ORIGINAL_ALLOWED_GAME_IDS = process.env['ALLOWED_GAME_IDS'];
 
 beforeAll(async () => {
+  process.env['ALLOWED_GAME_IDS'] = DEFAULT_ALLOWED_GAME_IDS;
+  vi.resetModules();
+
+  const { createApp } = await import('../app.js');
+  const { testConfig } = await import('../config.js');
   app = await createApp({ logger: false, databaseUrl: testConfig.databaseUrl });
 });
 
 afterAll(async () => {
   await app.close();
+  vi.resetModules();
+  if (ORIGINAL_ALLOWED_GAME_IDS === undefined) {
+    delete process.env['ALLOWED_GAME_IDS'];
+    return;
+  }
+
+  process.env['ALLOWED_GAME_IDS'] = ORIGINAL_ALLOWED_GAME_IDS;
 });
 
 describe('GET /games', () => {
@@ -109,6 +121,31 @@ describe('GET /games/:gameId', () => {
     expect(game.id).toBe('tic-tac-toe');
     expect(game.routeBase).toBe('/tic-tac-toe');
     expect(game.capabilities).toEqual(['local-play']);
+    expect(game.authPolicy).toEqual({
+      requiresUserAuth: true,
+      requiresAppIdentity: false,
+      requiredScopes: [],
+      tokenAudience: 'kids-games-api',
+    });
+  });
+
+  it('returns snake-classic as a local web-only game with score persistence metadata', async () => {
+    const res = await app.inject({ method: 'GET', url: '/games/snake-classic' });
+    expect(res.statusCode).toBe(200);
+    const game = res.json<{
+      id: string;
+      routeBase: string;
+      capabilities: string[];
+      authPolicy: {
+        requiresUserAuth: boolean;
+        requiresAppIdentity: boolean;
+        requiredScopes: string[];
+        tokenAudience: string;
+      };
+    }>();
+    expect(game.id).toBe('snake-classic');
+    expect(game.routeBase).toBe('/snake-classic');
+    expect(game.capabilities).toEqual(['local-play', 'high-score']);
     expect(game.authPolicy).toEqual({
       requiresUserAuth: true,
       requiresAppIdentity: false,

@@ -28,13 +28,36 @@ Current limits you must respect:
 For any new game, do all of the following:
 1. choose one stable game ID in lowercase kebab-case
 2. create the full `games/<gameId>/...` layout
-3. add DB seed metadata for the game
-4. add the game ID to `ALLOWED_GAME_IDS` only in environments where it should be reachable
-5. add the web manifest at `games/<gameId>/web/src/module.ts`
-6. register the game in `frontend/web/src/games/registry.tsx`
-7. add or extend the backend adapter path as required by the game type
-8. add the required tests, including e2e or another applicable end-to-end path for every real user-facing game route
-9. update the required docs
+3. at task provision, explicitly decide whether the game should be enabled in the active runtime when implementation is complete
+4. add DB seed metadata for the game
+5. add the game ID to `ALLOWED_GAME_IDS` only in environments where it should be reachable
+6. add the web manifest at `games/<gameId>/web/src/module.ts`
+7. register the game in `frontend/web/src/games/registry.tsx`
+8. add or extend the backend adapter path as required by the game type
+9. add the required tests, including e2e or another applicable end-to-end path for every real user-facing game route
+10. update the required docs
+
+## Exposure decision required
+
+Updated: 2026-03-30 12:32 EEST
+
+Treat implementation and runtime exposure as separate decisions.
+
+At task provision, ask whether the new game should be enabled in the active runtime when implementation is complete.
+Lock that answer into the plan before coding.
+
+If the user wants the game enabled immediately:
+1. ensure the game is seeded and enabled in `server/src/db/seed.ts`
+2. add the game ID to `server/.env.example`
+3. update the active runtime env (`server/.env` or deployment env) so `ALLOWED_GAME_IDS` includes the new game ID
+4. re-seed the database so the new game metadata exists in the running DB
+5. restart the API or stack so the updated env is actually loaded
+6. treat this as part of the same implementation task whenever the agent has access to the active runtime env
+
+If the user does not want immediate exposure:
+1. complete the game code, tests, and docs normally
+2. leave the active runtime env allowlist unchanged
+3. state clearly in the handoff that the game will remain hidden from `/games` and the homepage until allowlist + seed + restart are performed
 
 ## Completion criteria
 

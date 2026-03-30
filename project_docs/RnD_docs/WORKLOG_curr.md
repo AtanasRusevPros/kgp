@@ -437,3 +437,53 @@ Verification:
 - After edits:
   - `pnpm test:web` -> passed, 79 web tests
   - `pnpm typecheck` -> passed across all workspace packages
+
+## 2026-03-30 11:22 EEST
+
+Summary:
+- Switched Tic-Tac-Toe from the dark neon palette to a light pastel palette while preserving the same gameplay, layout structure, motion model, and effects toggle behavior.
+- Kept the existing visual identity cues (fuchsia/cyan player tones, glass-style cards, animated marks), but remapped surfaces, borders, shadows, and typography contrast for light-theme readability.
+- Left route contracts, game logic, and persistence behavior unchanged.
+
+Verification:
+- Before edits:
+  - `pnpm test:web` -> passed, 79 web tests
+- After edits:
+  - `pnpm test:web` -> passed, 79 web tests
+
+## 2026-03-30 12:02 EEST
+
+Summary:
+- Implemented `snake-classic` as a fully integrated browser-local third game under the current KGP modularity model.
+- Added the required `games/snake-classic/` module structure, manifest, engine, storage helpers, no-op run-summary seam, and minimal backend adapter.
+- Registered Snake Classic through the central web game registry, backend adapter loader, DB seed metadata, and default allowlist/config paths without changing existing game route contracts.
+- Added adaptive 50x50 canvas gameplay with keyboard, hold-follow mouse, and swipe/touch controls, plus persistent high score/settings and reduced-motion-aware behavior.
+- Extended verification coverage across web route tests, engine/page tests, API integration tests, and routed Playwright coverage for the live Snake route.
+- Updated the core docs and tracker status to reflect that Snake Classic is now implemented.
+- Because this environment could not refresh workspace metadata from the public registry, the new workspace lockfile entries for the Snake backend adapter were synced manually to match the existing flashcards/tic-tac-toe patterns after `pnpm install` and `pnpm install --lockfile-only --offline` both failed on `typescript` metadata fetch.
+
+Verification:
+- Before edits:
+  - `pnpm test:web` -> passed, 79 web tests
+  - `pnpm typecheck` -> passed across all workspace packages
+  - `./dev.sh test:int` -> passed, 81 integration tests
+- After edits:
+  - `pnpm boundary:check` -> passed
+  - `pnpm games:conformance` -> passed
+  - `pnpm typecheck` -> passed across all workspace packages
+  - `pnpm test:web` -> passed, 94 web tests
+  - `./dev.sh test:int` -> passed, 83 integration tests
+  - `./dev.sh test:e2e` -> passed, 5 Playwright e2e tests
+
+## 2026-03-30 12:27 EEST
+- Updated `docs/add-game-guide.md` to treat post-implementation game exposure as an explicit user decision instead of an automatic final step.
+- Documented the enable-now path for new games: add the new game ID to `server/.env.example`, update the active runtime allowlist in `server/.env` or deployment env, re-seed the database, and restart the API or full stack so the game appears in `/games` and on the homepage.
+- Documented the keep-hidden path so agents can finish code, tests, and docs without changing the active runtime allowlist, while clearly reporting that the game remains hidden until allowlist + seed + restart are completed.
+
+## 2026-03-30 12:32 EEST
+- Refined `docs/add-game-guide.md` so the new-game exposure decision is taken at task provision instead of at final handoff.
+- Clarified that if the user approves immediate exposure up front, the same implementation task should carry the full enablement path through seed metadata, `.env.example`, active runtime allowlist, DB reseed, and API/stack restart without another user prompt.
+
+## 2026-03-30 12:36 EEST
+- Shortened the `docs/add-game-guide.md` exposure-decision section so it keeps the same behavior with less agent context overhead.
+- Kept the same execution contract: ask at task provision, lock the answer into the plan, and if enabled complete seed + allowlist + reseed + restart in the same task.
