@@ -487,3 +487,26 @@ Verification:
 ## 2026-03-30 12:36 EEST
 - Shortened the `docs/add-game-guide.md` exposure-decision section so it keeps the same behavior with less agent context overhead.
 - Kept the same execution contract: ask at task provision, lock the answer into the plan, and if enabled complete seed + allowlist + reseed + restart in the same task.
+
+## 2026-04-01 23:55 EEST
+
+Summary:
+- Hardened the local Podman developer workflow against two host-environment failure classes seen during cross-distro onboarding verification.
+- Added `scripts/podman-env.sh` and sourced it from `dev.sh` plus `scripts/dev-db.sh` so Podman commands automatically normalize clearly sandboxed Snap/Flatpak XDG paths back to the real Linux home only when those broken paths are detected.
+- Extended `scripts/dev-db.sh` to detect rootless Podman networking failures around `pasta` and `/dev/net/tun`, then print a precise fallback recommendation using per-user `slirp4netns` configuration instead of failing with an opaque Podman error.
+- Updated `README.md` and `project_docs/RnD_docs/USAGE.md` so the supported Podman requirement stays `4.x+`, the Snap/Flatpak storage-path workaround is documented, and Podman 5 rootless-network fallback guidance is available during setup/troubleshooting.
+
+Verification:
+- Baseline before edits:
+  - `bash -n dev.sh` -> passed
+  - `bash -n scripts/dev-db.sh` -> passed
+- After edits:
+  - `bash -n dev.sh` -> passed
+  - `bash -n scripts/dev-db.sh` -> passed
+  - `bash -n scripts/podman-env.sh` -> passed
+  - `git diff --check` -> passed
+  - simulated Snap-style XDG environment -> confirmed normalization back to `/home/luke/.local/share` and `/home/luke/.config`
+  - live host validation on Manjaro after reboot -> `./dev.sh init` succeeded with rootless Podman using `slirp4netns` and graph root `/home/luke/.local/share/containers/storage`
+
+Commit message:
+`harden podman onboarding across snap and rootless network quirks`

@@ -3,12 +3,68 @@
 # Usage: ./scripts/dev-db.sh [start|stop|reset]
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/podman-env.sh"
+kg_prepare_podman_env
+
 CONTAINER_NAME="${KG_DB_CONTAINER_NAME:-kids-games-postgres}"
 POSTGRES_PASSWORD="${KG_DB_POSTGRES_PASSWORD:-postgres}"
 POSTGRES_USER="${KG_DB_POSTGRES_USER:-postgres}"
 HOST_PORT="${KG_DB_HOST_PORT:-5432}"
 DEV_DATABASE_NAME="${KG_DB_DEV_DATABASE_NAME:-kids_games_dev}"
 TEST_DATABASE_NAME="${KG_DB_TEST_DATABASE_NAME:-kids_games_test}"
+
+podman_network_troubleshooting() {
+  cat >&2 <<EOF
+✗ Rootless Podman networking failed while starting the Postgres container.
+  Detected a 'pasta' networking error that usually means this host cannot use
+  Podman 5's default rootless backend on the current kernel/network setup.
+
+  Supported project requirement:
+  - Podman 4.x or later
+  - Rootless networking must work with either:
+    - the default backend for your Podman version, or
+    - an explicit 'slirp4netns' fallback
+
+  Recommended fix on Linux hosts like this one:
+
+    mkdir -p ~/.config/containers
+    cat > ~/.config/containers/containers.conf <<'EOC'
+    [network]
+    default_rootless_network_cmd = "slirp4netns"
+    EOC
+
+    ./scripts/dev-db.sh reset
+    ./scripts/dev-db.sh start
+
+  If the host still fails after that, verify 'slirp4netns' is installed and
+  that rootless Podman networking works outside this repo as well.
+EOF
+}
+
+run_podman_with_network_hint() {
+  local output status
+
+  set +e
+  output="$("$@" 2>&1)"
+  status=$?
+  set -e
+
+  if (( status == 0 )); then
+    [[ -n "$output" ]] && printf '%s\n' "$output"
+    return 0
+  fi
+
+  printf '%s\n' "$output" >&2
+
+  if [[ "$output" == *"pasta failed with exit code 1"* ]] || \
+     [[ "$output" == *"Failed to open() /dev/net/tun"* ]] || \
+     [[ "$output" == *"Failed to set up tap device in namespace"* ]]; then
+    podman_network_troubleshooting
+  fi
+
+  return "$status"
+}
 
 is_project_managed_conflict() {
   local name="$1"
@@ -74,10 +130,10 @@ case "$cmd" in
 
     if [[ -n "$_exists" ]]; then
       echo "→ Starting existing container..."
-      podman start "$CONTAINER_NAME"
+      run_podman_with_network_hint podman start "$CONTAINER_NAME"
     else
       echo "→ Creating and starting Postgres container..."
-      podman run -d \
+      run_podman_with_network_hint podman run -d \
         --name "$CONTAINER_NAME" \
         -e POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
         -e POSTGRES_USER="$POSTGRES_USER" \

@@ -126,7 +126,7 @@ Ubuntu 24.04 package checklist for this project (reviewed 2026-03-29):
 | Node.js | 20.x | 24.x or later recommended for local development |
 | pnpm | 9.x | Corepack recommended; repo currently pins `pnpm@10.33.0` |
 | PostgreSQL | 16.x | Or use Podman (no local install needed) |
-| Podman | 4.x | Only for container-based stack |
+| Podman | 4.x | Podman 4.x and 5.x are supported for container-based flows; Podman 5 rootless networking may need a `slirp4netns` fallback on some Linux hosts |
 | podman-compose | 1.x | `pip install podman-compose` |
 
 Typical Ubuntu 24.04 install:
@@ -138,6 +138,18 @@ pip install podman-compose
 ```
 
 Then install Node.js 20 or later and enable pnpm with Corepack. Node.js 24.x or later is recommended.
+
+Podman rootless networking note (2026-04-01): Podman 4.x and 5.x are both supported by this project. Some Linux hosts with Podman 5 default to the `pasta` rootless network backend, which can fail if the host kernel/network setup does not support it cleanly. If `./scripts/dev-db.sh start` or `./dev.sh init` fails with `pasta failed`, configure Podman to use `slirp4netns` instead:
+
+```bash
+mkdir -p ~/.config/containers
+cat > ~/.config/containers/containers.conf <<'EOF'
+[network]
+default_rootless_network_cmd = "slirp4netns"
+EOF
+./scripts/dev-db.sh reset
+./scripts/dev-db.sh start
+```
 
 > **No PostgreSQL locally?** Use Option B (Podman) which spins up the DB in a container, or run just the DB container with `./scripts/dev-db.sh`.
 
@@ -350,5 +362,6 @@ curl http://localhost:3000/flashcards/decks
 | `Cannot find module` in web tests | Shared packages not built | `pnpm --filter @kids-games/shared build` |
 | 502 Bad Gateway from Caddy | API container not healthy | `./dev.sh stack:logs api` |
 | `pnpm install` fails | Cache corruption | `pnpm store prune && rm -rf node_modules **/node_modules && pnpm install` |
+| `overlay is not supported` from Podman storage under `~/snap/...` or `~/.var/app/...` | VS Code Snap/Flatpak terminal exported sandboxed XDG paths for rootless Podman storage | Repo Podman helpers now normalize to the real Linux home (2026-03-30); rerun `./dev.sh init` or `./scripts/dev-db.sh start` from a fresh shell if you hit this after upgrading |
 
 For full troubleshooting scenarios and playbooks, see [USAGE.md](project_docs/RnD_docs/USAGE.md).

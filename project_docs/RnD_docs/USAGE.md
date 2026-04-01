@@ -647,6 +647,20 @@ podman system migrate
 podman info | grep rootless
 ```
 
+2026-03-30 note: if Podman reports `overlay is not supported` and the storage path points into `~/snap/...` or `~/.var/app/...`, the terminal likely inherited sandboxed XDG paths from a VS Code Snap/Flatpak session. The repo's Podman entrypoints now normalize those paths back to your real Linux home automatically; rerun `./dev.sh init`, `./scripts/dev-db.sh start`, or the stack command from a fresh shell after updating.
+
+2026-04-01 note: Podman 4.x and 5.x are both supported. On some Linux hosts, Podman 5 defaults to the `pasta` rootless backend and may fail with errors like `Failed to open() /dev/net/tun` or `Failed to set up tap device in namespace`. If that happens, configure a per-user fallback to `slirp4netns`:
+
+```bash
+mkdir -p ~/.config/containers
+cat > ~/.config/containers/containers.conf <<'EOF'
+[network]
+default_rootless_network_cmd = "slirp4netns"
+EOF
+./scripts/dev-db.sh reset
+./scripts/dev-db.sh start
+```
+
 ---
 
 ## Scenario Playbooks

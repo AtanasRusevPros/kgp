@@ -10,6 +10,11 @@ TEST_DB_CONTAINER_NAME=""
 TEST_DB_HOST_PORT=""
 TEST_DB_CONTAINER_CREATED="0"
 
+# Keep Podman rootless storage/config on the real Linux home even when the
+# terminal inherits Snap/Flatpak-scoped XDG paths from desktop app sandboxes.
+source "$PROJ/scripts/podman-env.sh"
+kg_prepare_podman_env
+
 # ── helpers ──────────────────────────────────────────────────────────────────
 
 ok()   { echo "✓ $*"; }
