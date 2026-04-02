@@ -396,3 +396,13 @@ Progress update:
 Implication:
 1. Stack overhead exists, but the auth gap cannot be interpreted as pure proxy/container cost because the stack uses production bcrypt settings.
 2. The next phase should focus on broader load tiers and capacity modeling with the current measured checkpoints as inputs.
+
+## 2026-04-02 10:05 EEST
+
+Progress update:
+1. Broader direct-load tiers are complete for `50`, `100`, `250`, `500`, and `1000` users.
+2. A current status report and a dedicated capacity model now exist alongside the earlier baseline and optimization reports.
+
+Implication:
+1. The current plan has enough measured evidence to close the initial performance program milestone.
+2. Future work should now target the documented bottlenecks rather than reopen broad exploratory profiling from scratch.

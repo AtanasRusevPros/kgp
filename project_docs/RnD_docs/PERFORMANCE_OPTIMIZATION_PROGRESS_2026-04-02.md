@@ -137,3 +137,18 @@ Findings:
 
 Reference:
 1. `project_docs/RnD_docs/PERFORMANCE_STACK_ANALYSIS_2026-04-02.md`
+
+## 2026-04-02 10:05 EEST
+
+### Capacity-model checkpoint
+
+Broader direct API tiers have now been collected for `50`, `100`, `250`, `500`, and `1000` concurrent users.
+
+High-level result:
+1. read-heavy routes remain the most scalable on the current single-node shape
+2. login throughput plateaus early because password hashing dominates
+3. progress-write latency bends sharply around the `250-500` user range
+
+References:
+1. `project_docs/RnD_docs/PERFORMANCE_STATUS_REPORT_2026-04-02.md`
+2. `project_docs/RnD_docs/PERFORMANCE_CAPACITY_MODEL_2026-04-02.md`

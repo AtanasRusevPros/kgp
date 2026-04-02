@@ -648,3 +648,28 @@ Artifacts:
 Next focus:
 - run broader load tiers and capacity modeling
 - update the before/after reporting with the current measured checkpoints
+
+## 2026-04-02 10:05 EEST
+
+Summary:
+- Completed the broader direct-load tier sweep for `50`, `100`, `250`, `500`, and `1000` concurrent users.
+- Generated a current consolidated status report and a dedicated capacity model document.
+- Converted the raw load-tier artifacts into a practical roadmap for how this platform would need to evolve before any serious `50,000` concurrent-user claim.
+
+Verification:
+- direct API load tiers completed successfully for `50`, `100`, `250`, `500`, and `1000` users
+- `node scripts/perf-report.mjs ...` -> passed for the current status report generation
+
+Measured interpretation:
+- Read-heavy routes scale farthest on the current node.
+- Login throughput plateaus early because bcrypt dominates.
+- Flashcards progress writes become the next limiter, with multi-second p95 latency emerging in the higher tiers.
+
+Artifacts:
+- Current status report: `project_docs/RnD_docs/PERFORMANCE_STATUS_REPORT_2026-04-02.md`
+- Capacity model: `project_docs/RnD_docs/PERFORMANCE_CAPACITY_MODEL_2026-04-02.md`
+- Load-tier artifacts: `/tmp/kgp-perf/capacity-50`, `/tmp/kgp-perf/capacity-100`, `/tmp/kgp-perf/capacity-250`, `/tmp/kgp-perf/capacity-500`, `/tmp/kgp-perf/capacity-1000`
+
+Next focus:
+- fold the current findings into a final close-out state for this performance phase
+- keep future optimizations anchored to the measured bottlenecks now documented

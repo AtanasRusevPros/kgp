@@ -271,6 +271,8 @@ Performance tooling is manual-only and intentionally excluded from `test:full` a
 Current references:
 - Standards and checklist (2026-04-02): [`project_docs/RnD_docs/PERFORMANCE_REVIEW_STANDARD.md`](project_docs/RnD_docs/PERFORMANCE_REVIEW_STANDARD.md)
 - Active execution tracker (2026-04-02): [`project_docs/ongoing/PERFORMANCE_ANALYSIS_AND_OPTIMIZATION_PLAN_IN_PROGRESS.md`](project_docs/ongoing/PERFORMANCE_ANALYSIS_AND_OPTIMIZATION_PLAN_IN_PROGRESS.md)
+- Current status report (2026-04-02): [`project_docs/RnD_docs/PERFORMANCE_STATUS_REPORT_2026-04-02.md`](project_docs/RnD_docs/PERFORMANCE_STATUS_REPORT_2026-04-02.md)
+- Capacity model (2026-04-02): [`project_docs/RnD_docs/PERFORMANCE_CAPACITY_MODEL_2026-04-02.md`](project_docs/RnD_docs/PERFORMANCE_CAPACITY_MODEL_2026-04-02.md)
 
 Manual commands:
 
