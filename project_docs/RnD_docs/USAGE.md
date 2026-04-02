@@ -103,6 +103,14 @@ Backup / Restore
   backup              Dump DB to infra/podman/backups/
   restore <file>      Restore DB from a backup file
 
+Performance (manual only)
+  perf:frontend       Browser/frontend baseline with Playwright trace capture
+  perf:api            Direct API load baseline (25 users by default)
+  perf:db             DB query-plan baseline for current hot queries
+  perf:stack          Stack API comparison baseline against http://localhost:8080/api
+  perf:report         Generate a markdown report from perf artifacts
+  perf:baseline       First full direct baseline report before optimization
+
 Misc
   status              Show all container status and .env presence
   help                Show this help

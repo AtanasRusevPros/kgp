@@ -5,6 +5,12 @@
   "scripts": {
     "boundary:check": "./scripts/check-boundaries.sh",
     "games:conformance": "./scripts/check-game-structure.sh",
+    "perf:frontend": "./dev.sh perf:frontend",
+    "perf:api": "./dev.sh perf:api",
+    "perf:db": "./dev.sh perf:db",
+    "perf:stack": "./dev.sh perf:stack",
+    "perf:report": "./dev.sh perf:report",
+    "perf:baseline": "./dev.sh perf:baseline",
     "prebuild:internal": "pnpm --filter @kids-games/shared build && pnpm --filter @kids-games/game-sdk build && pnpm --filter @kids-games/flashcards-backend-adapter build && pnpm --filter @kids-games/snake-classic-backend-adapter build && pnpm --filter @kids-games/tic-tac-toe-backend-adapter build",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",

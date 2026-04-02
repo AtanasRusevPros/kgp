@@ -510,3 +510,34 @@ Verification:
 
 Commit message:
 `harden podman onboarding across snap and rootless network quirks`
+
+## 2026-04-02 00:20 EEST
+
+Summary:
+- Started the dedicated performance-analysis workstream and promoted the new performance tracker into active execution.
+- Added a reusable performance standards/checklist document for React, backend, DB, containers, load testing, and future game/module reviews.
+- Added manual-only performance commands and baseline scripts for direct API load measurement, browser-route tracing, DB query-plan capture, stack comparison, and report generation.
+- Updated the top-level docs and add-game guide so performance review is now an explicit planning and closeout concern for future game/module work.
+- Reserved the first performance baseline as a before-optimization report so later improvements can be compared against the same benchmark matrix.
+
+Verification:
+- Baseline before edits:
+  - `bash -n dev.sh` -> passed
+- After edits:
+  - `bash -n dev.sh` -> passed
+  - `node --check server/scripts/perf-api-load.mjs` -> passed
+  - `node --check server/scripts/perf-db-analysis.mjs` -> passed
+  - `node --check frontend/web/scripts/perf-browser-baseline.mjs` -> passed
+  - `node --check scripts/perf-report.mjs` -> passed
+  - `git diff --check` -> passed
+  - `./dev.sh perf:baseline` -> passed
+
+Artifacts:
+- Standards doc: `project_docs/RnD_docs/PERFORMANCE_REVIEW_STANDARD.md`
+- Active tracker: `project_docs/ongoing/PERFORMANCE_ANALYSIS_AND_OPTIMIZATION_PLAN_IN_PROGRESS.md`
+- First baseline report: `project_docs/RnD_docs/PERFORMANCE_BASELINE_REPORT_2026-04-02.md`
+
+Early measured findings:
+- Tic-Tac-Toe hover remains the most obvious frontend hotspot from the first browser baseline and should be investigated before broader UI cleanup.
+- `auth_login_then_me` is the slowest API scenario in the first direct-load pass and is the clearest backend hotspot for the first optimization slice.
+- Stack comparison was skipped in the first run because the Podman+Caddy stack was not already healthy at baseline time.

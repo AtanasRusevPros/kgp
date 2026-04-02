@@ -20,6 +20,8 @@ Execution tracking:
 
 Additional game implementation guidance:
 - [`docs/add-game-guide.md`](docs/add-game-guide.md)
+- Performance standards (2026-04-02): [`project_docs/RnD_docs/PERFORMANCE_REVIEW_STANDARD.md`](project_docs/RnD_docs/PERFORMANCE_REVIEW_STANDARD.md)
+- Active performance execution plan (2026-04-02): [`project_docs/ongoing/PERFORMANCE_ANALYSIS_AND_OPTIMIZATION_PLAN_IN_PROGRESS.md`](project_docs/ongoing/PERFORMANCE_ANALYSIS_AND_OPTIMIZATION_PLAN_IN_PROGRESS.md)
 
 ---
 
@@ -35,8 +37,9 @@ Additional game implementation guidance:
 6. [Running Tests](#running-tests)
 7. [Building for Production](#building-for-production)
 8. [Environment Variables](#environment-variables)
-9. [Ports & URLs Reference](#ports--urls-reference)
-10. [Troubleshooting](#troubleshooting)
+9. [Performance](#performance)
+10. [Ports & URLs Reference](#ports--urls-reference)
+11. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -104,6 +107,14 @@ Container stack (Podman full stack — http://localhost:8080)
 Backup / Restore
   backup              Dump DB to infra/podman/backups/
   restore <file>      Restore DB from a backup file
+
+Performance (manual only)
+  perf:frontend       Browser/frontend baseline with Playwright trace capture
+  perf:api            Direct API load baseline (25 users by default)
+  perf:db             DB query-plan baseline for current hot queries
+  perf:stack          Stack API comparison baseline against http://localhost:8080/api
+  perf:report         Generate a markdown report from perf artifacts
+  perf:baseline       First full direct baseline report before optimization
 
 Misc
   status              Show all container status and .env presence
@@ -250,6 +261,32 @@ Open **http://localhost:8080** (Caddy serves on port 8080).
 `stack:verify` is the recommended basic container validation path after container-related changes. It starts from a clean Podman volume state, rebuilds the stack, checks compose status, verifies HTTP reachability, runs the one-off API migration and seed paths, restarts the stack without rebuilding, verifies HTTP reachability again, and tears the stack down when finished.
 
 `stack:down` now also performs a defensive cleanup pass for stack-owned containers and stale Podman `rootlessport` helpers on the stack ports (`55434`, `8080`, `8443`) when Podman leaves them behind after a partial shutdown.
+
+---
+
+## Performance
+
+Performance tooling is manual-only and intentionally excluded from `test:full` and the default local verification path.
+
+Current references:
+- Standards and checklist (2026-04-02): [`project_docs/RnD_docs/PERFORMANCE_REVIEW_STANDARD.md`](project_docs/RnD_docs/PERFORMANCE_REVIEW_STANDARD.md)
+- Active execution tracker (2026-04-02): [`project_docs/ongoing/PERFORMANCE_ANALYSIS_AND_OPTIMIZATION_PLAN_IN_PROGRESS.md`](project_docs/ongoing/PERFORMANCE_ANALYSIS_AND_OPTIMIZATION_PLAN_IN_PROGRESS.md)
+
+Manual commands:
+
+```bash
+./dev.sh perf:frontend
+./dev.sh perf:api
+./dev.sh perf:db
+./dev.sh perf:stack
+./dev.sh perf:report
+./dev.sh perf:baseline
+```
+
+Default performance-load interpretation (2026-04-02):
+1. direct local/manual tiers stay in the `25-1000` user range
+2. the repo uses profiling and capacity modeling to estimate the path toward `50,000` concurrent users
+3. direct `50,000`-user generation is treated as a later optional distributed campaign, not a normal local workflow
 
 ---
 

@@ -8,6 +8,7 @@ Use this as the single source of truth for:
 3. allowlist and security expectations
 4. future mobile-readiness constraints
 5. required tests and docs updates
+6. required performance review and verification expectations
 
 ## Current platform reality
 
@@ -29,13 +30,46 @@ For any new game, do all of the following:
 1. choose one stable game ID in lowercase kebab-case
 2. create the full `games/<gameId>/...` layout
 3. at task provision, explicitly decide whether the game should be enabled in the active runtime when implementation is complete
-4. add DB seed metadata for the game
-5. add the game ID to `ALLOWED_GAME_IDS` only in environments where it should be reachable
-6. add the web manifest at `games/<gameId>/web/src/module.ts`
-7. register the game in `frontend/web/src/games/registry.tsx`
-8. add or extend the backend adapter path as required by the game type
-9. add the required tests, including e2e or another applicable end-to-end path for every real user-facing game route
-10. update the required docs
+4. perform an upfront lightweight performance-risk review before coding
+5. add DB seed metadata for the game
+6. add the game ID to `ALLOWED_GAME_IDS` only in environments where it should be reachable
+7. add the web manifest at `games/<gameId>/web/src/module.ts`
+8. register the game in `frontend/web/src/games/registry.tsx`
+9. add or extend the backend adapter path as required by the game type
+10. add the required tests, including e2e or another applicable end-to-end path for every real user-facing game route
+11. run end-of-task performance verification when the work touches performance-sensitive areas
+12. update the required docs
+
+## Performance review required
+
+Updated: 2026-04-02 00:20 EEST
+
+At task provision, before implementation begins, record the likely performance-risk profile for the new game/module.
+
+Minimum upfront review:
+1. identify likely hot routes
+2. identify likely rerender-heavy or animation-heavy views
+3. identify expected network calls and request frequency
+4. identify persistence/write behavior
+5. identify canvas, motion, heavy-asset, or mobile-viewport risks
+6. identify whether the work changes direct API, DB, or full-stack runtime cost
+
+Use the canonical checklist in:
+1. `project_docs/RnD_docs/PERFORMANCE_REVIEW_STANDARD.md`
+2. `project_docs/ongoing/PERFORMANCE_ANALYSIS_AND_OPTIMIZATION_PLAN_IN_PROGRESS.md`
+
+At task closeout, performance verification is required whenever the implementation touches:
+1. rendering-heavy UI
+2. hover/tap/motion interactions
+3. canvas or animation loops
+4. backend round-trips on the critical user path
+5. persistence or write-heavy flows
+6. large assets or route payload size
+
+Minimum closeout expectation:
+1. state whether the task introduced any measured or suspected hotspot
+2. state what was verified
+3. state whether any performance follow-up is required
 
 ## Exposure decision required
 
@@ -70,7 +104,8 @@ A game is correctly integrated only when all of the following are true:
 6. it is registered in the web registry
 7. unsupported or blocked runtime paths fail safely
 8. required tests pass
-9. required docs are updated
+9. required performance review and verification were completed when applicable
+10. required docs are updated
 
 ## Required directory layout
 

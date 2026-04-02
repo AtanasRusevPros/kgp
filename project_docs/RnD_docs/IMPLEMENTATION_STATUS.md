@@ -8,7 +8,7 @@ Every entry is evidence-backed with file paths, script names, or endpoint refere
 > **Modularity execution tracker:** [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
 > **In-progress test-orchestration follow-up:** [`TESTS_IMPROVEMENTS_IN_PROGRESS_4.md`](../ongoing/TESTS_IMPROVEMENTS_IN_PROGRESS_4.md).
 
-Updated: 2026-03-30 12:02 EEST
+Updated: 2026-04-02 07:35 EEST
 
 ## 2026 Modularity Rework Snapshot
 Current effective state:
@@ -50,7 +50,7 @@ The MVP remains usable and the automated suite is green, and the canonical runti
 | CI pipeline (GitHub Actions) | Complete |
 | Test suite | 228 tests passing (unit + integration + web + E2E) |
 | Ops tooling (backup/restore, stack E2E) | Complete (added post-MVP) |
-| Documentation | Implemented, with canonical `server/` and `frontend/*` runtime docs aligned |
+| Documentation | Implemented, with canonical `server/` and `frontend/*` runtime docs aligned plus active performance standards/tracker docs |
 
 Deferred items (audio, points server-authority, mobile app, observability) are explicitly documented below.
 
@@ -170,7 +170,7 @@ Deferred items (audio, points server-authority, mobile app, observability) are e
 | Idempotent writes | Implemented | `Idempotency-Key` header + `idempotency_keys` DB table |
 | DB backup/restore | Implemented | `infra/podman/scripts/backup.sh`, `restore.sh`, `pnpm stack:backup/restore` |
 | Account deletion (store compliance) | Deferred | Required for Apple/Google store; not needed for web-only localhost |
-| Performance tuning | Not started | No profiling done; not needed at current scale |
+| Performance tuning | In progress | Manual-only performance toolkit, standards doc, active tracker, and first before-optimization baseline report are now in place; optimization pass is still pending |
 | Scalability | Single-server MVP | Architecture supports horizontal scaling (stateless API, external DB); not tested |
 
 ---

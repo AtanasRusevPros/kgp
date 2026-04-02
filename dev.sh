@@ -9,6 +9,7 @@ COMPOSE_FILE="infra/podman/compose.yml"
 TEST_DB_CONTAINER_NAME=""
 TEST_DB_HOST_PORT=""
 TEST_DB_CONTAINER_CREATED="0"
+STARTED_WEB_PID=""
 
 # Keep Podman rootless storage/config on the real Linux home even when the
 # terminal inherits Snap/Flatpak-scoped XDG paths from desktop app sandboxes.
@@ -288,6 +289,19 @@ get_test_database_url() {
   echo "$test_db_url"
 }
 
+read_database_url_from_env_file() {
+  local env_file="$PROJ/server/.env"
+  local database_url
+
+  database_url="$(grep -E '^DATABASE_URL=' "$env_file" | tail -n1 | cut -d '=' -f2- || true)"
+  database_url="${database_url%\"}"
+  database_url="${database_url#\"}"
+  database_url="${database_url%\'}"
+  database_url="${database_url#\'}"
+
+  echo "$database_url"
+}
+
 prepare_test_db() {
   if [[ "${KG_TEST_DB_PREPARED:-0}" == "1" ]]; then
     return 0
@@ -375,6 +389,38 @@ If another service is on that port, stop it first.
 Then run:
   ./dev.sh db:start
   ./dev.sh test:e2e"
+}
+
+start_local_web_for_perf() {
+  local api_url="$1"
+  local web_log="$2"
+  local web_port="$3"
+  STARTED_WEB_PID=""
+
+  if curl -fsS "http://127.0.0.1:${web_port}" >/dev/null 2>&1; then
+    info "Detected web app already running on http://127.0.0.1:${web_port} — reusing it."
+    return 0
+  fi
+
+  info "Starting web app for performance baseline on http://127.0.0.1:${web_port}..."
+  (
+    cd "$PROJ" && \
+    VITE_API_PROXY_TARGET="$api_url" pnpm --filter @kids-games/web dev --host 127.0.0.1 --port "$web_port"
+  ) >"$web_log" 2>&1 &
+  STARTED_WEB_PID="$!"
+
+  if wait_for_http_ok "http://127.0.0.1:${web_port}" 60; then
+    return 0
+  fi
+
+  if kill -0 "$STARTED_WEB_PID" 2>/dev/null; then
+    kill "$STARTED_WEB_PID" 2>/dev/null || true
+  fi
+
+  echo "----- Web startup log (tail) -----" >&2
+  tail -n 40 "$web_log" >&2 || true
+  echo "----------------------------------" >&2
+  die "Could not start web app for performance baseline on port ${web_port}."
 }
 
 compose() {
@@ -701,6 +747,211 @@ cmd_stack_ps() {
   podman ps --filter "name=kids-games" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 }
 
+# ── performance ───────────────────────────────────────────────────────────────
+
+perf_output_root() {
+  if [[ -n "${KG_PERF_OUTPUT_ROOT:-}" ]]; then
+    echo "$KG_PERF_OUTPUT_ROOT"
+    return 0
+  fi
+
+  local label
+  label="${KG_PERF_RUN_LABEL:-$(date +%Y%m%d-%H%M%S)}"
+  echo "/tmp/kgp-perf/${label}"
+}
+
+cmd_perf_api() {
+  require_env
+  ensure_internal_package_artifacts
+
+  local output_root api_port api_url api_log api_pid database_url
+  output_root="$(perf_output_root)"
+  mkdir -p "$output_root"
+  api_port="${KG_PERF_API_PORT:-3400}"
+  api_url="${KG_PERF_API_BASE_URL:-http://127.0.0.1:${api_port}}"
+  api_log="$(mktemp /tmp/kg-api-perf.XXXX.log)"
+  api_pid=""
+  database_url="$(read_database_url_from_env_file)"
+
+  [[ -n "$database_url" ]] || die "DATABASE_URL is missing from server/.env"
+
+  cmd_db_start >/dev/null
+
+  if ! curl -fsS "${api_url}/health" >/dev/null 2>&1; then
+    start_local_api_for_e2e "$database_url" "$api_log" "$api_port"
+    api_pid="$STARTED_API_PID"
+  else
+    info "Detected API already running on ${api_url} — reusing it."
+  fi
+
+  info "Running API load baseline against ${api_url}..."
+  (
+    cd "$PROJ/server" && \
+    KG_PERF_API_BASE_URL="$api_url" \
+    KG_PERF_OUTPUT="${output_root}/api-load.json" \
+    pnpm perf:api-load
+  )
+
+  if [[ -n "$api_pid" ]]; then
+    kill "$api_pid" 2>/dev/null || true
+    wait "$api_pid" 2>/dev/null || true
+  fi
+  rm -f "$api_log" 2>/dev/null || true
+
+  ok "API baseline written to ${output_root}/api-load.json"
+}
+
+cmd_perf_db() {
+  require_env
+  ensure_internal_package_artifacts
+
+  local output_root database_url
+  output_root="$(perf_output_root)"
+  mkdir -p "$output_root"
+  database_url="$(read_database_url_from_env_file)"
+
+  [[ -n "$database_url" ]] || die "DATABASE_URL is missing from server/.env"
+
+  cmd_db_start >/dev/null
+  info "Running database performance analysis..."
+  (
+    cd "$PROJ/server" && \
+    KG_PERF_DATABASE_URL="$database_url" \
+    KG_PERF_OUTPUT="${output_root}/db-analysis.json" \
+    pnpm perf:db-analysis
+  )
+
+  ok "DB analysis written to ${output_root}/db-analysis.json"
+}
+
+cmd_perf_frontend() {
+  require_env
+  ensure_internal_package_artifacts
+
+  local output_root api_port api_url app_port app_url api_log web_log api_pid web_pid database_url
+  output_root="$(perf_output_root)"
+  mkdir -p "$output_root"
+  api_port="${KG_PERF_API_PORT:-3400}"
+  api_url="${KG_PERF_API_BASE_URL:-http://127.0.0.1:${api_port}}"
+  app_port="${KG_PERF_WEB_PORT:-4173}"
+  app_url="${KG_PERF_APP_URL:-http://127.0.0.1:${app_port}}"
+  api_log="$(mktemp /tmp/kg-api-perf-frontend.XXXX.log)"
+  web_log="$(mktemp /tmp/kg-web-perf.XXXX.log)"
+  api_pid=""
+  web_pid=""
+  database_url="$(read_database_url_from_env_file)"
+
+  [[ -n "$database_url" ]] || die "DATABASE_URL is missing from server/.env"
+
+  cmd_db_start >/dev/null
+
+  if ! curl -fsS "${api_url}/health" >/dev/null 2>&1; then
+    start_local_api_for_e2e "$database_url" "$api_log" "$api_port"
+    api_pid="$STARTED_API_PID"
+  else
+    info "Detected API already running on ${api_url} — reusing it."
+  fi
+
+  start_local_web_for_perf "$api_url" "$web_log" "$app_port"
+  web_pid="$STARTED_WEB_PID"
+
+  info "Running frontend/browser performance baseline..."
+  (
+    cd "$PROJ/frontend/web" && \
+    KG_PERF_APP_URL="$app_url" \
+    KG_PERF_API_BASE_URL="$api_url" \
+    KG_PERF_OUTPUT="${output_root}/frontend-baseline.json" \
+    KG_PERF_TRACE_PATH="${output_root}/frontend-trace.zip" \
+    pnpm perf:baseline
+  )
+
+  if [[ -n "$web_pid" ]]; then
+    kill "$web_pid" 2>/dev/null || true
+    wait "$web_pid" 2>/dev/null || true
+  fi
+  if [[ -n "$api_pid" ]]; then
+    kill "$api_pid" 2>/dev/null || true
+    wait "$api_pid" 2>/dev/null || true
+  fi
+  rm -f "$api_log" "$web_log" 2>/dev/null || true
+
+  ok "Frontend baseline written to ${output_root}/frontend-baseline.json"
+}
+
+cmd_perf_stack() {
+  local output_root stack_api_url
+  output_root="$(perf_output_root)"
+  mkdir -p "$output_root"
+  stack_api_url="${KG_PERF_STACK_API_URL:-http://localhost:8080/api}"
+
+  wait_for_http_ok "${stack_api_url}/health" 5 || die "Stack API is not healthy at ${stack_api_url}. Start the stack first with ./dev.sh stack:up"
+
+  info "Running stack API comparison baseline against ${stack_api_url}..."
+  (
+    cd "$PROJ/server" && \
+    KG_PERF_API_BASE_URL="$stack_api_url" \
+    KG_PERF_OUTPUT="${output_root}/stack-api-load.json" \
+    pnpm perf:api-load
+  )
+
+  ok "Stack API baseline written to ${output_root}/stack-api-load.json"
+}
+
+cmd_perf_report() {
+  local output_root report_file
+  output_root="$(perf_output_root)"
+  report_file="${KG_PERF_REPORT_FILE:-${output_root}/performance-report.md}"
+
+  info "Generating performance report..."
+  if [[ -f "${output_root}/stack-api-load.json" ]]; then
+    node "$PROJ/scripts/perf-report.mjs" \
+      --frontend "${output_root}/frontend-baseline.json" \
+      --api "${output_root}/api-load.json" \
+      --db "${output_root}/db-analysis.json" \
+      --stack "${output_root}/stack-api-load.json" \
+      --output "$report_file"
+  else
+    node "$PROJ/scripts/perf-report.mjs" \
+      --frontend "${output_root}/frontend-baseline.json" \
+      --api "${output_root}/api-load.json" \
+      --db "${output_root}/db-analysis.json" \
+      --output "$report_file"
+  fi
+
+  ok "Performance report written to ${report_file}"
+}
+
+cmd_perf_baseline() {
+  require_env
+  ensure_internal_package_artifacts
+
+  local output_root report_file
+  output_root="$(perf_output_root)"
+  report_file="${KG_PERF_REPORT_FILE:-$PROJ/project_docs/RnD_docs/PERFORMANCE_BASELINE_REPORT_2026-04-02.md}"
+  mkdir -p "$output_root"
+
+  info "Preparing local services for the first performance baseline..."
+  cmd_db_start
+  (cd "$PROJ" && pnpm db:migrate)
+  (cd "$PROJ" && pnpm db:seed)
+
+  KG_PERF_OUTPUT_ROOT="$output_root" cmd_perf_api
+  KG_PERF_OUTPUT_ROOT="$output_root" cmd_perf_db
+  KG_PERF_OUTPUT_ROOT="$output_root" cmd_perf_frontend
+
+  if wait_for_http_ok "http://localhost:8080/api/health" 5; then
+    KG_PERF_OUTPUT_ROOT="$output_root" cmd_perf_stack
+  else
+    info "Stack API is not healthy at http://localhost:8080/api/health — skipping stack comparison for this baseline."
+  fi
+
+  KG_PERF_OUTPUT_ROOT="$output_root" KG_PERF_REPORT_FILE="$report_file" cmd_perf_report
+
+  ok "First performance baseline completed."
+  echo "  Raw artifacts: ${output_root}"
+  echo "  Report: ${report_file}"
+}
+
 # ── backup / restore ──────────────────────────────────────────────────────────
 
 cmd_backup() {
@@ -788,6 +1039,14 @@ Backup / Restore
   backup              Dump DB to infra/podman/backups/
   restore <file>      Restore DB from a backup file
 
+Performance (manual only)
+  perf:frontend       Run browser/frontend baseline with Playwright trace capture
+  perf:api            Run direct API load baseline (25 users by default)
+  perf:db             Run DB query-plan baseline for current hot queries
+  perf:stack          Run stack API comparison baseline against http://localhost:8080/api
+  perf:report         Generate a markdown report from perf artifacts
+  perf:baseline       Run the first full direct baseline and write the report
+
 Misc
   status              Show all container status and .env presence
   help                Show this help
@@ -834,6 +1093,12 @@ case "$target" in
   stack:ps)              cmd_stack_ps ;;
   backup)                cmd_backup ;;
   restore)               cmd_restore "$@" ;;
+  perf:frontend)         cmd_perf_frontend ;;
+  perf:api)              cmd_perf_api ;;
+  perf:db)               cmd_perf_db ;;
+  perf:stack)            cmd_perf_stack ;;
+  perf:report)           cmd_perf_report ;;
+  perf:baseline)         cmd_perf_baseline ;;
   status)                cmd_status ;;
   help|--help|-h)        cmd_help ;;
   *) die "Unknown target: '$target'. Run ./dev.sh help for usage." ;;
