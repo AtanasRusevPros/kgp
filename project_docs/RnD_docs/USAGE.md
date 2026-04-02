@@ -8,6 +8,7 @@ Everything you need to run the full stack locally, from first clone to playing i
 3. Use `pnpm test:e2e` for managed end-to-end flow (`dev.sh` auto-prepares DB + API runtime).
 4. Track modularity phase progress in [`PHASE_EXECUTION_TRACKER_2_PENDING.md`](../ongoing/PHASE_EXECUTION_TRACKER_2_PENDING.md).
 5. Use [`../../docs/add-game-guide.md`](../../docs/add-game-guide.md) as the canonical guide for integrating any additional game.
+6. Use [`REACT_PERFORMANCE_GUIDELINES.md`](REACT_PERFORMANCE_GUIDELINES.md) for dedicated React/frontend performance review guidance during new module or route work.
 
 ---
 

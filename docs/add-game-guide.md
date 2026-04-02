@@ -42,7 +42,7 @@ For any new game, do all of the following:
 
 ## Performance review required
 
-Updated: 2026-04-02 00:20 EEST
+Updated: 2026-04-02 10:28 EEST
 
 At task provision, before implementation begins, record the likely performance-risk profile for the new game/module.
 
@@ -56,7 +56,22 @@ Minimum upfront review:
 
 Use the canonical checklist in:
 1. `project_docs/RnD_docs/PERFORMANCE_REVIEW_STANDARD.md`
-2. `project_docs/ongoing/PERFORMANCE_ANALYSIS_AND_OPTIMIZATION_PLAN_IN_PROGRESS.md`
+2. `project_docs/RnD_docs/REACT_PERFORMANCE_GUIDELINES.md`
+3. `project_docs/ongoing/PERFORMANCE_ANALYSIS_AND_OPTIMIZATION_PLAN_IN_PROGRESS.md`
+
+React/web-specific game work should use the dedicated React guide by default for any React implementation work.
+
+Use it not only for obvious hotspot work, but generally for:
+1. route UI and component structure
+2. state shape and derived values
+3. handler design and prop identity stability
+4. data-fetching decisions in React routes
+5. animation, hover, tap, pointer, or canvas behavior
+
+Performance-sensitive React work still deserves extra scrutiny, especially when the task touches:
+1. animation-heavy or interaction-heavy views
+2. state-heavy or rerender-sensitive component trees
+3. canvas or game-loop behavior
 
 At task closeout, performance verification is required whenever the implementation touches:
 1. rendering-heavy UI

@@ -21,6 +21,7 @@ Execution tracking:
 Additional game implementation guidance:
 - [`docs/add-game-guide.md`](docs/add-game-guide.md)
 - Performance standards (2026-04-02): [`project_docs/RnD_docs/PERFORMANCE_REVIEW_STANDARD.md`](project_docs/RnD_docs/PERFORMANCE_REVIEW_STANDARD.md)
+- React frontend performance guide (2026-04-02): [`project_docs/RnD_docs/REACT_PERFORMANCE_GUIDELINES.md`](project_docs/RnD_docs/REACT_PERFORMANCE_GUIDELINES.md)
 - Active performance execution plan (2026-04-02): [`project_docs/ongoing/PERFORMANCE_ANALYSIS_AND_OPTIMIZATION_PLAN_IN_PROGRESS.md`](project_docs/ongoing/PERFORMANCE_ANALYSIS_AND_OPTIMIZATION_PLAN_IN_PROGRESS.md)
 
 ---

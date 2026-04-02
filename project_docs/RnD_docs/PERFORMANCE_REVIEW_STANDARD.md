@@ -70,37 +70,20 @@ Always review:
 3. startup and readiness time
 4. network/proxy overhead
 
-## Decision rules for common frontend topics
+## Frontend decision rules
 
-### Memoization
+Updated: 2026-04-02 10:24 EEST
 
-1. Remove memoization when the derivation is trivial and no referential-stability benefit is measured.
-2. Add memoization only when:
-   - the derivation is meaningfully expensive, or
-   - stable identity prevents real rerenders downstream
+The detailed React/frontend-specific rules now live in:
+1. `project_docs/RnD_docs/REACT_PERFORMANCE_GUIDELINES.md`
 
-### State shape
-
-1. Prefer derived values over extra state when the value can be recomputed cheaply.
-2. Consolidate state only when measurement shows rerender chains or ordering problems.
-3. Avoid turning simple booleans into over-abstracted state machines unless behavior complexity truly requires it.
-
-### Data fetching
-
-1. TanStack Query is not a default requirement for this repo.
-2. Evaluate it only when current read-heavy flows show clear benefit from shared caching, deduping, invalidation, or retry orchestration.
-3. If current custom fetch flow remains simple and fast enough, keep it.
-
-### Transport
-
-1. HTTP remains the default transport.
-2. WebSockets should be considered only for real-time shared-state requirements or a measured HTTP bottleneck.
-3. Browser-local games do not justify WebSockets by default.
-
-### Global state
-
-1. Avoid Redux unless a measured bottleneck proves the benefit clearly outweighs the added complexity.
-2. Prefer local state, refs, and narrow shared state first.
+This document keeps the cross-stack performance workflow and measurement contract, while the dedicated React guide owns:
+1. rerender checks
+2. memoization rules
+3. state-shape rules
+4. handler and interaction rules
+5. motion/canvas/game-loop guidance
+6. TanStack Query / Redux / WebSocket decision rules for frontend work
 
 ## Required benchmark matrix
 
@@ -169,3 +152,10 @@ Updated: 2026-04-02 00:20 EEST
 4. WebSockets are not currently integrated.
 5. Fastify + `pg` + direct repository SQL remain the backend baseline.
 6. Podman `4.x+` compatibility must be preserved.
+
+## React-specific reference
+
+Added: 2026-04-02 10:20 EEST
+
+For future React/module work, use the dedicated frontend guide alongside this broader standard:
+1. `project_docs/RnD_docs/REACT_PERFORMANCE_GUIDELINES.md`
