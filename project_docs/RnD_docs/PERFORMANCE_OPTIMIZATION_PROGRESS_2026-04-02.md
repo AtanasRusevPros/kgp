@@ -123,3 +123,17 @@ Decision:
 
 Reference:
 1. `project_docs/RnD_docs/PERFORMANCE_BACKEND_DB_ANALYSIS_2026-04-02.md`
+
+## 2026-04-02 09:58 EEST
+
+### Stack and container comparison checkpoint
+
+The stack comparison phase is now complete using a healthy `stack:init` flow plus a matched direct API rerun.
+
+Findings:
+1. Direct-vs-stack overhead is measurable on several read paths, but generally modest rather than catastrophic.
+2. The very large auth gap is primarily explained by runtime mode differences: the direct perf server uses the lighter test bcrypt cost, while the stack API keeps the stronger production bcrypt cost.
+3. The stack path is useful for full-path measurement, but direct runs remain the cleaner signal for application-only bottlenecks.
+
+Reference:
+1. `project_docs/RnD_docs/PERFORMANCE_STACK_ANALYSIS_2026-04-02.md`

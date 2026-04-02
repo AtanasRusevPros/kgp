@@ -623,3 +623,28 @@ Artifacts:
 Next focus:
 - capture the missing direct-vs-stack/container measurements
 - then move into broader capacity-model work
+
+## 2026-04-02 09:58 EEST
+
+Summary:
+- Completed the direct-vs-stack/container measurement phase.
+- Confirmed that the correct stack setup path for performance work is `./dev.sh stack:init`, not `./dev.sh stack:up`, because the init flow ensures migrations and seed complete before the stack API boots.
+- Captured a matched direct API rerun and healthy routed stack run for comparison.
+
+Verification:
+- `./dev.sh stack:init` -> passed
+- `./dev.sh perf:stack` -> passed
+- `./dev.sh perf:api` -> passed
+
+Measured interpretation:
+- The stack adds modest-to-moderate overhead on several read and write paths.
+- The very large auth gap is mostly explained by runtime bcrypt differences between the direct test server and the production-mode stack API, not by proxy/container cost alone.
+
+Artifacts:
+- Stack analysis report: `project_docs/RnD_docs/PERFORMANCE_STACK_ANALYSIS_2026-04-02.md`
+- Matched direct API artifact: `/tmp/kgp-perf/20260402-094954/api-load.json`
+- Stack API artifact: `/tmp/kgp-perf/20260402-094912/stack-api-load.json`
+
+Next focus:
+- run broader load tiers and capacity modeling
+- update the before/after reporting with the current measured checkpoints

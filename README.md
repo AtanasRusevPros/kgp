@@ -283,6 +283,8 @@ Manual commands:
 ./dev.sh perf:baseline
 ```
 
+For stack benchmarking, prefer `./dev.sh stack:init` before `./dev.sh perf:stack` unless the stack is already known-healthy. That ensures migrations and seed data exist before the API container starts.
+
 Default performance-load interpretation (2026-04-02):
 1. direct local/manual tiers stay in the `25-1000` user range
 2. the repo uses profiling and capacity modeling to estimate the path toward `50,000` concurrent users

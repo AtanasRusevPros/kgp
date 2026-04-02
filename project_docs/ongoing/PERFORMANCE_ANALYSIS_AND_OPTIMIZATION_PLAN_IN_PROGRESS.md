@@ -385,3 +385,14 @@ Progress update:
 Implication:
 1. The database layer is not the primary bottleneck for the currently measured read paths.
 2. The next required phase is direct-vs-stack/container measurement, because a meaningful part of the remaining overhead may sit outside the query layer.
+
+## 2026-04-02 09:58 EEST
+
+Progress update:
+1. Direct-vs-stack/container measurement is complete.
+2. The stack benchmark now has a documented healthy setup path: `./dev.sh stack:init` before `./dev.sh perf:stack` when the stack is not already known-healthy.
+3. Matched direct and stack API artifacts now exist for full-path comparison.
+
+Implication:
+1. Stack overhead exists, but the auth gap cannot be interpreted as pure proxy/container cost because the stack uses production bcrypt settings.
+2. The next phase should focus on broader load tiers and capacity modeling with the current measured checkpoints as inputs.
