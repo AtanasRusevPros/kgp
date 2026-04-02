@@ -374,3 +374,14 @@ Progress update:
 Implication:
 1. Tic-Tac-Toe remains the only frontend route with a strong measured hotspot signature so far.
 2. The next performance phase should lean more heavily into backend/database analysis while keeping the missing direct-vs-stack measurement on deck.
+
+## 2026-04-02 09:00 EEST
+
+Progress update:
+1. Backend/database analysis is complete for the current phase.
+2. The auth hashing improvement remains the only backend code optimization with a strong measured payoff so far.
+3. Additional write-path and registry experiments were evaluated but intentionally not retained because the evidence was not strong enough.
+
+Implication:
+1. The database layer is not the primary bottleneck for the currently measured read paths.
+2. The next required phase is direct-vs-stack/container measurement, because a meaningful part of the remaining overhead may sit outside the query layer.

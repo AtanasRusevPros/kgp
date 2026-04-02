@@ -599,3 +599,27 @@ Artifacts:
 Next focus:
 - shift into deeper backend/database hotspot analysis beyond auth
 - capture missing direct-vs-stack metrics after the stack path is healthy
+
+## 2026-04-02 09:00 EEST
+
+Summary:
+- Completed the backend/database analysis checkpoint after the auth improvement.
+- Revalidated that the database query layer is already fast for the currently measured read and progress-plan paths.
+- Evaluated additional backend optimizations beyond auth, but intentionally kept them out of the codebase because the measured evidence was not strong or stable enough.
+
+Verification:
+- `./dev.sh test:int` -> passed after the backend analysis phase remained on the measured-safe code path
+- `./dev.sh perf:api` -> rerun completed for comparison
+
+Decision record:
+- Keep the auth hashing improvement already landed.
+- Defer flashcards write-path rewrites until route-specific measurement is tighter.
+- Defer registry micro-caching until `/games` is shown to be a meaningful bottleneck with cleaner evidence.
+
+Artifacts:
+- Backend/DB analysis report: `project_docs/RnD_docs/PERFORMANCE_BACKEND_DB_ANALYSIS_2026-04-02.md`
+- Optimization progress report: `project_docs/RnD_docs/PERFORMANCE_OPTIMIZATION_PROGRESS_2026-04-02.md`
+
+Next focus:
+- capture the missing direct-vs-stack/container measurements
+- then move into broader capacity-model work

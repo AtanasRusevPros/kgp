@@ -104,3 +104,22 @@ Interpretation:
 1. Snake does not currently present the same visible hotspot profile as Tic-Tac-Toe.
 2. The canvas loop remains acceptable for now, so broader Snake refactors should stay deferred until measurement shows a real issue.
 3. The small state-churn cleanup is still worth keeping because it removes unnecessary rerenders during active input without changing gameplay behavior.
+
+## 2026-04-02 09:00 EEST
+
+### Backend and database analysis checkpoint
+
+The next phase focused on validating whether backend/database changes beyond the auth improvement were justified.
+
+Findings:
+1. The DB analysis remained strong: core query paths are already sub-millisecond to low-single-digit milliseconds.
+2. Auth was the only backend path with a clearly dominant measured problem, and that has already been improved.
+3. Flashcards progress writes are still slower than reads, but the first rewrite experiments did not produce stable enough wins to justify keeping additional repository complexity.
+
+Decision:
+1. Keep the auth improvement.
+2. Keep current repository/query structure for flashcards writes for now.
+3. Treat backend/database work in this phase as analysis-complete with further write-path changes deferred until route-specific measurement is tighter.
+
+Reference:
+1. `project_docs/RnD_docs/PERFORMANCE_BACKEND_DB_ANALYSIS_2026-04-02.md`
