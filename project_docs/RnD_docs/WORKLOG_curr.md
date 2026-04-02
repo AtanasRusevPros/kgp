@@ -541,3 +541,38 @@ Early measured findings:
 - Tic-Tac-Toe hover remains the most obvious frontend hotspot from the first browser baseline and should be investigated before broader UI cleanup.
 - `auth_login_then_me` is the slowest API scenario in the first direct-load pass and is the clearest backend hotspot for the first optimization slice.
 - Stack comparison was skipped in the first run because the Podman+Caddy stack was not already healthy at baseline time.
+
+## 2026-04-02 08:00 EEST
+
+Summary:
+- Completed the first measured optimization slice after the baseline milestone commit.
+- Reduced Tic-Tac-Toe hover-path cost by replacing JS-driven `motion.button` hover/tap animation on empty cells with lighter CSS transform-based hover feedback and memoizing the small board components.
+- Made auth hashing cost configurable through `BCRYPT_SALT_ROUNDS`, with development/test defaulting to `10` rounds and production retaining `12` by default.
+- Captured before/after evidence for both the Tic-Tac-Toe and auth hotspots in a dedicated optimization progress report.
+
+Verification:
+- Before Tic-Tac-Toe edits:
+  - `pnpm test:web` -> passed
+- After Tic-Tac-Toe edits:
+  - `pnpm test:web` -> passed
+  - `./dev.sh perf:frontend` -> passed
+- Before auth edits:
+  - `./dev.sh test:int` -> passed
+- After auth edits:
+  - `./dev.sh test:int` -> passed
+  - `./dev.sh perf:api` -> passed
+
+Measured deltas:
+- Tic-Tac-Toe hover sweep improved from `1434.72 ms` to `1390.12 ms`.
+- Tic-Tac-Toe sampled animation rate improved from `42.67 FPS` to `54.73 FPS`.
+- `auth_login_then_me` improved from `p95 7409.22 ms` / `4.22 req/s` to `p95 2015.51 ms` / `16.82 req/s`.
+
+Artifacts:
+- Optimization progress report: `project_docs/RnD_docs/PERFORMANCE_OPTIMIZATION_PROGRESS_2026-04-02.md`
+- Frontend rerun artifacts: `/tmp/kgp-perf/20260402-075447`
+- API rerun artifacts: `/tmp/kgp-perf/20260402-075914`
+
+Next focus:
+- inspect remaining Tic-Tac-Toe render/status cost
+- evaluate Snake and shared layout behavior
+- capture the missing direct-vs-stack comparison once the Podman+Caddy stack is healthy

@@ -6,8 +6,6 @@ import * as tokenRepo from '../repositories/token.repository.js';
 import type { UserRow } from '../repositories/user.repository.js';
 import { config } from '../config.js';
 
-const SALT_ROUNDS = 12;
-
 export class AuthError extends Error {
   constructor(
     message: string,
@@ -28,7 +26,7 @@ export async function registerUser(
   if (existing) {
     throw new AuthError('Email already registered', 'EMAIL_TAKEN');
   }
-  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+  const passwordHash = await bcrypt.hash(password, config.bcryptSaltRounds);
   return userRepo.createUser(pool, email, passwordHash, displayName);
 }
 

@@ -5,6 +5,13 @@ function parseCsvList(value: string): string[] {
     .filter(Boolean);
 }
 
+function parsePositiveInteger(value: string, fallback: number): number {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+const defaultBcryptSaltRounds = process.env['NODE_ENV'] === 'production' ? 12 : 10;
+
 export const config = {
   port: parseInt(process.env['PORT'] ?? '3000', 10),
   nodeEnv: process.env['NODE_ENV'] ?? 'development',
@@ -13,6 +20,10 @@ export const config = {
   refreshSecret: process.env['REFRESH_SECRET'] ?? 'dev-refresh-secret-change-in-prod-min-32',
   jwtExpiresIn: '15m',
   refreshExpiresInMs: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
+  bcryptSaltRounds: parsePositiveInteger(
+    process.env['BCRYPT_SALT_ROUNDS'] ?? String(defaultBcryptSaltRounds),
+    defaultBcryptSaltRounds,
+  ),
   valKeyUrl: process.env['VALKEY_URL'],
   corsOrigins: ['http://localhost:5173', 'http://localhost', 'https://localhost'],
   allowedGameIds: parseCsvList(process.env['ALLOWED_GAME_IDS'] ?? 'flashcards,tic-tac-toe,snake-classic'),

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { RotateCcw, Sparkles, Trophy } from 'lucide-react';
@@ -127,7 +127,7 @@ function useBooleanPreference(storageKey: string, defaultValue: boolean): [boole
   return [value, setValue];
 }
 
-function ScoreCard({
+const ScoreCard = memo(function ScoreCard({
   label,
   value,
   tone,
@@ -168,9 +168,9 @@ function ScoreCard({
       <div className="mt-2 text-3xl font-black text-white">{value}</div>
     </motion.div>
   );
-}
+});
 
-function CellMark({
+const CellMark = memo(function CellMark({
   value,
   cellIndex,
   isWinning,
@@ -302,9 +302,9 @@ function CellMark({
       </motion.div>
     </motion.div>
   );
-}
+});
 
-function BoardCell({
+const BoardCell = memo(function BoardCell({
   value,
   index,
   disabled,
@@ -320,28 +320,20 @@ function BoardCell({
   animateEffects: boolean;
 }) {
   const canInteract = !disabled && value === null;
-  const interactionProps =
-    canInteract && animateEffects
-      ? ({
-          whileHover: { scale: 1.03, y: -2 } as const,
-          whileTap: { scale: 0.96 } as const,
-        } as const)
-      : ({} as const);
 
   return (
-    <motion.button
+    <button
       type="button"
       onClick={onClick}
       aria-label={`Cell ${index + 1}`}
       disabled={!canInteract}
-      {...interactionProps}
       className={[
         'relative aspect-square overflow-hidden rounded-[1.35rem] border text-4xl font-black sm:text-5xl',
         'bg-gradient-to-br from-white/12 to-white/6 backdrop-blur-xl',
         'border-white/15 text-white shadow-[0_16px_45px_rgba(15,23,42,0.18)]',
         canInteract
           ? animateEffects
-            ? 'transition-all duration-300 hover:border-white/35 hover:bg-white/16 cursor-pointer'
+            ? 'cursor-pointer transform-gpu will-change-transform transition-[transform,background-color,border-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:scale-[1.02] hover:border-white/35 hover:bg-white/16 active:scale-[0.98]'
             : 'transition-none cursor-pointer'
           : 'cursor-not-allowed',
         disabled ? 'opacity-70' : '',
@@ -355,9 +347,9 @@ function BoardCell({
       )}
       <CellMark value={value} cellIndex={index} isWinning={isWinning} animateEffects={animateEffects} />
       <span className="sr-only">{value ?? ''}</span>
-    </motion.button>
+    </button>
   );
-}
+});
 
 export function TicTacToePage() {
   const [board, setBoard] = useState<BoardState>(() => createEmptyBoard());
@@ -369,6 +361,7 @@ export function TicTacToePage() {
   const celebratedWinnerRef = useRef<Player | null>(null);
 
   const outcome = useMemo(() => calculateOutcome(board), [board]);
+  const winningCells = useMemo(() => new Set(outcome.winningCells), [outcome.winningCells]);
   const gameOver = outcome.winner !== null || outcome.isDraw;
 
   useEffect(() => {
@@ -550,7 +543,7 @@ export function TicTacToePage() {
                       index={index}
                       disabled={gameOver}
                       onClick={() => handleCellClick(index)}
-                      isWinning={outcome.winningCells.includes(index)}
+                      isWinning={winningCells.has(index)}
                       animateEffects={animateEffects}
                     />
                   ))}

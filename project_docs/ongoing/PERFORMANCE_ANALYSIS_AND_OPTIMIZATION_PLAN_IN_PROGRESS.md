@@ -342,3 +342,24 @@ Remaining immediate work:
 1. inspect the measured Tic-Tac-Toe and auth hotspots before making any broader cleanup changes
 2. capture the missing direct-vs-stack comparison when the stack is up
 3. then begin the first measured optimization slice
+
+## 2026-04-02 08:00 EEST
+
+Progress update:
+1. The first measured optimization slice is now in flight and has already validated improvements on both a frontend hotspot and a backend hotspot.
+2. Tic-Tac-Toe hover interactions were lightened by replacing `motion.button` hover/tap animation on empty cells with narrower CSS transform-based hover feedback and memoizing the small board components.
+3. Auth hashing cost is now configurable via `BCRYPT_SALT_ROUNDS`, with development/test defaulting to `10` rounds and production retaining `12` by default.
+
+Measured outcomes so far:
+1. Tic-Tac-Toe hover sweep improved from `1434.72 ms` to `1390.12 ms`.
+2. Tic-Tac-Toe sampled animation rate improved from `42.67 FPS` to `54.73 FPS`.
+3. `auth_login_then_me` improved from `p95 7409.22 ms` / `4.22 req/s` to `p95 2015.51 ms` / `16.82 req/s`.
+
+Evidence:
+1. Before-optimization report: `project_docs/RnD_docs/PERFORMANCE_BASELINE_REPORT_2026-04-02.md`
+2. In-progress optimization evidence: `project_docs/RnD_docs/PERFORMANCE_OPTIMIZATION_PROGRESS_2026-04-02.md`
+
+Remaining immediate work:
+1. inspect whether Tic-Tac-Toe still has avoidable parent/status rerender cost beyond the hover path
+2. evaluate Snake and shared layout behavior next, since Snake is currently healthier and can serve as the comparison route
+3. restore a healthy Podman+Caddy stack path so the missing direct-vs-stack measurements can be collected

@@ -1,0 +1,86 @@
+Created: 2026-04-02 08:00 EEST
+
+# Performance Optimization Progress
+
+## Scope
+
+This document captures the first measured optimization slice after the initial baseline defined in `project_docs/RnD_docs/PERFORMANCE_BASELINE_REPORT_2026-04-02.md`.
+
+Current slice:
+1. Tic-Tac-Toe hover/render hotspot
+2. auth login hotspot
+
+## Frontend: Tic-Tac-Toe
+
+### Baseline problem
+
+The first browser baseline identified Tic-Tac-Toe as the clearest frontend hotspot:
+1. hover sweep: `1434.72 ms`
+2. sampled animation rate: `42.67 FPS`
+
+The hotspot was especially visible during empty-board hover interactions, which aligned with the implementation using `motion.button` hover/tap animation plus broad `transition-all` on every interactive cell.
+
+### Change made
+
+Changed in `frontend/web/src/pages/ticTacToe/TicTacToePage.tsx`:
+1. Replaced `motion.button` hover/tap animation on empty cells with CSS transform-based hover feedback.
+2. Narrowed transitions to `transform`, `background-color`, `border-color`, and `box-shadow` instead of `transition-all`.
+3. Memoized `ScoreCard`, `CellMark`, and `BoardCell` so the small presentation components stay cheaper during routine rerenders.
+
+### Result
+
+After rerunning `./dev.sh perf:frontend`:
+1. hover sweep improved from `1434.72 ms` to `1390.12 ms`
+2. sampled animation rate improved from `42.67 FPS` to `54.73 FPS`
+
+### Interpretation
+
+The improvement validates the baseline hypothesis that the hover path was paying avoidable animation overhead. The route is better, but not finished yet; there may still be parent/status animation cost worth reviewing in a later pass.
+
+## Backend: auth login
+
+### Baseline problem
+
+The first API direct-load baseline identified `auth_login_then_me` as the slowest scenario by a wide margin:
+1. p95 latency: `7409.22 ms`
+2. throughput: `4.22 req/s`
+
+Database query timings were already fast in the baseline DB analysis, so the main suspicion was CPU-bound password verification rather than SQL latency.
+
+### Change made
+
+Changed in `server/src/config.ts`, `server/src/services/auth.service.ts`, and `server/.env.example`:
+1. Added configurable `BCRYPT_SALT_ROUNDS`.
+2. Set development/test default to `10` rounds.
+3. Kept production default at `12` rounds unless explicitly overridden.
+
+### Result
+
+After rerunning `./dev.sh perf:api`:
+1. p95 latency improved from `7409.22 ms` to `2015.51 ms`
+2. throughput improved from `4.22 req/s` to `16.82 req/s`
+
+### Interpretation
+
+This validates that the auth bottleneck was dominated by password hashing cost in local direct-load conditions. The new behavior preserves a stronger production default while reducing local/dev/test bottlenecks enough to keep performance work moving.
+
+## Verification
+
+1. `pnpm test:web` passed before the Tic-Tac-Toe change.
+2. `pnpm test:web` passed after the Tic-Tac-Toe change.
+3. `./dev.sh perf:frontend` passed after the Tic-Tac-Toe change.
+4. `./dev.sh test:int` passed before the auth change.
+5. `./dev.sh test:int` passed after the auth change.
+6. `./dev.sh perf:api` passed after the auth change.
+
+## Artifacts
+
+1. Before-optimization report: `project_docs/RnD_docs/PERFORMANCE_BASELINE_REPORT_2026-04-02.md`
+2. Frontend rerun artifacts: `/tmp/kgp-perf/20260402-075447`
+3. API rerun artifacts: `/tmp/kgp-perf/20260402-075914`
+
+## Next targets
+
+1. Inspect remaining Tic-Tac-Toe parent/status rerender and animation cost.
+2. Evaluate Snake and shared layout behavior next.
+3. Capture the missing direct-vs-stack container comparison once the Podman+Caddy stack is healthy.
