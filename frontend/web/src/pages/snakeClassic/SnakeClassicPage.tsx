@@ -44,6 +44,9 @@ const BACKGROUND_COLORS = {
   cardBorder: 'rgba(125, 211, 252, 0.14)',
 } as const
 
+const DIFFICULTY_OPTIONS: SnakeClassicDifficulty[] = ['slow', 'normal', 'fast']
+const REDUCED_MOTION_OPTIONS: SnakeClassicReducedMotionOverride[] = ['system', 'on', 'off']
+
 interface BoardMetrics {
   worldLeft: number
   worldTop: number
@@ -294,10 +297,15 @@ export function SnakeClassicPage() {
       }
 
       event.preventDefault()
-      setSettings((currentSettings) => ({
-        ...currentSettings,
-        lastControlHint: 'keyboard',
-      }))
+      setSettings((currentSettings) => {
+        if (currentSettings.lastControlHint === 'keyboard') {
+          return currentSettings
+        }
+        return {
+          ...currentSettings,
+          lastControlHint: 'keyboard',
+        }
+      })
       setRun((currentRun) => queueDirection(currentRun, nextDirection))
     }
 
@@ -463,10 +471,15 @@ export function SnakeClassicPage() {
   }, [animationsEnabled, isCompactViewport])
 
   const updateLastControlHint = (nextControlHint: SnakeClassicSettings['lastControlHint']) => {
-    setSettings((currentSettings) => ({
-      ...currentSettings,
-      lastControlHint: nextControlHint,
-    }))
+    setSettings((currentSettings) => {
+      if (currentSettings.lastControlHint === nextControlHint) {
+        return currentSettings
+      }
+      return {
+        ...currentSettings,
+        lastControlHint: nextControlHint,
+      }
+    })
   }
 
   const queueFollowPoint = (worldTarget: GridPoint) => {
@@ -543,18 +556,31 @@ export function SnakeClassicPage() {
   }
 
   const handleDifficultyChange = (difficulty: SnakeClassicDifficulty) => {
-    setSettings((currentSettings) => ({
-      ...currentSettings,
-      difficulty,
-    }))
+    setSettings((currentSettings) => {
+      if (currentSettings.difficulty === difficulty) {
+        return currentSettings
+      }
+      return {
+        ...currentSettings,
+        difficulty,
+      }
+    })
+    if (settings.difficulty === difficulty) {
+      return
+    }
     setRun(createSnakeClassicRun(difficulty, Math.random, Date.now()))
   }
 
   const handleReducedMotionChange = (reducedMotionOverride: SnakeClassicReducedMotionOverride) => {
-    setSettings((currentSettings) => ({
-      ...currentSettings,
-      reducedMotionOverride,
-    }))
+    setSettings((currentSettings) => {
+      if (currentSettings.reducedMotionOverride === reducedMotionOverride) {
+        return currentSettings
+      }
+      return {
+        ...currentSettings,
+        reducedMotionOverride,
+      }
+    })
   }
 
   const controlHintLabel = {
@@ -691,7 +717,7 @@ export function SnakeClassicPage() {
                 <p className="text-xs uppercase tracking-[0.2em] text-emerald-200/70">tick {run.tickMs}ms</p>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-2">
-                {(['slow', 'normal', 'fast'] as SnakeClassicDifficulty[]).map((difficulty) => (
+                {DIFFICULTY_OPTIONS.map((difficulty) => (
                   <button
                     key={difficulty}
                     type="button"
@@ -716,7 +742,7 @@ export function SnakeClassicPage() {
                 <p className="text-sm font-semibold">Effects and motion</p>
               </div>
               <div className="mt-3 grid grid-cols-3 gap-2">
-                {(['system', 'on', 'off'] as SnakeClassicReducedMotionOverride[]).map((option) => (
+                {REDUCED_MOTION_OPTIONS.map((option) => (
                   <button
                     key={option}
                     type="button"

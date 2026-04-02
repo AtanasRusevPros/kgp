@@ -576,3 +576,26 @@ Next focus:
 - inspect remaining Tic-Tac-Toe render/status cost
 - evaluate Snake and shared layout behavior
 - capture the missing direct-vs-stack comparison once the Podman+Caddy stack is healthy
+
+## 2026-04-02 08:55 EEST
+
+Summary:
+- Completed the next frontend analysis slice on `SnakeClassicPage` and the shared layout path.
+- Removed obvious repeated state writes during active Snake input and moved static option arrays out of render scope.
+- Kept the broader Snake canvas architecture unchanged because the measured browser baseline still shows the route as healthy.
+
+Verification:
+- `pnpm test:web` -> passed
+- `./dev.sh perf:frontend` -> passed
+
+Measured outcome:
+- Snake stayed near `60.66 FPS` before and after the change, with no meaningful route-level regression or major improvement.
+- The result supports keeping Snake largely as-is for now while focusing deeper optimization effort elsewhere.
+
+Artifacts:
+- Frontend rerun artifacts: `/tmp/kgp-perf/20260402-085012`
+- Optimization progress report: `project_docs/RnD_docs/PERFORMANCE_OPTIMIZATION_PROGRESS_2026-04-02.md`
+
+Next focus:
+- shift into deeper backend/database hotspot analysis beyond auth
+- capture missing direct-vs-stack metrics after the stack path is healthy

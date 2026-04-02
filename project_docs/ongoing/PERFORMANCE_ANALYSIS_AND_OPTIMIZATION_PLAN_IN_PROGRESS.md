@@ -363,3 +363,14 @@ Remaining immediate work:
 1. inspect whether Tic-Tac-Toe still has avoidable parent/status rerender cost beyond the hover path
 2. evaluate Snake and shared layout behavior next, since Snake is currently healthier and can serve as the comparison route
 3. restore a healthy Podman+Caddy stack path so the missing direct-vs-stack measurements can be collected
+
+## 2026-04-02 08:55 EEST
+
+Progress update:
+1. The Snake/shared-layout follow-up pass is complete.
+2. Snake-specific cleanup removed repeated settings writes during active input and moved static option arrays out of render scope.
+3. The browser rerun showed Snake remaining healthy with no meaningful route-level gain or regression, so broader Snake refactors remain deferred.
+
+Implication:
+1. Tic-Tac-Toe remains the only frontend route with a strong measured hotspot signature so far.
+2. The next performance phase should lean more heavily into backend/database analysis while keeping the missing direct-vs-stack measurement on deck.

@@ -84,3 +84,23 @@ This validates that the auth bottleneck was dominated by password hashing cost i
 1. Inspect remaining Tic-Tac-Toe parent/status rerender and animation cost.
 2. Evaluate Snake and shared layout behavior next.
 3. Capture the missing direct-vs-stack container comparison once the Podman+Caddy stack is healthy.
+
+## 2026-04-02 08:55 EEST
+
+### Frontend follow-up: Snake and shared layout
+
+The follow-up frontend pass focused on `SnakeClassicPage` and the shared layout path to determine whether the second browser-local game had the same kind of rerender pressure as Tic-Tac-Toe.
+
+What changed:
+1. Moved the difficulty and reduced-motion option arrays out of render scope.
+2. Stopped rewriting `settings.lastControlHint` when pointer/touch/keyboard input was already using the same hint.
+3. Stopped rewriting difficulty and reduced-motion settings when the selected value was already active.
+
+Measured outcome:
+1. Snake remained healthy at roughly `60.66 FPS` before and after the change.
+2. No meaningful route-level perf gain showed up in the browser baseline rerun.
+
+Interpretation:
+1. Snake does not currently present the same visible hotspot profile as Tic-Tac-Toe.
+2. The canvas loop remains acceptable for now, so broader Snake refactors should stay deferred until measurement shows a real issue.
+3. The small state-churn cleanup is still worth keeping because it removes unnecessary rerenders during active input without changing gameplay behavior.
