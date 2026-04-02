@@ -23,6 +23,7 @@ Additional game implementation guidance:
 - Performance standards (2026-04-02): [`project_docs/RnD_docs/PERFORMANCE_REVIEW_STANDARD.md`](project_docs/RnD_docs/PERFORMANCE_REVIEW_STANDARD.md)
 - React frontend performance guide (2026-04-02): [`project_docs/RnD_docs/REACT_PERFORMANCE_GUIDELINES.md`](project_docs/RnD_docs/REACT_PERFORMANCE_GUIDELINES.md)
 - Active performance execution plan (2026-04-02): [`project_docs/ongoing/PERFORMANCE_ANALYSIS_AND_OPTIMIZATION_PLAN_IN_PROGRESS.md`](project_docs/ongoing/PERFORMANCE_ANALYSIS_AND_OPTIMIZATION_PLAN_IN_PROGRESS.md)
+- New-project agent bootstrap guide (2026-04-02): [`project_docs/RnD_docs/NEW_PROJECT_AGENT_BOOTSTRAP_GUIDE.md`](project_docs/RnD_docs/NEW_PROJECT_AGENT_BOOTSTRAP_GUIDE.md)
 
 ---
 

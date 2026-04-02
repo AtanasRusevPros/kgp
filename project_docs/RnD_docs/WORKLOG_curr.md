@@ -673,3 +673,23 @@ Artifacts:
 Next focus:
 - fold the current findings into a final close-out state for this performance phase
 - keep future optimizations anchored to the measured bottlenecks now documented
+
+## 2026-04-02 12:20 EEST
+
+Summary:
+- Added a reusable bootstrap framework for future projects with a policy-focused guide and a templates-focused companion document.
+- Extended the framework with stronger command-surface, dependency-reporting, test-harness preflight, real-runtime verification, and optional quality-layer guidance.
+- Added Linux-family template support for pure Linux projects, daemon/service work, linkable libraries, IPC-oriented systems, and optional CMake bootstrap patterns.
+- Kept the framework decision-complete but explicitly classification-driven, so future agents can choose between the full-stack app blueprint, Linux-family templates, or a deliberate hybrid based on the actual project.
+
+Docs added or updated:
+- `project_docs/RnD_docs/NEW_PROJECT_AGENT_BOOTSTRAP_GUIDE.md`
+- `project_docs/RnD_docs/NEW_PROJECT_AGENT_BOOTSTRAP_TEMPLATES.md`
+- `README.md`
+
+Verification:
+- `git diff --check` -> passed repeatedly during the bootstrap-framework refinement pass
+
+Decision record:
+- The bootstrap framework is now ready for reuse as a transferable project-setup standard.
+- Future improvements should add more project-family blueprints rather than more general rules.
